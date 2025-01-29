@@ -13,5 +13,12 @@ public interface IState
 /// </summary>
 public interface IStateController
 {
-    
+    public virtual void HandleLocomotion()
+    {
+        //noop
+    }
+    public virtual void HandleJump()
+    { 
+        //noop
+    }
 }

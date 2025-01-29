@@ -12,7 +12,7 @@ public class StateMachine
     public void Update()
     {
         var transition = GetTransition();
-        if (transition != null) ChangeState(transition.to);
+        if (transition != null) ChangeState(transition.To);
         
         current.State?.Update();
     }
