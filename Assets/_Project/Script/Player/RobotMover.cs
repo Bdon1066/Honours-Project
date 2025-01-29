@@ -1,15 +1,14 @@
 using UnityEngine;
 
-public interface IMover 
+/// <summary>
+/// The Mover Interface, all movers (i.e. car, robot) will implement this interface.
+/// Movers handle how each Mode will move, actual movement in the world is done via Mode class
+/// </summary>
+public interface IMover
 {
-    
+    public void CheckForGround();
 }
-/*
-<summary>
- This class is for moving the robot mode
- TODO: Once carMover has been made, establish common stuff between them and abstract up
-</summary>
-*/
+
 [RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]  
 public class RobotMover : MonoBehaviour, IMover
 {
@@ -63,7 +62,8 @@ public class RobotMover : MonoBehaviour, IMover
         }
         
         currentGroundAdjustmentVelocity = Vector3.zero;
-        sensor.castLength =  usingExtendedSensorRange 
+        
+        sensor.castLength =  usingExtendedSensorRange //extend sesnor range if required
             ? baseSensorRange + colliderHeight * tr.localScale.x * stepHeightRatio 
             : baseSensorRange;
         sensor.Cast();

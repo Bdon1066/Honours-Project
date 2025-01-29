@@ -1,11 +1,19 @@
 using UnityEngine;
+using System;
 
+/// <summary>
+/// The Mode Interface, all modes (i.e. car, robot) will implement this interface.
+/// The mode class handles each form's movement, animations, and is self-contained.
+/// </summary>
 public  interface IMode 
 {
     
 }
-
-public class RobotMode : MonoBehaviour, IMode
+public abstract class BaseMode: MonoBehaviour, IStateController, IMode
+{
+   
+}
+public class RobotMode : BaseMode
 {
     #region Fields
 
@@ -32,5 +40,43 @@ public class RobotMode : MonoBehaviour, IMode
     //StateMachine stateMachine;
     //CountdownTimer jumpTimer;
 
+    [SerializeField] Transform cameraTransform;
+
+    Vector3 momentum, savedVelocity, savedMovementVelocity;
+
+    public event Action<Vector3> OnJump = delegate { };
+    public event Action<Vector3> OnLand = delegate { };
+
     #endregion
+
+    void Awake()
+    {
+        tr = transform;
+        mover = GetComponent<IMover>();
+        
+        //jumpTimer = new CountdownTimer(jumpDuration)
+        //statemachine stuff
+    }
+
+    public Vector3 GetMomentum => useLocalMomentum
+        ? tr.localToWorldMatrix * momentum
+        : momentum;
+
+    void FixedUpdate()
+    {
+        mover.CheckForGround();
+        HandleMomentum();
+    }
+    void HandleMomentum()
+    {
+        if (useLocalMomentum) momentum = tr.localToWorldMatrix * momentum;
+
+        Vector3 verticalMomentum = Utils.ExtractDotVector(momentum, tr.up); //extract vertical momentum
+        Vector3 horizontalMomentum = momentum - verticalMomentum; //thus leaving horizontal remaining
+
+        verticalMomentum -= tr.up * (gravity * Time.deltaTime); //add gravity
+        
+    }
+    
+    
 }

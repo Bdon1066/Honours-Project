@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class CarMode : MonoBehaviour, IMode
+public class CarMode : BaseMode
 {
     
 }

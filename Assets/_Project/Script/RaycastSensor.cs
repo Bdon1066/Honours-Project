@@ -1,10 +1,10 @@
 using UnityEngine;
 
 
-/*
- * This is a generic raycast script that
- * can be used for a bunch of stuff
- */
+
+/// <summary>
+/// A generic raycast script for handling things like a ground check.
+/// </summary>
 public class RaycastSensor
 {
     public float castLength = 1.0f;
