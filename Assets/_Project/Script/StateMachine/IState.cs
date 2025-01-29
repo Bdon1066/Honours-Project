@@ -9,7 +9,7 @@ public interface IState
     
 }
 /// <summary>
-/// An interface allowing class functions to be refrenced by states
+/// An interface allowing class functions to be refrenced by states (for use in player controller and handles mode change states)
 /// </summary>
 public interface IStateController
 {

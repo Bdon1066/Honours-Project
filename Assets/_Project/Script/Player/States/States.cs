@@ -4,8 +4,8 @@ using UnityEditor;
 /// </summary>
 public class GroundedState : IState
 {
-    readonly IStateController controller;
-    public GroundedState(IStateController controller)
+    readonly IMovementStateController controller;
+    public GroundedState(IMovementStateController controller)
     {
         this.controller = controller;
     }
@@ -21,8 +21,8 @@ public class GroundedState : IState
 /// </summary>
 public class FallingState : IState
 {
-    readonly IStateController controller;
-    public FallingState(IStateController controller)
+    readonly IMovementStateController controller;
+    public FallingState(IMovementStateController controller)
     {
         this.controller = controller;
     }
@@ -38,8 +38,8 @@ public class FallingState : IState
 /// </summary>
 public class SlidingState : IState
 {
-    readonly IStateController controller;
-    public SlidingState(IStateController controller)
+    readonly IMovementStateController controller;
+    public SlidingState(IMovementStateController controller)
     {
         this.controller = controller;
     }
@@ -55,8 +55,8 @@ public class SlidingState : IState
 /// </summary>
 public class RisingState : IState
 {
-    readonly IStateController controller;
-    public RisingState(IStateController controller)
+    readonly IMovementStateController controller;
+    public RisingState(IMovementStateController controller)
     {
         this.controller = controller;
     }
@@ -72,8 +72,8 @@ public class RisingState : IState
 /// </summary>
 public class JumpingState : IState
 {
-    readonly IStateController controller;
-    public JumpingState(IStateController controller)
+    readonly IMovementStateController controller;
+    public JumpingState(IMovementStateController controller)
     {
         this.controller = controller;
     }
