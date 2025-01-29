@@ -8,7 +8,7 @@ public interface IMode
 {
     
 }
-public abstract class BaseMode: MonoBehaviour, IStateController, IMode
+public abstract class BaseMode: MonoBehaviour, IMovementStateController, IMode
 {
    
 }
