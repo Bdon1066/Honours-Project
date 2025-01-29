@@ -1,14 +1,17 @@
 using UnityEngine;
 
-
+public interface IMover 
+{
+    
+}
 /*
 <summary>
  This class is for moving the robot mode
- TODO: Create either mode base class or mode interface to allow creation of a "CarMover" thing
+ TODO: Once carMover has been made, establish common stuff between them and abstract up
 </summary>
 */
 [RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]  
-public class RobotMover : MonoBehaviour
+public class RobotMover : MonoBehaviour, IMover
 {
     [Header("Collider Settings")] 
     [Range(0f,1f)][SerializeField] float stepHeightRatio = 0.1f;
