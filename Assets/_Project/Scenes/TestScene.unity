@@ -162,6 +162,7 @@ GameObject:
   - component: {fileID: 28009199}
   - component: {fileID: 28009198}
   - component: {fileID: 28009197}
+  - component: {fileID: 28009201}
   m_Layer: 0
   m_Name: Robot
   m_TagString: Untagged
@@ -193,7 +194,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 28009196}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 191cf203ef2ec3643a7362614f3a9797, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -253,6 +254,31 @@ Transform:
   - {fileID: 1073442}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &28009201
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 28009196}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e8e439687534b86bff186968a653b83, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  useLocalMomentum: 0
+  input: {fileID: 11400000, guid: 0049de2aa9e2d5645a1711574415abbd, type: 2}
+  movementSpeed: 7
+  groundFriction: 100
+  gravity: 30
+  jumpSpeed: 10
+  jumpDuration: 0.2
+  airControlRate: 2
+  airControlScalingFactor: 0.25
+  airFriction: 0.5
+  slideGravity: 5
+  slopeLimit: 30
+  cameraTransform: {fileID: 0}
 --- !u!1 &284301860
 GameObject:
   m_ObjectHideFlags: 0

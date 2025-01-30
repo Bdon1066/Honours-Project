@@ -11,4 +11,6 @@ public class Transition : ITransition
         To = to;
         Condition = condition;
     }
+
 }
+

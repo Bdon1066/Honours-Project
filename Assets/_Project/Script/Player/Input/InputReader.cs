@@ -9,6 +9,8 @@ public interface IInputReader
     Vector2 Direction { get; }
     public void EnablePlayerActions();
 }
+
+[CreateAssetMenu(fileName = "PlayerInputReader")]
 public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IPlayerActions
 {
     public event UnityAction<Vector2> Move = delegate { };

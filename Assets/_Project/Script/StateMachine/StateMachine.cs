@@ -9,6 +9,8 @@ public class StateMachine
     Dictionary<Type, StateNode> nodes = new();
     HashSet<ITransition> anyTransitions = new(); //transitions that dont need a "From" state
 
+    public IState CurrentState => current.State;
+    
     public void Update()
     {
         var transition = GetTransition();

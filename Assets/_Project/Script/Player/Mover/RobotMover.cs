@@ -7,6 +7,11 @@ using UnityEngine;
 public interface IMover
 {
     public void CheckForGround();
+    public bool IsGrounded();
+    public Vector3 GetGroundNormal();
+    public void SetVelocity(Vector3 velocity);
+    public void SetExtendSensorRange(bool isExtended);
+   
 }
 
 [RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]  
@@ -133,5 +138,8 @@ public class RobotMover : MonoBehaviour, IMover
 
         int ignoreRaycastLayer = LayerMask.GetMask("Ignore Raycast"); // and do the same with ignore raycast layer
         layerMask &= ~(1 << ignoreRaycastLayer);
+
+        sensor.layerMask = layerMask;
+        currentLayer = objectLayer;
     }
 }
