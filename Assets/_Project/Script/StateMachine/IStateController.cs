@@ -10,20 +10,20 @@ public interface IStateController
 /// </summary>
 public interface IMovementStateController : IStateController
 {
-    public virtual void OnGroundContactRegained()
+    public void OnGroundContactRegained()
     {
         //noop
     }
-    public virtual void OnGroundContactLost()
+    public void OnGroundContactLost()
     {
         //noop
     }
-    public virtual void OnFallStart()
+    public void OnFallStart()
     {
         //noop
     }
    
-    public virtual void OnJumpStart()
+    public void OnJumpStart()
     {
         //noop
     }

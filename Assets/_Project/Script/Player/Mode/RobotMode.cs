@@ -1,9 +1,10 @@
 using System;
 using ImprovedTimers;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UIElements;
 
-public class RobotMode : BaseMode, IMode
+public class RobotMode : MonoBehaviour, IMode, IMovementStateController
 {
     #region Fields
 
@@ -47,6 +48,8 @@ public class RobotMode : BaseMode, IMode
     
     bool IsGrounded() => stateMachine.CurrentState is GroundedState or SlidingState;
     public Vector3 GetMomentum() => useLocalMomentum ? tr.localToWorldMatrix * momentum : momentum;
+    public Vector3 GetMovementVelocity() => savedMovementVelocity;
+   
 
     void Awake()
     {
@@ -59,6 +62,23 @@ public class RobotMode : BaseMode, IMode
     void Start()
     {
         input.EnablePlayerActions();
+        input.Jump += HandleKeyJumpInput;
+    }
+
+    void HandleKeyJumpInput(bool isButtonPressed)
+    {
+        if (!jumpIsPressed && isButtonPressed)
+        {
+            jumpWasPressed = true;
+        }
+
+        if (jumpWasPressed && !isButtonPressed)
+        {
+            jumpLetGo = true;
+            jumpInputLocked = false;
+        }
+
+        jumpIsPressed = isButtonPressed;
     }
 
     void Update()
@@ -82,10 +102,10 @@ public class RobotMode : BaseMode, IMode
         At(grounded, falling, new FuncPredicate(() => !mover.IsGrounded()));
         At(grounded,jumping,new FuncPredicate(() => (jumpIsPressed || jumpWasPressed) && !jumpInputLocked));
         
-        At(jumping, falling, new FuncPredicate(() => IsFalling()));
-        At(jumping, rising, new FuncPredicate(() => IsRising() && jumpInputLocked || jumpLetGo));
-        At(jumping, sliding,  new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
-        At(jumping, grounded, new FuncPredicate(() => mover.IsGrounded() && !IsGroundTooSteep()));
+        //At(jumping, falling, new FuncPredicate(() => IsFalling()));
+        At(jumping, rising, new FuncPredicate(() => jumpTimer.IsFinished || jumpLetGo));
+        //At(jumping, sliding,  new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
+       // At(jumping, grounded, new FuncPredicate(() => mover.IsGrounded() && !IsGroundTooSteep()));
         
         At(falling, rising, new FuncPredicate(() => IsRising()));
         At(falling, sliding, new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
@@ -128,8 +148,9 @@ public class RobotMode : BaseMode, IMode
         //save values for next frame
         savedVelocity = velocity;
         savedMovementVelocity = CalculateMovementVelocity();
-        
-        
+
+        ResetJumpKeys();
+
     }
    
     void HandleMomentum()
@@ -163,9 +184,73 @@ public class RobotMode : BaseMode, IMode
 
             momentum = horizontalMomentum + verticalMomentum;
 
+            if (stateMachine.CurrentState is JumpingState)
+            {
+                HandleJumping();
+            }
+
+            if (stateMachine.CurrentState is SlidingState)
+            {
+                momentum = Vector3.ProjectOnPlane(momentum, mover.GetGroundNormal()); // project momentum onto ground normal plane, ensuring smooth sliding over minute bumps
+        
+                if (Utils.GetDotProduct(momentum, tr.up) > 0f) momentum = Utils.RemoveDotVector(momentum, tr.up); //remove any upwards momentum if it exists
+        
+                Vector3 slideDirection = Vector3.ProjectOnPlane(-tr.up, mover.GetGroundNormal().normalized); //projecting downward plane 
+                momentum += slideDirection * (slideGravity * Time.deltaTime);
+            }
+
             if (useLocalMomentum) momentum = tr.worldToLocalMatrix * momentum;
 
 
+    }
+
+    void ResetJumpKeys()
+    {
+        jumpLetGo = false;
+        jumpWasPressed = false;
+    }
+    public void OnJumpStart()
+    {
+        if (useLocalMomentum) momentum = tr.localToWorldMatrix * momentum;
+
+        momentum += tr.up * jumpSpeed;
+        jumpTimer.Start();
+        jumpInputLocked = true;
+        OnJump.Invoke(momentum);
+    }
+    public void OnGroundContactLost()
+    {
+        if (useLocalMomentum) momentum = tr.localToWorldMatrix * momentum;
+            
+        Vector3 velocity = GetMovementVelocity();
+        //TODO: Write comments here 
+        if (velocity.sqrMagnitude >= 0f && momentum.sqrMagnitude > 0f) 
+        {
+            Vector3 projectedMomentum = Vector3.Project(momentum, velocity.normalized);
+            float dot = Utils.GetDotProduct(projectedMomentum.normalized, velocity.normalized);
+            
+            if (projectedMomentum.sqrMagnitude >= velocity.sqrMagnitude && dot > 0f) velocity = Vector3.zero;
+            else if (dot > 0f) velocity -= projectedMomentum;
+        }
+        momentum += velocity;
+            
+        if (useLocalMomentum) momentum = tr.worldToLocalMatrix * momentum;
+    }
+
+   
+    
+
+    public void OnGroundContactRegained()
+    {
+        //send off current momentum for vfx/sfx/animator tracking
+        Vector3 collisionVelocity = useLocalMomentum ? tr.localToWorldMatrix * momentum : momentum;
+        OnLand.Invoke(collisionVelocity);
+    }
+
+    void HandleJumping()
+    {
+        momentum += Utils.RemoveDotVector(momentum, tr.up);
+        momentum += tr.up * jumpSpeed;
     }
 
     private void HandleSliding(ref Vector3 horizontalMomentum)
@@ -174,13 +259,7 @@ public class RobotMode : BaseMode, IMode
         Vector3 movementVelocity = CalculateMovementVelocity();
         movementVelocity = Utils.RemoveDotVector(movementVelocity, pointDownVector); //remove player inputted velocity in direction of slope descent to prevent players movement adding onto the sliding
         horizontalMomentum += movementVelocity * Time.fixedDeltaTime;
-
-        momentum = Vector3.ProjectOnPlane(momentum, mover.GetGroundNormal()); // project momentum onto ground normal plane, ensuring smooth sliding over minute bumps
         
-        if (Utils.GetDotProduct(momentum, tr.up) > 0f) momentum = Utils.RemoveDotVector(momentum, tr.up); //remove any upwards momentum if it exists
-        
-        Vector3 slideDirection = Vector3.ProjectOnPlane(-tr.up, mover.GetGroundNormal().normalized); //projecting downward plane 
-        momentum += slideDirection * (slideGravity * Time.deltaTime);
     }
 
     void AdjustInAirHorizontalMomentum(ref Vector3 horizontalMomentum, Vector3 movementVelocity)
