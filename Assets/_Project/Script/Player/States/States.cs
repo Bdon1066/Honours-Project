@@ -85,3 +85,51 @@ public class JumpingState : IState
     }
 
 }
+/// <summary>
+/// A state for when we are in Robot Mode
+/// </summary>
+public class RobotState : IState
+{
+    readonly IModeStateController controller;
+    public RobotState(IModeStateController controller)
+    {
+        this.controller = controller;
+    }
+
+    public void OnEnter()
+    {
+        controller.OnRobotStart();
+    }
+
+}
+/// <summary>
+/// A state for when we are in Car Mode
+/// </summary>
+public class CarState : IState
+{
+    readonly IModeStateController controller;
+    public CarState(IModeStateController controller)
+    {
+        this.controller = controller;
+    }
+
+    public void OnEnter()
+    {
+        controller.OnCarStart();
+    }
+
+}
+public class TransformingState : IState
+{
+    readonly IModeStateController controller;
+    public TransformingState(IModeStateController controller)
+    {
+        this.controller = controller;
+    }
+
+    public void OnEnter()
+    {
+        controller.OnTransformStart();
+    }
+
+}

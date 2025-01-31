@@ -7,14 +7,11 @@ using UnityEngine.UIElements;
 public class RobotMode : MonoBehaviour, IMode, IMovementStateController
 {
     #region Fields
-
-    [SerializeField] private InputReader input;
-
-    //TODO: PUT INPUT IN THE PLAYER CONTROLLER 
     
     Transform tr;
     IMover mover;
-    
+    InputReader input;
+
     bool jumpInputLocked, jumpWasPressed, jumpLetGo, jumpIsPressed;
 
     public float movementSpeed = 7f;
@@ -50,14 +47,13 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
     public Vector3 GetMomentum() => useLocalMomentum ? tr.localToWorldMatrix * momentum : momentum;
     public Vector3 GetMovementVelocity() => savedMovementVelocity;
 
-    void At(IState from, IState to, IPredicate condition) => stateMachine.AddTransition(from, to, condition);
-    void Any(IState to, IPredicate condition) => stateMachine.AddAnyTransition(to, condition);
-    bool IsRising() => Utils.GetDotProduct(GetMomentum(), tr.up) > 0f;
-    bool IsFalling() => Utils.GetDotProduct(GetMomentum(), tr.up) < 0f;
-    bool IsGroundTooSteep() => !mover.IsGrounded() || Vector3.Angle(mover.GetGroundNormal(), tr.up) > slopeLimit;
+   
 
 
-
+    public void Init(InputReader inputReader)
+    {
+       input = inputReader;
+    }
     void Awake()
     {
         tr = transform;
@@ -68,7 +64,6 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
 
     void Start()
     {
-        input.EnablePlayerActions();
         input.Jump += HandleKeyJumpInput;
     }
 
@@ -87,11 +82,8 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
         At(grounded, falling, new FuncPredicate(() => !mover.IsGrounded()));
         At(grounded, jumping, new FuncPredicate(() => (jumpIsPressed || jumpWasPressed) && !jumpInputLocked));
 
-        //At(jumping, falling, new FuncPredicate(() => IsFalling()));
         At(jumping, rising, new FuncPredicate(() => jumpTimer.IsFinished || jumpLetGo));
-        //At(jumping, sliding,  new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
-        // At(jumping, grounded, new FuncPredicate(() => mover.IsGrounded() && !IsGroundTooSteep()));
-
+        
         At(falling, rising, new FuncPredicate(() => IsRising()));
         At(falling, sliding, new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
         At(falling, grounded, new FuncPredicate(() => mover.IsGrounded() && !IsGroundTooSteep()));
@@ -107,6 +99,11 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
         stateMachine.SetState(falling);
 
     }
+    void At(IState from, IState to, IPredicate condition) => stateMachine.AddTransition(from, to, condition);
+    void Any(IState to, IPredicate condition) => stateMachine.AddAnyTransition(to, condition);
+    bool IsRising() => Utils.GetDotProduct(GetMomentum(), tr.up) > 0f;
+    bool IsFalling() => Utils.GetDotProduct(GetMomentum(), tr.up) < 0f;
+    bool IsGroundTooSteep() => !mover.IsGrounded() || Vector3.Angle(mover.GetGroundNormal(), tr.up) > slopeLimit;
     void Update()
     {
         stateMachine.Update();

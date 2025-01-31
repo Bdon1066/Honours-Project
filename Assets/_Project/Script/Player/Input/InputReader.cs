@@ -15,6 +15,7 @@ public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IP
 {
     public event UnityAction<Vector2> Move = delegate { };
     public event UnityAction<bool> Jump = delegate { };
+    public event UnityAction<bool> Transform = delegate { };
 
     public PlayerInputActions inputActions;
 
@@ -57,5 +58,17 @@ public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IP
 
     }
 
+    public void OnTransform(InputAction.CallbackContext context)
+    {
+        switch (context.phase)
+        {
+            case InputActionPhase.Started:
+                Transform.Invoke(true);
+                break;
+            case InputActionPhase.Canceled:
+                Transform.Invoke(false);
+                break;
+        }
+    }
 }
 

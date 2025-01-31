@@ -7,9 +7,11 @@ using UnityEngine;
 /// </summary>
 public interface IMode
 {
-    
-}
-public abstract class BaseMode: MonoBehaviour, IMovementStateController
-{
+    /// <summary>
+    /// For passing Input into each mode from player controller
+    /// </summary>
+    /// <param name="input">The input reader of player controller</param>
+    public void Init(InputReader input);
 
+    public Vector3 GetMomentum();
 }
