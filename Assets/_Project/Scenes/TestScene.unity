@@ -268,7 +268,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   input: {fileID: 11400000, guid: 0049de2aa9e2d5645a1711574415abbd, type: 2}
-  movementSpeed: 7
+  movementSpeed: 17
   groundFriction: 100
   gravity: 30
   jumpSpeed: 10

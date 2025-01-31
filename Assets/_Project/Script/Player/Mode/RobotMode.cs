@@ -49,7 +49,14 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
     bool IsGrounded() => stateMachine.CurrentState is GroundedState or SlidingState;
     public Vector3 GetMomentum() => useLocalMomentum ? tr.localToWorldMatrix * momentum : momentum;
     public Vector3 GetMovementVelocity() => savedMovementVelocity;
-   
+
+    void At(IState from, IState to, IPredicate condition) => stateMachine.AddTransition(from, to, condition);
+    void Any(IState to, IPredicate condition) => stateMachine.AddAnyTransition(to, condition);
+    bool IsRising() => Utils.GetDotProduct(GetMomentum(), tr.up) > 0f;
+    bool IsFalling() => Utils.GetDotProduct(GetMomentum(), tr.up) < 0f;
+    bool IsGroundTooSteep() => !mover.IsGrounded() || Vector3.Angle(mover.GetGroundNormal(), tr.up) > slopeLimit;
+
+
 
     void Awake()
     {
@@ -65,28 +72,6 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
         input.Jump += HandleKeyJumpInput;
     }
 
-    void HandleKeyJumpInput(bool isButtonPressed)
-    {
-        if (!jumpIsPressed && isButtonPressed)
-        {
-            jumpWasPressed = true;
-        }
-
-        if (jumpWasPressed && !isButtonPressed)
-        {
-            jumpLetGo = true;
-            jumpInputLocked = false;
-        }
-
-        jumpIsPressed = isButtonPressed;
-    }
-
-    void Update()
-    {
-        stateMachine.Update();
-        print(stateMachine.CurrentState);
-    }
-
     void SetupStateMachine()
     {
         stateMachine = new StateMachine();
@@ -100,35 +85,36 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
         At(grounded, rising, new FuncPredicate(() => IsRising()));
         At(grounded, sliding, new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
         At(grounded, falling, new FuncPredicate(() => !mover.IsGrounded()));
-        At(grounded,jumping,new FuncPredicate(() => (jumpIsPressed || jumpWasPressed) && !jumpInputLocked));
-        
+        At(grounded, jumping, new FuncPredicate(() => (jumpIsPressed || jumpWasPressed) && !jumpInputLocked));
+
         //At(jumping, falling, new FuncPredicate(() => IsFalling()));
         At(jumping, rising, new FuncPredicate(() => jumpTimer.IsFinished || jumpLetGo));
         //At(jumping, sliding,  new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
-       // At(jumping, grounded, new FuncPredicate(() => mover.IsGrounded() && !IsGroundTooSteep()));
-        
+        // At(jumping, grounded, new FuncPredicate(() => mover.IsGrounded() && !IsGroundTooSteep()));
+
         At(falling, rising, new FuncPredicate(() => IsRising()));
         At(falling, sliding, new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
         At(falling, grounded, new FuncPredicate(() => mover.IsGrounded() && !IsGroundTooSteep()));
-        
+
         At(rising, sliding, new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
         At(rising, grounded, new FuncPredicate(() => mover.IsGrounded() && !IsGroundTooSteep()));
         At(rising, falling, new FuncPredicate(() => IsFalling()));
-        
+
         At(sliding, grounded, new FuncPredicate(() => mover.IsGrounded() && !IsGroundTooSteep()));
         At(sliding, falling, new FuncPredicate(() => !mover.IsGrounded()));
         At(sliding, rising, new FuncPredicate(() => IsRising()));
-        
+
         stateMachine.SetState(falling);
 
     }
-    void At(IState from, IState to,IPredicate condition) => stateMachine.AddTransition(from, to, condition);
-    void Any(IState to,IPredicate condition) => stateMachine.AddAnyTransition(to, condition);
-    bool IsRising() => Utils.GetDotProduct(GetMomentum(), tr.up) > 0f;
-    bool IsFalling() => Utils.GetDotProduct(GetMomentum(), tr.up) < 0f;
-    bool IsGroundTooSteep() =>  !mover.IsGrounded() || Vector3.Angle(mover.GetGroundNormal(), tr.up) > slopeLimit;
+    void Update()
+    {
+        stateMachine.Update();
+        print(stateMachine.CurrentState);
+    }
 
-    
+  
+
 
     void FixedUpdate()
     {
@@ -203,7 +189,21 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
 
 
     }
+    void HandleKeyJumpInput(bool isButtonPressed)
+    {
+        if (!jumpIsPressed && isButtonPressed)
+        {
+            jumpWasPressed = true;
+        }
 
+        if (jumpIsPressed && !isButtonPressed)
+        {
+            jumpLetGo = true;
+            jumpInputLocked = false;
+        }
+
+        jumpIsPressed = isButtonPressed;
+    }
     void ResetJumpKeys()
     {
         jumpLetGo = false;
@@ -237,9 +237,7 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
         if (useLocalMomentum) momentum = tr.worldToLocalMatrix * momentum;
     }
 
-   
-    
-
+ 
     public void OnGroundContactRegained()
     {
         //send off current momentum for vfx/sfx/animator tracking
@@ -249,7 +247,7 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
 
     void HandleJumping()
     {
-        momentum += Utils.RemoveDotVector(momentum, tr.up);
+        momentum = Utils.RemoveDotVector(momentum, tr.up);
         momentum += tr.up * jumpSpeed;
     }
 
@@ -260,6 +258,20 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
         movementVelocity = Utils.RemoveDotVector(movementVelocity, pointDownVector); //remove player inputted velocity in direction of slope descent to prevent players movement adding onto the sliding
         horizontalMomentum += movementVelocity * Time.fixedDeltaTime;
         
+    }
+    Vector3 CalculateMovementVelocity() => CalculateMovementDirection() * movementSpeed;
+
+
+    Vector3 CalculateMovementDirection()
+    {
+
+        Vector3 direction = cameraTransform == null //do we have a camera?
+            ? tr.right * input.Direction.x + tr.forward * input.Direction.y //if not, direction determined by input directly
+            : Vector3.ProjectOnPlane(cameraTransform.right, tr.up).normalized * input.Direction.x + //else direction determined by camera position plus input
+              Vector3.ProjectOnPlane(cameraTransform.forward, tr.up).normalized * input.Direction.y;
+        //if direction greater than 1 normalize down to 1, else remain as is
+        return direction.magnitude > 1f ? direction.normalized : direction;
+
     }
 
     void AdjustInAirHorizontalMomentum(ref Vector3 horizontalMomentum, Vector3 movementVelocity)
@@ -285,20 +297,7 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
     }
 
 
-    Vector3 CalculateMovementVelocity() => CalculateMovementDirection() * movementSpeed;
 
-
-    Vector3 CalculateMovementDirection()
-    {
-        
-        Vector3 direction = cameraTransform == null //do we have a camera?
-            ? tr.right * input.Direction.x + tr.forward * input.Direction.y //if not, direction determined by input directly
-            : Vector3.ProjectOnPlane(cameraTransform.right, tr.up).normalized * input.Direction.x + //else direction determined by camera position plus input
-              Vector3.ProjectOnPlane(cameraTransform.forward, tr.up).normalized * input.Direction.y;
-        //if direction greater than 1 normalize down to 1, else remain as is
-        return direction.magnitude > 1f ? direction.normalized : direction;
-        
-    }
 
    
 }
