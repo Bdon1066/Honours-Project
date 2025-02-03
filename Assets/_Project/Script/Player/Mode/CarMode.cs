@@ -6,11 +6,14 @@ public class CarMode : MonoBehaviour, IMode , IMovementStateController
     {
         return Vector3.zero;
     }
+    [SerializeField] private GameObject model;
 
     public void Init(InputReader inputReader)
     {
-
     }
+
+    public void ShowModel() => model.SetActive(true);
+    public void HideModel() => model.SetActive(false);
 
 
 }

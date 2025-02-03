@@ -98,7 +98,7 @@ public class RobotState : IState
 
     public void OnEnter()
     {
-        controller.OnRobotStart();
+        controller.OnModeStart<RobotMode>();
     }
 
 }
@@ -115,7 +115,7 @@ public class CarState : IState
 
     public void OnEnter()
     {
-        controller.OnCarStart();
+        controller.OnModeStart<CarMode>();
     }
 
 }

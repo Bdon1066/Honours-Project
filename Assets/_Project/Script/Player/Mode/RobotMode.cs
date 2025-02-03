@@ -12,6 +12,8 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
     IMover mover;
     InputReader input;
 
+    [SerializeField] private GameObject model;
+
     bool jumpInputLocked, jumpWasPressed, jumpLetGo, jumpIsPressed;
 
     public float movementSpeed = 7f;
@@ -43,11 +45,13 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
 
     #endregion
     
+    
     bool IsGrounded() => stateMachine.CurrentState is GroundedState or SlidingState;
     public Vector3 GetMomentum() => useLocalMomentum ? tr.localToWorldMatrix * momentum : momentum;
     public Vector3 GetMovementVelocity() => savedMovementVelocity;
 
-   
+    public void ShowModel() => model.SetActive(true);
+    public void HideModel() => model.SetActive(false);
 
 
     public void Init(InputReader inputReader)

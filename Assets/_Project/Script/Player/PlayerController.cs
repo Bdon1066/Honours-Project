@@ -27,13 +27,13 @@ public class PlayerController : MonoBehaviour, IModeStateController
     IMode GetPreviousMode() => currentMode;
     void Awake()
     {
-        SetupStateMachine();
         transformTimer = new CountdownTimer(transformDuration);
     }
  
     private void Start()
     {
         InitModes();
+        SetupStateMachine();
         input.EnablePlayerActions();
         input.Transform += HandleTransformInput;
     }
@@ -87,31 +87,20 @@ public class PlayerController : MonoBehaviour, IModeStateController
         stateMachine.SetState(robot);
     }
 
-    public void OnCarStart()
+    public void OnModeStart<T>() where T : IMode
     {
-        currentMode = GetMode<CarMode>();
-        //remove old model
-        //add new model
-        //probs do some kickstarting to the mode
+       SetCurrentMode<T>();
+
+       //probs do some kickstarting to the mode
     }
-    public void OnRobotStart()
-    {
-        currentMode = GetMode<RobotMode>();
-        //remove old model
-        //add new model
-        //probs do some kickstarting to the mode
-    }
+
     public void OnTransformStart()
     {
         transformInputLocked = true;
         previousMode = currentMode;
         transformTimer.Start();
 
-        OnTransform.Invoke(currentMode.GetMomentum()); 
-
-        //remove old model
-        //add new model
-        //probs do some kickstarting to the mode
+        OnTransform.Invoke(currentMode.GetMomentum());
     }
 
 
@@ -140,6 +129,16 @@ public class PlayerController : MonoBehaviour, IModeStateController
             if (mode is T) return mode;
         }
         return null;
+    }
+    void SetCurrentMode<T>() where T : IMode
+    {
+        currentMode = GetMode<T>();
+        foreach (var mode in modes)
+        {
+            if (mode is T) mode.ShowModel();
+            else mode.HideModel();
+        }
+        
     }
 
 }

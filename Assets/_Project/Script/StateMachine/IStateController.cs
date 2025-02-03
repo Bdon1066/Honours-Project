@@ -32,16 +32,9 @@ public interface IMovementStateController : IStateController
 /// </summary>
 public interface IModeStateController : IStateController
 {
-    public void OnRobotStart()
-    {
+    public void OnModeStart<T>() where T : IMode;
 
-    }
-    public void OnCarStart()
-    {
 
-    }
-    public void OnTransformStart()
-    {
+    public void OnTransformStart();
 
-    }
 }

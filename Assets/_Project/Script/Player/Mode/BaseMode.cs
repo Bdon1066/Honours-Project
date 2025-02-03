@@ -12,6 +12,9 @@ public interface IMode
     /// </summary>
     /// <param name="input">The input reader of player controller</param>
     public void Init(InputReader input);
+    
+    public void ShowModel();
+    public void HideModel();
 
     public Vector3 GetMomentum();
 }
