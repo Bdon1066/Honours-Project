@@ -89,9 +89,9 @@ public class PlayerController : MonoBehaviour, IModeStateController
 
     public void OnModeStart<T>() where T : IMode
     {
-       SetCurrentMode<T>();
-
-       //probs do some kickstarting to the mode
+        SetMode<T>();
+        if (previousMode != null) currentMode.EnterMode(previousMode.GetState(),previousMode.GetMomentum());
+       //TODO: Set state of mode dependent on the state of the previous mode
     }
 
     public void OnTransformStart()
@@ -130,13 +130,22 @@ public class PlayerController : MonoBehaviour, IModeStateController
         }
         return null;
     }
-    void SetCurrentMode<T>() where T : IMode
+    void SetMode<T>() where T : IMode
     {
         currentMode = GetMode<T>();
         foreach (var mode in modes)
         {
-            if (mode is T) mode.ShowModel();
-            else mode.HideModel();
+            //enable our set mode and disable all others
+            if (mode is T)
+            {
+                mode.SetEnabled(true);
+                mode.ShowModel();
+            }
+            else
+            {
+                mode.SetEnabled(false);
+                mode.HideModel();
+            }
         }
         
     }

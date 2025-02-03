@@ -17,4 +17,10 @@ public interface IMode
     public void HideModel();
 
     public Vector3 GetMomentum();
+    public IState GetState();
+    
+    public void SetEnabled(bool value);
+    public bool IsEnabled();
+
+    public void EnterMode(IState entryState, Vector3 entryMomentum);
 }

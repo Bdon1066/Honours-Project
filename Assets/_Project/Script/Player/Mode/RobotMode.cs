@@ -1,5 +1,6 @@
 using System;
 using ImprovedTimers;
+using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UIElements;
@@ -38,6 +39,8 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
 
     [SerializeField] Transform cameraTransform;
 
+    private bool isEnabled;
+
     
 
     public event Action<Vector3> OnJump = delegate { };
@@ -48,10 +51,20 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
     
     bool IsGrounded() => stateMachine.CurrentState is GroundedState or SlidingState;
     public Vector3 GetMomentum() => useLocalMomentum ? tr.localToWorldMatrix * momentum : momentum;
+    public IState GetState() => stateMachine.CurrentState;
     public Vector3 GetMovementVelocity() => savedMovementVelocity;
+
+    public StateMachine GetStateMachine() => stateMachine;
 
     public void ShowModel() => model.SetActive(true);
     public void HideModel() => model.SetActive(false);
+    public void SetEnabled(bool value) => isEnabled = value;
+    public bool IsEnabled() => isEnabled;
+    public void EnterMode(IState entryState, Vector3 entryMomentum)
+    {
+        stateMachine.SetState(entryState);
+        momentum = entryMomentum;
+    }
 
 
     public void Init(InputReader inputReader)
@@ -107,8 +120,8 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
     bool IsGroundTooSteep() => !mover.IsGrounded() || Vector3.Angle(mover.GetGroundNormal(), tr.up) > slopeLimit;
     void Update()
     {
+        if (!IsEnabled()) return;
         stateMachine.Update();
-        print(stateMachine.CurrentState);
     }
 
   
@@ -116,8 +129,9 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
 
     void FixedUpdate()
     {
+        if (!IsEnabled()) return;
         stateMachine.FixedUpdate();
-        
+
         mover.CheckForGround();
         HandleMomentum();
         
