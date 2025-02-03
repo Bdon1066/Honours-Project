@@ -57,6 +57,7 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
     public void Init(InputReader inputReader)
     {
        input = inputReader;
+       input.Jump += HandleKeyJumpInput;
     }
     void Awake()
     {
@@ -66,10 +67,6 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
         SetupStateMachine();
     }
 
-    void Start()
-    {
-        input.Jump += HandleKeyJumpInput;
-    }
 
     void SetupStateMachine()
     {
