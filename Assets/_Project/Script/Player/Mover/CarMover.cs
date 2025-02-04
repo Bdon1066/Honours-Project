@@ -1,10 +1,8 @@
 using UnityEngine;
 
- 
-public class RobotMover : BaseMover
+public class CarMover : BaseMover
 {
-    [Header("Robot Collider Settings")] 
-    [Range(0f,1f)][SerializeField] float stepHeightRatio = 0.1f;
+    [Header("Car Collider Settings")] 
     [SerializeField] float colliderHeight = 2f;
     [SerializeField] float colliderThickness = 1f;
     [SerializeField] Vector3 colliderOffset = Vector3.zero;
@@ -20,11 +18,12 @@ public class RobotMover : BaseMover
     {
         rb.useGravity = false;
         rb.freezeRotation = true;
-        col.direction = 1;
-
-        print("Setup Robot Mover");
+        col.direction = 2;
+        
+        print("Setup Car Mover");
     }
-
+    
+   
     void OnValidate()
     {
         if (gameObject.activeInHierarchy)
@@ -32,6 +31,9 @@ public class RobotMover : BaseMover
             RecalculateColliderDimensions();
         }
     }
+
+    
+
     public override void CheckForGround()
     {
         if (currentLayer != gameObject.layer)
@@ -42,7 +44,7 @@ public class RobotMover : BaseMover
         currentGroundAdjustmentVelocity = Vector3.zero;
         
         sensor.castLength =  usingExtendedSensorRange //extend sesnor range if required
-            ? baseSensorRange + colliderHeight * tr.localScale.x * stepHeightRatio 
+            ? baseSensorRange + colliderHeight * tr.localScale.x
             : baseSensorRange;
         sensor.Cast();
 
@@ -50,8 +52,8 @@ public class RobotMover : BaseMover
         if (!isGrounded) return;
 
         float distance = sensor.GetDistance();
-        float upperLimit = colliderHeight * tr.localScale.x * (1f - stepHeightRatio) * 0.5f; //half the collider height above step area, top boundary of ideal pos
-        float middle = upperLimit + colliderHeight * tr.localScale.x * stepHeightRatio; // where the feet should be relative to ground
+        float upperLimit = colliderHeight * tr.localScale.x * 0.5f; //half the collider height above step area, top boundary of ideal pos
+        float middle = upperLimit + colliderHeight * tr.localScale.x  ; // where the feet should be relative to ground
         float distanceToGo = middle - distance;
         
         currentGroundAdjustmentVelocity = tr.up *(distanceToGo / Time.fixedDeltaTime);
@@ -64,10 +66,9 @@ public class RobotMover : BaseMover
             Awake();
         }
         
-        col.height = colliderHeight * (1f - stepHeightRatio);
+        col.height = colliderHeight;
         col.radius = colliderThickness / 2f;
-        Vector3 stepHeightOffset = new Vector3(0f, stepHeightRatio * col.height / 2f, 0f); 
-        col.center = colliderOffset * colliderHeight + stepHeightOffset;
+        col.center = colliderOffset * colliderHeight ;
 
         if (col.height / 2f < col.radius) //ensure radius is not too large and creating invalid capsule shape
         {
@@ -88,7 +89,7 @@ public class RobotMover : BaseMover
 
         const float safetyDistanceFactor = 0.001f; //Mysterious and fun factor to prevent clipping
 
-        float length = colliderHeight * (1f - stepHeightRatio) * 0.5f + colliderThickness / 2f * stepHeightRatio; //length of our ray, includes adjust collider height and step height ratio
+        float length = colliderHeight * 0.5f + colliderThickness / 2f ; //length of our ray, includes adjust collider height and step height ratio
         baseSensorRange = length * (1f- safetyDistanceFactor) * tr.localScale.x;
         sensor.castLength = length * tr.localScale.x;
     }

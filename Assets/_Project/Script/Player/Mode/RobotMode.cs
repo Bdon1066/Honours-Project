@@ -9,25 +9,30 @@ public class RobotMode : BaseMode
 {
     #region Fields
 
+    RobotMover mover;
+    
+    //Bool flags for dealing with jump input states
     bool jumpInputLocked, jumpWasPressed, jumpLetGo, jumpIsPressed;
-
+    
+    [Header("Ground Attributes")]
     public float movementSpeed = 7f;
     public float groundFriction = 100f;
-    public float gravity = 30f;
-    
+    [Header("Jump Attributes")]
     public float jumpSpeed = 10f;
     public float jumpDuration = 0.2f;
+    [Header("In-Air Attributes")]
+    public float gravity = 30f;
     public float airControlRate = 2f;
     [Range(0,1)]public float airControlScalingFactor = 0.25f;
     public float airFriction = 0.5f;
-   
+    [Header("Slide Attributes")]
     public float slideGravity = 5f;
     public float slopeLimit = 30f;
     
     Vector3 savedVelocity, savedMovementVelocity;
     
     CountdownTimer jumpTimer;
-
+    [Header("Camera Info")]
     [SerializeField] Transform cameraTransform;
 
     public event Action<Vector3> OnJump = delegate { };
@@ -42,6 +47,7 @@ public class RobotMode : BaseMode
     {
        input = inputReader;
        input.Jump += HandleKeyJumpInput;
+       mover = GetComponent<RobotMover>();
     }
     protected override void Awake()
     { 
@@ -106,7 +112,21 @@ public class RobotMode : BaseMode
 
         ResetJumpKeys();
     }
-   
+
+    public override void EnterMode(IState entryState, Vector3 entryMomentum)
+    {
+        stateMachine.SetState(entryState);
+        momentum = entryMomentum;
+        
+        mover.SetupMover();
+       
+    }
+    public override void ExitMode()
+    {
+        mover.enabled = false;
+        print("Disabled Car Mover");
+    }
+
     void HandleMomentum()
     {
         if (useLocalMomentum) momentum = tr.localToWorldMatrix * momentum;

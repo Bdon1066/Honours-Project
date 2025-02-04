@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -7,10 +8,6 @@ using UnityEngine;
 /// </summary>
 public interface IMode
 {
-    /// <summary>
-    /// For passing Input into each mode from player controller
-    /// </summary>
-    /// <param name="input">The input reader of player controller</param>
     public void Init(InputReader inputReader);
     
     public void ShowModel();
@@ -25,26 +22,25 @@ public interface IMode
 public abstract class BaseMode : MonoBehaviour, IMode, IMovementStateController
 {
     protected Transform tr;
-    protected IMover mover;
     protected InputReader input;
+    [Header("Base Mode")]
     [SerializeField] protected GameObject model;
     protected StateMachine stateMachine;
+    
     
     protected Vector3 momentum;
     public bool useLocalMomentum;
     protected virtual void Awake()
     {
         tr = transform;
-        mover = GetComponent<IMover>();
         SetupStateMachine();
     }
+    
 
     protected abstract void SetupStateMachine();
+
+    public abstract void Init(InputReader inputReader);
     
-    public virtual void Init(InputReader inputReader)
-    {
-        input = inputReader;
-    }
     public void ShowModel() => model.SetActive(true);
     public void HideModel() => model.SetActive(false);
     public Vector3 GetMomentum() => useLocalMomentum ? tr.localToWorldMatrix * momentum : momentum;
@@ -76,9 +72,7 @@ public abstract class BaseMode : MonoBehaviour, IMode, IMovementStateController
         stateMachine.FixedUpdate();
     }
 
-    public void EnterMode(IState entryState, Vector3 entryMomentum)
-    {
-        stateMachine.SetState(entryState);
-        momentum = entryMomentum;
-    }
+    public abstract void EnterMode(IState entryState, Vector3 entryMomentum);
+    public abstract void ExitMode();
+
 }

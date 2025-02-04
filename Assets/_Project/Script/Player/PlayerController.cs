@@ -68,9 +68,6 @@ public class PlayerController : MonoBehaviour, IModeStateController
     {
         stateMachine.FixedUpdate();
         ResetTransformKeys();
-
-        print(stateMachine.CurrentState);
-       
     }
 
     private void SetupStateMachine()
@@ -103,6 +100,11 @@ public class PlayerController : MonoBehaviour, IModeStateController
         OnTransform.Invoke(currentMode.GetMomentum());
     }
 
+    public void OnModeExit<T>() where T : BaseMode
+    {
+        
+    }
+
 
     void At(IState from, IState to, IPredicate condition) => stateMachine.AddTransition(from, to, condition);
     void Any(IState to, IPredicate condition) => stateMachine.AddAnyTransition(to, condition);
@@ -115,8 +117,7 @@ public class PlayerController : MonoBehaviour, IModeStateController
         foreach (var mode in modes)
         {
             mode.Init(input);
-
-            if (mode is RobotMode) currentMode = mode;
+            SetMode<RobotMode>();
         }
 
         
