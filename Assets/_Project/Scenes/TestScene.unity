@@ -271,6 +271,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   model: {fileID: 156612755}
+  useLocalMomentum: 0
+  model: {fileID: 156612755}
   movementSpeed: 17
   groundFriction: 100
   gravity: 30
@@ -281,7 +283,6 @@ MonoBehaviour:
   airFriction: 0.5
   slideGravity: 5
   slopeLimit: 50
-  useLocalMomentum: 0
   cameraTransform: {fileID: 0}
 --- !u!114 &28009202
 MonoBehaviour:
@@ -310,6 +311,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   model: {fileID: 1681309527}
+  useLocalMomentum: 0
+  model: {fileID: 1681309527}
+  movementSpeed: 7
+  groundFriction: 100
+  gravity: 30
+  airControlRate: 2
+  airControlScalingFactor: 0.25
+  airFriction: 0.5
+  slideGravity: 5
+  slopeLimit: 30
+  useLocalMomentum: 0
+  cameraTransform: {fileID: 0}
 --- !u!1 &95850995
 GameObject:
   m_ObjectHideFlags: 0

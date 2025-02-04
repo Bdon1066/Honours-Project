@@ -12,10 +12,10 @@ public class PlayerController : MonoBehaviour, IModeStateController
     public float transformDuration = 1f;
     StateMachine stateMachine;
 
-    IMode currentMode;
-    IMode previousMode; 
+    BaseMode currentMode;
+    BaseMode previousMode; 
 
-    List<IMode> modes = new List<IMode>();
+    List<BaseMode> modes = new List<BaseMode>();
 
     bool transformInputLocked, transformWasPressed, transformLetGo, transformIsPressed;
 
@@ -23,8 +23,8 @@ public class PlayerController : MonoBehaviour, IModeStateController
 
     public event Action<Vector3> OnTransform = delegate { };
 
-    IMode GetCurrentMode() => currentMode;
-    IMode GetPreviousMode() => currentMode;
+    BaseMode GetCurrentMode() => currentMode;
+    BaseMode GetPreviousMode() => currentMode;
     void Awake()
     {
         transformTimer = new CountdownTimer(transformDuration);
@@ -87,7 +87,7 @@ public class PlayerController : MonoBehaviour, IModeStateController
         stateMachine.SetState(robot);
     }
 
-    public void OnModeStart<T>() where T : IMode
+    public void OnModeStart<T>() where T : BaseMode
     {
         SetMode<T>();
         if (previousMode != null) currentMode.EnterMode(previousMode.GetState(),previousMode.GetMomentum());
@@ -107,7 +107,6 @@ public class PlayerController : MonoBehaviour, IModeStateController
     void At(IState from, IState to, IPredicate condition) => stateMachine.AddTransition(from, to, condition);
     void Any(IState to, IPredicate condition) => stateMachine.AddAnyTransition(to, condition);
     
-   // bool IsTransforming() => (transformIsPressed || transformWasPressed) && !transformInputLocked;
 
     private void InitModes()
     {
@@ -122,7 +121,7 @@ public class PlayerController : MonoBehaviour, IModeStateController
 
         
     }
-    IMode GetMode<T>() where T : IMode
+    BaseMode GetMode<T>() where T : BaseMode
     {
         foreach (var mode in modes)
         {
@@ -130,7 +129,7 @@ public class PlayerController : MonoBehaviour, IModeStateController
         }
         return null;
     }
-    void SetMode<T>() where T : IMode
+    void SetMode<T>() where T : BaseMode
     {
         currentMode = GetMode<T>();
         foreach (var mode in modes)
@@ -138,12 +137,13 @@ public class PlayerController : MonoBehaviour, IModeStateController
             //enable our set mode and disable all others
             if (mode is T)
             {
-                mode.SetEnabled(true);
+                //mode.SetEnabled(true);
+                mode.enabled = true;
                 mode.ShowModel();
             }
             else
             {
-                mode.SetEnabled(false);
+                mode.enabled = false;
                 mode.HideModel();
             }
         }

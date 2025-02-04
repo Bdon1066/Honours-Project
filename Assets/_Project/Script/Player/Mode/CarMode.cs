@@ -2,15 +2,9 @@ using System;
 using UnityEngine;
 
 
-public class CarMode : MonoBehaviour, IMode , IMovementStateController
+public class CarMode : BaseMode
 {
     #region Fields
-    
-    Transform tr;
-    IMover mover;
-    InputReader input;
-
-    [SerializeField] private GameObject model;
     
     public float movementSpeed = 7f;
     public float groundFriction = 100f;
@@ -23,48 +17,17 @@ public class CarMode : MonoBehaviour, IMode , IMovementStateController
     public float slideGravity = 5f;
     public float slopeLimit = 30f;
     
-    Vector3 momentum, savedVelocity, savedMovementVelocity;
-    public bool useLocalMomentum;
-    
-    private bool isEnabled;
-    
-    StateMachine stateMachine;
+    Vector3 savedVelocity, savedMovementVelocity;
 
     [SerializeField] Transform cameraTransform;
     
     public event Action<Vector3> OnLand = delegate { };
 
     #endregion
-    bool IsGrounded() => stateMachine.CurrentState is GroundedState or SlidingState;
-    public Vector3 GetMomentum() => useLocalMomentum ? tr.localToWorldMatrix * momentum : momentum;
-    public IState GetState() => stateMachine.CurrentState;
+    
     public Vector3 GetMovementVelocity() => savedMovementVelocity;
-    public void ShowModel() => model.SetActive(true);
-    public void HideModel() => model.SetActive(false);
-    
-    public void SetEnabled(bool value) => isEnabled = value;
-    public bool IsEnabled() => isEnabled;
-    
-    public void EnterMode(IState entryState, Vector3 entryMomentum)
-    {
-        stateMachine.SetState(entryState);
-        momentum = entryMomentum;
-    }
-    
-    public void Init(InputReader inputReader)
-    {
-        input = inputReader;
-    }
-    
-        void Awake()
-    {
-        tr = transform;
-        mover = GetComponent<IMover>();
-        SetupStateMachine();
-    }
 
-
-    void SetupStateMachine()
+    protected override void  SetupStateMachine()
     {
         stateMachine = new StateMachine();
         var grounded = new GroundedState(this);
@@ -93,26 +56,13 @@ public class CarMode : MonoBehaviour, IMode , IMovementStateController
         stateMachine.SetState(falling);
 
     }
-    void At(IState from, IState to, IPredicate condition) => stateMachine.AddTransition(from, to, condition);
-    void Any(IState to, IPredicate condition) => stateMachine.AddAnyTransition(to, condition);
-    bool IsRising() => Utils.GetDotProduct(GetMomentum(), tr.up) > 0f;
-    bool IsFalling() => Utils.GetDotProduct(GetMomentum(), tr.up) < 0f;
+    
     bool IsGroundTooSteep() => !mover.IsGrounded() || Vector3.Angle(mover.GetGroundNormal(), tr.up) > slopeLimit;
     
-     void Update()
+    
+    protected override void FixedUpdate()
     {
-        stateMachine.Update();
-        print(stateMachine.CurrentState);
-    }
-
-  
-
-
-    void FixedUpdate()
-    {
-        if (!IsEnabled()) return;
-        
-        stateMachine.FixedUpdate();
+        base.FixedUpdate();
         
         mover.CheckForGround();
         HandleMomentum();
