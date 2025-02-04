@@ -47,12 +47,13 @@ public class RobotMode : BaseMode
     {
        input = inputReader;
        input.Jump += HandleKeyJumpInput;
-       mover = GetComponent<RobotMover>();
+     
     }
     protected override void Awake()
     { 
         base.Awake();
         jumpTimer = new CountdownTimer(jumpDuration);
+        mover = GetComponent<RobotMover>();
     }
 
 
@@ -97,6 +98,7 @@ public class RobotMode : BaseMode
         base.FixedUpdate();
         mover.CheckForGround();
         HandleMomentum();
+        print(stateMachine.CurrentState);
         
         //if on the ground calculate velocity from player movement
         Vector3 velocity = stateMachine.CurrentState is GroundedState ? CalculateMovementVelocity() : Vector3.zero;
@@ -118,7 +120,14 @@ public class RobotMode : BaseMode
         stateMachine.SetState(entryState);
         momentum = entryMomentum;
         
-        mover.SetupMover();
+        mover.EnterMover();
+       
+    }
+    public override void EnterMode(Vector3 entryMomentum)
+    {
+        momentum = entryMomentum;
+        
+        mover.EnterMover();
        
     }
     public override void ExitMode()

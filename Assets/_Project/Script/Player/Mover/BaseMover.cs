@@ -32,7 +32,7 @@ public abstract class BaseMover : MonoBehaviour, IMover
    
     public bool IsGrounded() => isGrounded;
     public Vector3 GetGroundNormal() => sensor.GetNormal();
-    
+
     public void SetVelocity(Vector3 velocity) => rb.velocity = velocity + currentGroundAdjustmentVelocity;
     
     public void ConstrainRigidBody(RigidbodyConstraints constraints) => rb.constraints = constraints;

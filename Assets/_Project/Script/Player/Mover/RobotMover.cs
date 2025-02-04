@@ -13,16 +13,14 @@ public class RobotMover : BaseMover
     protected override void Awake()
     {
         base.Awake();
-        SetupMover();
         RecalculateColliderDimensions();
     }
-    public void SetupMover()
+    public void EnterMover()
     {
         rb.useGravity = false;
         rb.freezeRotation = true;
         col.direction = 1;
-
-        print("Setup Robot Mover");
+        RecalculateColliderDimensions();
     }
 
     void OnValidate()
@@ -55,6 +53,7 @@ public class RobotMover : BaseMover
         float distanceToGo = middle - distance;
         
         currentGroundAdjustmentVelocity = tr.up *(distanceToGo / Time.fixedDeltaTime);
+        
     }
     
     void RecalculateColliderDimensions()
