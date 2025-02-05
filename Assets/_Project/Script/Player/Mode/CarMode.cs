@@ -231,8 +231,8 @@ public class CarMode : MonoBehaviour, IMode, IMovementStateController
             HandleSteering(axleInfo, steering);
             HandleMotor(axleInfo, motor);
             HandleBrakesAndDrift(axleInfo);
-            UpdateWheelVisuals(axleInfo.leftWheel);
-            UpdateWheelVisuals(axleInfo.rightWheel);
+            //UpdateWheelVisuals(axleInfo.leftWheel);
+            //UpdateWheelVisuals(axleInfo.rightWheel);
         }
     }
 
