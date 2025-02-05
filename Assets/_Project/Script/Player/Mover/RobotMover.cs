@@ -1,21 +1,8 @@
+using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
 
-/// <summary>
-/// The Mover Interface, all movers (i.e. car, robot) will implement this interface.
-/// Movers handle how each Mode will move, actual movement in the world is done via Mode class
-/// </summary>
-public interface IMover
-{
-    public void CheckForGround();
-    public bool IsGrounded();
-    public Vector3 GetGroundNormal();
-    public void SetVelocity(Vector3 velocity);
-    public void SetExtendSensorRange(bool isExtended);
-   
-}
-
 [RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]  
-public class RobotMover : MonoBehaviour, IMover
+public class RobotMover : BaseMover
 {
     [Header("Collider Settings")] 
     [Range(0f,1f)][SerializeField] float stepHeightRatio = 0.1f;
@@ -37,21 +24,33 @@ public class RobotMover : MonoBehaviour, IMover
     [SerializeField] bool debugMode;
 
     bool usingExtendedSensorRange = true; //For use pn uneven terrain
-
-    void Awake()
+    
+    
+    public override void SetEnabled(bool value)
     {
-        Setup();
-        RecalculateColliderDimensions();
+        base.SetEnabled(value);
+        if (IsEnabled())  ReconfigureComponents();
     }
-    void Setup()
+    public override void Init()
     {
+        base.Init();
         rb = GetComponent<Rigidbody>();
         tr = GetComponent<Transform>();
         col = GetComponent<CapsuleCollider>();
+
+        ReconfigureComponents();
         
+    }
+
+    //This function will reconfigure our rigidbody and collider to this mover's specifications
+    void ReconfigureComponents()
+    {
         rb.useGravity = false;
         rb.freezeRotation = true;
+        col.direction = 1;
+        RecalculateColliderDimensions();
     }
+    
     void OnValidate()
     {
         if (gameObject.activeInHierarchy)
@@ -92,7 +91,7 @@ public class RobotMover : MonoBehaviour, IMover
     {
         if (col == null) //i.e. in editor mode, need to run setup as Awake won't have been called
         {
-            Setup();
+            Init();
         }
         
         col.height = colliderHeight * (1f - stepHeightRatio);

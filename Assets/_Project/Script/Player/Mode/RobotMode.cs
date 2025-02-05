@@ -10,7 +10,7 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
     #region Fields
     
     Transform tr;
-    IMover mover;
+    RobotMover mover;
     InputReader input;
 
     [SerializeField] private GameObject model;
@@ -58,29 +58,46 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
 
     public void ShowModel() => model.SetActive(true);
     public void HideModel() => model.SetActive(false);
-    public void SetEnabled(bool value) => isEnabled = value;
+    public void SetEnabled(bool value)
+    {
+        isEnabled = value;
+        if (IsEnabled())  input.Jump += HandleKeyJumpInput;
+        else input.Jump -= HandleKeyJumpInput;
+        
+    } 
     public bool IsEnabled() => isEnabled;
+    
+    //Initialize Mode with our player controllers input, called in PlayerController Awake()
+    public void Init(InputReader inputReader)
+    {  
+        tr = transform;
+       input = inputReader;
+       input.Jump += HandleKeyJumpInput;
+       
+       mover = GetComponent<RobotMover>();
+       mover.Init();
+       
+       jumpTimer = new CountdownTimer(jumpDuration);
+       SetupStateMachine();
+    }
     public void EnterMode(IState entryState, Vector3 entryMomentum)
     {
         stateMachine.SetState(entryState);
         momentum = entryMomentum;
+        
+        mover.SetEnabled(true);
+        
     }
-
-
-    public void Init(InputReader inputReader)
+    public void EnterMode()
     {
-       input = inputReader;
-       input.Jump += HandleKeyJumpInput;
+        mover.SetEnabled(true);
     }
-    void Awake()
+    public void ExitMode()
     {
-        tr = transform;
-        jumpTimer = new CountdownTimer(jumpDuration);
-        mover = GetComponent<IMover>();
-        SetupStateMachine();
+        mover.SetEnabled(false);
     }
 
-
+    
     void SetupStateMachine()
     {
         stateMachine = new StateMachine();
@@ -120,6 +137,7 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
     bool IsGroundTooSteep() => !mover.IsGrounded() || Vector3.Angle(mover.GetGroundNormal(), tr.up) > slopeLimit;
     void Update()
     {
+        //if this mode is disabled, unsubscribe from events and return out of update
         if (!IsEnabled()) return;
         stateMachine.Update();
     }
@@ -129,23 +147,26 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
 
     void FixedUpdate()
     {
+        //if this mode is disabled, unsubscribe from events and return out of update
         if (!IsEnabled()) return;
         stateMachine.FixedUpdate();
-
+        
         mover.CheckForGround();
         HandleMomentum();
         
-        //if on the ground calculate velocity from player movement
-        Vector3 velocity = stateMachine.CurrentState is GroundedState ? CalculateMovementVelocity() : Vector3.zero;
+        //If grounded, calculate velocity from input
+        Vector3 velocity = stateMachine.CurrentState is GroundedState ? CalculateMovementInputVelocity() : Vector3.zero;
+        //add this frames input velocity to our current momentum
         velocity += useLocalMomentum ? tr.localToWorldMatrix * momentum : momentum;
 
         //extend ground sensor range if on the ground
         mover.SetExtendSensorRange(IsGrounded());
+        
         mover.SetVelocity(velocity);
         
         //save values for next frame
         savedVelocity = velocity;
-        savedMovementVelocity = CalculateMovementVelocity();
+        savedMovementVelocity = CalculateMovementInputVelocity();
 
         ResetJumpKeys();
 
@@ -153,6 +174,7 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
    
     void HandleMomentum()
     {
+        
         if (useLocalMomentum) momentum = tr.localToWorldMatrix * momentum;
 
         Vector3 verticalMomentum = Utils.ExtractDotVector(momentum, tr.up); //extract vertical momentum
@@ -167,37 +189,38 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
         }
 
         //In-Air Momentum
-            if (!IsGrounded()) 
-            {
-                AdjustInAirHorizontalMomentum(ref horizontalMomentum, CalculateMovementVelocity());
-            }
-            //Sliding Momentum
-            if (stateMachine.CurrentState is SlidingState)
-            {
-                HandleSliding(ref horizontalMomentum);
-            }
-            
-            float friction = stateMachine.CurrentState is GroundedState ? groundFriction : airFriction;
-            horizontalMomentum = Vector3.MoveTowards(horizontalMomentum,Vector3.zero, friction * Time.deltaTime);
-
-            momentum = horizontalMomentum + verticalMomentum;
-
-            if (stateMachine.CurrentState is JumpingState)
-            {
-                HandleJumping();
-            }
-
-            if (stateMachine.CurrentState is SlidingState)
-            {
-                momentum = Vector3.ProjectOnPlane(momentum, mover.GetGroundNormal()); // project momentum onto ground normal plane, ensuring smooth sliding over minute bumps
+        if (!IsGrounded()) 
+        {
+            AdjustInAirHorizontalMomentum(ref horizontalMomentum, CalculateMovementInputVelocity());
+        }
+        //Sliding Momentum
+        if (stateMachine.CurrentState is SlidingState)
+        {
+            HandleSliding(ref horizontalMomentum);
+        }
         
-                if (Utils.GetDotProduct(momentum, tr.up) > 0f) momentum = Utils.RemoveDotVector(momentum, tr.up); //remove any upwards momentum if it exists
+        //Handle friction, which is a constant force slowing our horizontal momentum
+        float friction = stateMachine.CurrentState is GroundedState ? groundFriction : airFriction;
+        horizontalMomentum = Vector3.MoveTowards(horizontalMomentum,Vector3.zero, friction * Time.deltaTime);
         
-                Vector3 slideDirection = Vector3.ProjectOnPlane(-tr.up, mover.GetGroundNormal().normalized); //projecting downward plane 
-                momentum += slideDirection * (slideGravity * Time.deltaTime);
-            }
+        momentum = horizontalMomentum + verticalMomentum;
 
-            if (useLocalMomentum) momentum = tr.worldToLocalMatrix * momentum;
+        if (stateMachine.CurrentState is JumpingState)
+        {
+            HandleJumping();
+        }
+
+        if (stateMachine.CurrentState is SlidingState)
+        {
+            momentum = Vector3.ProjectOnPlane(momentum, mover.GetGroundNormal()); // project momentum onto ground normal plane, ensuring smooth sliding over minute bumps
+        
+            if (Utils.GetDotProduct(momentum, tr.up) > 0f) momentum = Utils.RemoveDotVector(momentum, tr.up); //remove any upwards momentum if it exists
+        
+            Vector3 slideDirection = Vector3.ProjectOnPlane(-tr.up, mover.GetGroundNormal().normalized); //projecting downward plane 
+            momentum += slideDirection * (slideGravity * Time.deltaTime);
+        }
+
+        if (useLocalMomentum) momentum = tr.worldToLocalMatrix * momentum;
 
 
     }
@@ -259,19 +282,21 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
 
     void HandleJumping()
     {
+        //remove all existing upwards momentum
         momentum = Utils.RemoveDotVector(momentum, tr.up);
+        //add our upwards jump momentum
         momentum += tr.up * jumpSpeed;
     }
 
     private void HandleSliding(ref Vector3 horizontalMomentum)
     {
         Vector3 pointDownVector = Vector3.ProjectOnPlane(mover.GetGroundNormal(), tr.up).normalized; //the direction of the slopes descent
-        Vector3 movementVelocity = CalculateMovementVelocity();
+        Vector3 movementVelocity = CalculateMovementInputVelocity();
         movementVelocity = Utils.RemoveDotVector(movementVelocity, pointDownVector); //remove player inputted velocity in direction of slope descent to prevent players movement adding onto the sliding
         horizontalMomentum += movementVelocity * Time.fixedDeltaTime;
         
     }
-    Vector3 CalculateMovementVelocity() => CalculateMovementDirection() * movementSpeed;
+    Vector3 CalculateMovementInputVelocity() => CalculateMovementDirection() * movementSpeed;
 
 
     Vector3 CalculateMovementDirection()
@@ -307,9 +332,4 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
             horizontalMomentum = Vector3.ClampMagnitude(horizontalMomentum, movementSpeed);
         }
     }
-
-
-
-
-   
 }

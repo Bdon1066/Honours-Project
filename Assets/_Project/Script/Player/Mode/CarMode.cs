@@ -1,249 +1,52 @@
-using System;
 using UnityEngine;
 
-
-public class CarMode : MonoBehaviour, IMode , IMovementStateController
+public class CarMode : MonoBehaviour, IMode, IMovementStateController
 {
-    #region Fields
-    
+    public GameObject model;
+    CarMover mover;
     Transform tr;
-    IMover mover;
+    
     InputReader input;
-
-    [SerializeField] private GameObject model;
     
-    public float movementSpeed = 7f;
-    public float groundFriction = 100f;
-    public float gravity = 30f;
-
-    public float airControlRate = 2f;
-    [Range(0,1)]public float airControlScalingFactor = 0.25f;
-    public float airFriction = 0.5f;
-   
-    public float slideGravity = 5f;
-    public float slopeLimit = 30f;
-    
-    Vector3 momentum, savedVelocity, savedMovementVelocity;
-    public bool useLocalMomentum;
-    
-    private bool isEnabled;
-    
-    StateMachine stateMachine;
-
-    [SerializeField] Transform cameraTransform;
-    
-    public event Action<Vector3> OnLand = delegate { };
-
-    #endregion
-    bool IsGrounded() => stateMachine.CurrentState is GroundedState or SlidingState;
-    public Vector3 GetMomentum() => useLocalMomentum ? tr.localToWorldMatrix * momentum : momentum;
-    public IState GetState() => stateMachine.CurrentState;
-    public Vector3 GetMovementVelocity() => savedMovementVelocity;
-    public void ShowModel() => model.SetActive(true);
-    public void HideModel() => model.SetActive(false);
-    
-    public void SetEnabled(bool value) => isEnabled = value;
-    public bool IsEnabled() => isEnabled;
-    
-    public void EnterMode(IState entryState, Vector3 entryMomentum)
-    {
-        stateMachine.SetState(entryState);
-        momentum = entryMomentum;
-    }
+    bool isEnabled; 
     
     public void Init(InputReader inputReader)
     {
-        input = inputReader;
-    }
-    
-        void Awake()
-    {
         tr = transform;
-        mover = GetComponent<IMover>();
-        SetupStateMachine();
+        input = inputReader;
+       
+        mover = GetComponent<CarMover>();
+        mover.Init();
+
     }
-
-
-    void SetupStateMachine()
+    public void ShowModel() => model.SetActive(true);
+    public void HideModel() => model.SetActive(false);
+    public Vector3 GetMomentum()
     {
-        stateMachine = new StateMachine();
-        var grounded = new GroundedState(this);
-        var falling = new FallingState(this);
-        var rising = new RisingState(this);
-        var sliding = new SlidingState(this);
-
-        //When at grounded state, we will go to rising state when IsRising is true
-        At(grounded, rising, new FuncPredicate(() => IsRising()));
-        At(grounded, sliding, new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
-        At(grounded, falling, new FuncPredicate(() => !mover.IsGrounded()));
-        
-        
-        At(falling, rising, new FuncPredicate(() => IsRising()));
-        At(falling, sliding, new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
-        At(falling, grounded, new FuncPredicate(() => mover.IsGrounded() && !IsGroundTooSteep()));
-
-        At(rising, sliding, new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
-        At(rising, grounded, new FuncPredicate(() => mover.IsGrounded() && !IsGroundTooSteep()));
-        At(rising, falling, new FuncPredicate(() => IsFalling()));
-
-        At(sliding, grounded, new FuncPredicate(() => mover.IsGrounded() && !IsGroundTooSteep()));
-        At(sliding, falling, new FuncPredicate(() => !mover.IsGrounded()));
-        At(sliding, rising, new FuncPredicate(() => IsRising()));
-
-        stateMachine.SetState(falling);
-
+       return Vector3.zero;
     }
-    void At(IState from, IState to, IPredicate condition) => stateMachine.AddTransition(from, to, condition);
-    void Any(IState to, IPredicate condition) => stateMachine.AddAnyTransition(to, condition);
-    bool IsRising() => Utils.GetDotProduct(GetMomentum(), tr.up) > 0f;
-    bool IsFalling() => Utils.GetDotProduct(GetMomentum(), tr.up) < 0f;
-    bool IsGroundTooSteep() => !mover.IsGrounded() || Vector3.Angle(mover.GetGroundNormal(), tr.up) > slopeLimit;
-    
-     void Update()
+    public IState GetState()
     {
-        stateMachine.Update();
-        print(stateMachine.CurrentState);
+        return null;
     }
-
-  
-
-
-    void FixedUpdate()
+    public void SetEnabled(bool value)
     {
-        if (!IsEnabled()) return;
-        
-        stateMachine.FixedUpdate();
-        
-        mover.CheckForGround();
-        HandleMomentum();
-        
-        //if on the ground calculate velocity from player movement
-        Vector3 velocity = stateMachine.CurrentState is GroundedState ? CalculateMovementVelocity() : Vector3.zero;
-        velocity += useLocalMomentum ? tr.localToWorldMatrix * momentum : momentum;
-
-        //extend ground sensor range if on the ground
-        mover.SetExtendSensorRange(IsGrounded());
-        mover.SetVelocity(velocity);
-        
-        //save values for next frame
-        savedVelocity = velocity;
-        savedMovementVelocity = CalculateMovementVelocity();
-        
-    }
-   
-    void HandleMomentum()
+        isEnabled = value;
+    } 
+    public bool IsEnabled() => isEnabled;
+    public void EnterMode(IState entryState, Vector3 entryMomentum)
     {
-        if (useLocalMomentum) momentum = tr.localToWorldMatrix * momentum;
-
-        Vector3 verticalMomentum = Utils.ExtractDotVector(momentum, tr.up); //extract vertical momentum
-        Vector3 horizontalMomentum = momentum - verticalMomentum; //thus leaving horizontal remaining
-
-        verticalMomentum -= tr.up * (gravity * Time.deltaTime); //add gravity
-
-        //if on ground and still applying downward force, stop applying that downward force
-        if (stateMachine.CurrentState is GroundedState && Utils.GetDotProduct(verticalMomentum, tr.up) < 0)
-        {
-            verticalMomentum = Vector3.zero;
-        }
-
-        //In-Air Momentum
-        if (!IsGrounded()) 
-        { 
-            AdjustInAirHorizontalMomentum(ref horizontalMomentum, CalculateMovementVelocity());
-        }
-        //Sliding Momentum
-        if (stateMachine.CurrentState is SlidingState)
-        { HandleSliding(ref horizontalMomentum);
-        }
-            
-        float friction = stateMachine.CurrentState is GroundedState ? groundFriction : airFriction;
-        horizontalMomentum = Vector3.MoveTowards(horizontalMomentum,Vector3.zero, friction * Time.deltaTime);
-
-        momentum = horizontalMomentum + verticalMomentum;
-
-        if (stateMachine.CurrentState is SlidingState)
-        { 
-            momentum = Vector3.ProjectOnPlane(momentum, mover.GetGroundNormal()); // project momentum onto ground normal plane, ensuring smooth sliding over minute bumps
-            if (Utils.GetDotProduct(momentum, tr.up) > 0f) momentum = Utils.RemoveDotVector(momentum, tr.up); //remove any upwards momentum if it exists
+        //stateMachine.SetState(entryState);
+       // momentum = entryMomentum;
         
-            Vector3 slideDirection = Vector3.ProjectOnPlane(-tr.up, mover.GetGroundNormal().normalized); //projecting downward plane 
-            momentum += slideDirection * (slideGravity * Time.deltaTime);
-        }
-
-        if (useLocalMomentum) momentum = tr.worldToLocalMatrix * momentum;
-
+        mover.SetEnabled(true);
     }
-    public void OnGroundContactLost()
+    public void EnterMode()
     {
-        if (useLocalMomentum) momentum = tr.localToWorldMatrix * momentum;
-            
-        Vector3 velocity = GetMovementVelocity();
-        //TODO: Write comments here 
-        if (velocity.sqrMagnitude >= 0f && momentum.sqrMagnitude > 0f) 
-        {
-            Vector3 projectedMomentum = Vector3.Project(momentum, velocity.normalized);
-            float dot = Utils.GetDotProduct(projectedMomentum.normalized, velocity.normalized);
-            
-            if (projectedMomentum.sqrMagnitude >= velocity.sqrMagnitude && dot > 0f) velocity = Vector3.zero;
-            else if (dot > 0f) velocity -= projectedMomentum;
-        }
-        momentum += velocity;
-            
-        if (useLocalMomentum) momentum = tr.worldToLocalMatrix * momentum;
+        mover.SetEnabled(true);
     }
-
- 
-    public void OnGroundContactRegained()
+    public void ExitMode()
     {
-        //send off current momentum for vfx/sfx/animator tracking
-        Vector3 collisionVelocity = useLocalMomentum ? tr.localToWorldMatrix * momentum : momentum;
-        OnLand.Invoke(collisionVelocity);
+        mover.SetEnabled(false);
     }
-
-    private void HandleSliding(ref Vector3 horizontalMomentum)
-    {
-        Vector3 pointDownVector = Vector3.ProjectOnPlane(mover.GetGroundNormal(), tr.up).normalized; //the direction of the slopes descent
-        Vector3 movementVelocity = CalculateMovementVelocity();
-        movementVelocity = Utils.RemoveDotVector(movementVelocity, pointDownVector); //remove player inputted velocity in direction of slope descent to prevent players movement adding onto the sliding
-        horizontalMomentum += movementVelocity * Time.fixedDeltaTime;
-        
-    }
-    Vector3 CalculateMovementVelocity() => CalculateMovementDirection() * movementSpeed;
-
-
-    Vector3 CalculateMovementDirection()
-    {
-
-        Vector3 direction = cameraTransform == null //do we have a camera?
-            ? tr.right * input.Direction.x + tr.forward * input.Direction.y //if not, direction determined by input directly
-            : Vector3.ProjectOnPlane(cameraTransform.right, tr.up).normalized * input.Direction.x + //else direction determined by camera position plus input
-              Vector3.ProjectOnPlane(cameraTransform.forward, tr.up).normalized * input.Direction.y;
-        //if direction greater than 1 normalize down to 1, else remain as is
-        return direction.magnitude > 1f ? direction.normalized : direction;
-
-    }
-
-    void AdjustInAirHorizontalMomentum(ref Vector3 horizontalMomentum, Vector3 movementVelocity)
-    {
-        //for when we are movin faster than movement speed 
-        if (horizontalMomentum.magnitude > movementSpeed)
-        {
-            //does our velocity have any component in the current horizontal momentum direction?
-            if (Utils.GetDotProduct(movementVelocity,horizontalMomentum) > 0)
-            {
-                //remove overlapping velocity from momentum
-                movementVelocity = Utils.RemoveDotVector(movementVelocity, horizontalMomentum.normalized);
-            }
-            //scale down our air control to maintain existing higher momentum while also having some control
-            horizontalMomentum += movementVelocity * (Time.deltaTime * airControlRate * airControlScalingFactor);
-        }
-        else
-        {
-            //if within movement speed, just add without scaling and clamp inside the speed
-            horizontalMomentum += movementVelocity * (Time.deltaTime * airControlRate);
-            horizontalMomentum = Vector3.ClampMagnitude(horizontalMomentum, movementSpeed);
-        }
-    }
-
-
 }

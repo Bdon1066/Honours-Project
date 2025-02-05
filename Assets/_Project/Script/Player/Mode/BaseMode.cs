@@ -8,7 +8,7 @@ using UnityEngine;
 public interface IMode
 {
     /// <summary>
-    /// For passing Input into each mode from player controller
+    ///  //For Initializing Mode with our player controllers input, used instead of Awake().This is called by PlayerController Start().
     /// </summary>
     /// <param name="input">The input reader of player controller</param>
     public void Init(InputReader input);
@@ -22,5 +22,18 @@ public interface IMode
     public void SetEnabled(bool value);
     public bool IsEnabled();
 
+    /// <summary>
+    /// This function is called when this mode is entered (i.e transformed into) via the PlayerController.
+    /// </summary>
+    /// <param name="entryState">The state we want this mode to start in</param>
+    /// <param name="entryMomentum">The momementum we want this mode to start with</param>
     public void EnterMode(IState entryState, Vector3 entryMomentum);
+    /// <summary>
+    /// This function is called when this mode is entered (i.e transformed into)via the PlayerController. This overload is a default for the first mode entry at game start
+    /// </summary>
+    public void EnterMode();
+    /// <summary>
+    /// This function is called when this mode is exited (i.e transformed out of)via the PlayerController.
+    /// </summary>
+    public void ExitMode();
 }
