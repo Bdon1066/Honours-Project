@@ -7,7 +7,7 @@ public interface IStateController{}
 /// </summary>
 public interface IMovementStateController : IStateController
 {
-    public  void OnGroundContactRegained()
+    public void OnGroundContactRegained()
     {
         //noop
     }
@@ -32,7 +32,7 @@ public interface IMovementStateController : IStateController
 /// </summary>
 public interface IModeStateController : IStateController
 {
-    public void OnModeStart<T>() where T : BaseMode;
+    public void OnModeStart<T>() where T : IMode;
 
 
     public void OnTransformStart();

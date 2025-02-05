@@ -5,9 +5,15 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UIElements;
 
-public class RobotMode : BaseMode
+public class RobotMode : MonoBehaviour, IMode, IMovementStateController
 {
     #region Fields
+    
+    Transform tr;
+    IMover mover;
+    InputReader input;
+
+    [SerializeField] private GameObject model;
 
     bool jumpInputLocked, jumpWasPressed, jumpLetGo, jumpIsPressed;
 
@@ -24,33 +30,58 @@ public class RobotMode : BaseMode
     public float slideGravity = 5f;
     public float slopeLimit = 30f;
     
-    Vector3 savedVelocity, savedMovementVelocity;
+    Vector3 momentum, savedVelocity, savedMovementVelocity;
+    public bool useLocalMomentum;
+    
     
     CountdownTimer jumpTimer;
+    StateMachine stateMachine;
 
     [SerializeField] Transform cameraTransform;
+
+    private bool isEnabled;
+
+    
 
     public event Action<Vector3> OnJump = delegate { };
     public event Action<Vector3> OnLand = delegate { };
 
     #endregion
     
+    
+    bool IsGrounded() => stateMachine.CurrentState is GroundedState or SlidingState;
+    public Vector3 GetMomentum() => useLocalMomentum ? tr.localToWorldMatrix * momentum : momentum;
+    public IState GetState() => stateMachine.CurrentState;
     public Vector3 GetMovementVelocity() => savedMovementVelocity;
 
+    public StateMachine GetStateMachine() => stateMachine;
 
-    public override void Init(InputReader inputReader)
+    public void ShowModel() => model.SetActive(true);
+    public void HideModel() => model.SetActive(false);
+    public void SetEnabled(bool value) => isEnabled = value;
+    public bool IsEnabled() => isEnabled;
+    public void EnterMode(IState entryState, Vector3 entryMomentum)
+    {
+        stateMachine.SetState(entryState);
+        momentum = entryMomentum;
+    }
+
+
+    public void Init(InputReader inputReader)
     {
        input = inputReader;
        input.Jump += HandleKeyJumpInput;
     }
-    protected override void Awake()
-    { 
-        base.Awake();
+    void Awake()
+    {
+        tr = transform;
         jumpTimer = new CountdownTimer(jumpDuration);
+        mover = GetComponent<IMover>();
+        SetupStateMachine();
     }
 
 
-    protected override void SetupStateMachine()
+    void SetupStateMachine()
     {
         stateMachine = new StateMachine();
         var grounded = new GroundedState(this);
@@ -66,7 +97,7 @@ public class RobotMode : BaseMode
         At(grounded, jumping, new FuncPredicate(() => (jumpIsPressed || jumpWasPressed) && !jumpInputLocked));
 
         At(jumping, rising, new FuncPredicate(() => jumpTimer.IsFinished || jumpLetGo));
-
+        
         At(falling, rising, new FuncPredicate(() => IsRising()));
         At(falling, sliding, new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
         At(falling, grounded, new FuncPredicate(() => mover.IsGrounded() && !IsGroundTooSteep()));
@@ -82,13 +113,25 @@ public class RobotMode : BaseMode
         stateMachine.SetState(falling);
 
     }
-    
+    void At(IState from, IState to, IPredicate condition) => stateMachine.AddTransition(from, to, condition);
+    void Any(IState to, IPredicate condition) => stateMachine.AddAnyTransition(to, condition);
+    bool IsRising() => Utils.GetDotProduct(GetMomentum(), tr.up) > 0f;
+    bool IsFalling() => Utils.GetDotProduct(GetMomentum(), tr.up) < 0f;
     bool IsGroundTooSteep() => !mover.IsGrounded() || Vector3.Angle(mover.GetGroundNormal(), tr.up) > slopeLimit;
-    
-
-    protected override void FixedUpdate()
+    void Update()
     {
-        base.FixedUpdate();
+        if (!IsEnabled()) return;
+        stateMachine.Update();
+    }
+
+  
+
+
+    void FixedUpdate()
+    {
+        if (!IsEnabled()) return;
+        stateMachine.FixedUpdate();
+
         mover.CheckForGround();
         HandleMomentum();
         
@@ -105,6 +148,7 @@ public class RobotMode : BaseMode
         savedMovementVelocity = CalculateMovementVelocity();
 
         ResetJumpKeys();
+
     }
    
     void HandleMomentum()
