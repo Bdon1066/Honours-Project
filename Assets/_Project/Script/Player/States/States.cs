@@ -101,11 +101,6 @@ public class RobotState : IState
         controller.OnModeStart<RobotMode>();
     }
 
-    public void OnExit()
-    {
-        controller.OnModeExit<RobotMode>();
-    }
-
 }
 /// <summary>
 /// A state for when we are in Car Mode
@@ -121,11 +116,6 @@ public class CarState : IState
     public void OnEnter()
     {
         controller.OnModeStart<CarMode>();
-    }
-    
-    public void OnExit()
-    {
-        controller.OnModeExit<RobotMode>();
     }
 
 }

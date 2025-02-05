@@ -1,30 +1,57 @@
 using UnityEngine;
 
- 
-public class RobotMover : BaseMover
+/// <summary>
+/// The Mover Interface, all movers (i.e. car, robot) will implement this interface.
+/// Movers handle how each Mode will move, actual movement in the world is done via Mode class
+/// </summary>
+public interface IMover
 {
-    [Header("Robot Collider Settings")] 
+    public void CheckForGround();
+    public bool IsGrounded();
+    public Vector3 GetGroundNormal();
+    public void SetVelocity(Vector3 velocity);
+    public void SetExtendSensorRange(bool isExtended);
+   
+}
+
+[RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]  
+public class RobotMover : MonoBehaviour, IMover
+{
+    [Header("Collider Settings")] 
     [Range(0f,1f)][SerializeField] float stepHeightRatio = 0.1f;
     [SerializeField] float colliderHeight = 2f;
     [SerializeField] float colliderThickness = 1f;
     [SerializeField] Vector3 colliderOffset = Vector3.zero;
     
+    Rigidbody rb;
+    Transform tr;
+    CapsuleCollider col;
+    RaycastSensor sensor;
     
-    protected override void Awake()
+    bool isGrounded;
+    float baseSensorRange;
+    Vector3 currentGroundAdjustmentVelocity; //The velocity needed to adjust the player pos to correct ground pos over one frame
+    int currentLayer;
+
+    [Header("Sensor Settings:")] 
+    [SerializeField] bool debugMode;
+
+    bool usingExtendedSensorRange = true; //For use pn uneven terrain
+
+    void Awake()
     {
-        base.Awake();
-        SetupMover();
+        Setup();
         RecalculateColliderDimensions();
     }
-    public void SetupMover()
+    void Setup()
     {
+        rb = GetComponent<Rigidbody>();
+        tr = GetComponent<Transform>();
+        col = GetComponent<CapsuleCollider>();
+        
         rb.useGravity = false;
         rb.freezeRotation = true;
-        col.direction = 1;
-
-        print("Setup Robot Mover");
     }
-
     void OnValidate()
     {
         if (gameObject.activeInHierarchy)
@@ -32,7 +59,7 @@ public class RobotMover : BaseMover
             RecalculateColliderDimensions();
         }
     }
-    public override void CheckForGround()
+    public void CheckForGround()
     {
         if (currentLayer != gameObject.layer)
         {
@@ -56,12 +83,16 @@ public class RobotMover : BaseMover
         
         currentGroundAdjustmentVelocity = tr.up *(distanceToGo / Time.fixedDeltaTime);
     }
+    public bool IsGrounded() => isGrounded;
+    public Vector3 GetGroundNormal() => sensor.GetNormal();
     
+    public void SetVelocity(Vector3 velocity) => rb.velocity = velocity + currentGroundAdjustmentVelocity;
+    public void SetExtendSensorRange(bool isExtended) => usingExtendedSensorRange = isExtended;
     void RecalculateColliderDimensions()
     {
         if (col == null) //i.e. in editor mode, need to run setup as Awake won't have been called
         {
-            Awake();
+            Setup();
         }
         
         col.height = colliderHeight * (1f - stepHeightRatio);
@@ -92,7 +123,6 @@ public class RobotMover : BaseMover
         baseSensorRange = length * (1f- safetyDistanceFactor) * tr.localScale.x;
         sensor.castLength = length * tr.localScale.x;
     }
-    
     void RecalculateSensorLayerMask()
     {
         int objectLayer = gameObject.layer;
@@ -112,5 +142,4 @@ public class RobotMover : BaseMover
         sensor.layerMask = layerMask;
         currentLayer = objectLayer;
     }
-    
 }

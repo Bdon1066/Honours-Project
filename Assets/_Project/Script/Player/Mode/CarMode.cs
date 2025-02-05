@@ -1,55 +1,24 @@
 using System;
 using UnityEngine;
 
-[System.Serializable]
-public class AxleInfo
-{
-    public WheelCollider leftWheel;
-    public WheelCollider rightWheel;
-    public bool motor;
-    public bool steering;
-    public WheelFrictionCurve originalForwardFriction;
-    public WheelFrictionCurve originalSideFriction;
-}
+
 public class CarMode : BaseMode
 {
     #region Fields
     
-    //Rigidbody rb;
-    CarMover mover;
+    public float movementSpeed = 7f;
+    public float groundFriction = 100f;
+    public float gravity = 30f;
+
+    public float airControlRate = 2f;
+    [Range(0,1)]public float airControlScalingFactor = 0.25f;
+    public float airFriction = 0.5f;
+   
+    public float slideGravity = 5f;
+    public float slopeLimit = 30f;
     
-    [Header("Axle Info")]
-    public AxleInfo[] axleInfos;
-
-    [Header("Motor Attributes")] 
-    public float maxMotorTorque = 3000f;
-    public float maxSpeed;
-
-    [Header("Steering Attributes")]
-    public float maxSteeringAngle = 30f;
-    public AnimationCurve turnCurve;
-    public float turnStrength = 1500f;
-        
-    [Header("Braking and Drifting")]
-    public float driftSteerMultiplier = 1.5f; // Change in steering during a drift
-    public float brakeTorque = 10000f;
-
-    [Header("Physics")]
-    public Transform centerOfMass;
-    public float downForce = 100f;
-    public float gravity = Physics.gravity.y;
-    public float lateralGScale = 10f; // Scaling factor for lateral G forces;
-
-    [Header("Banking")]
-    public float maxBankAngle = 5f;
-    public float bankSpeed = 2f;
-
-    private float brakeVelocity;
-    
-    //OG Base Mode stuff below
     Vector3 savedVelocity, savedMovementVelocity;
 
-    [Header("Camera Information")]
     [SerializeField] Transform cameraTransform;
     
     public event Action<Vector3> OnLand = delegate { };
@@ -58,57 +27,49 @@ public class CarMode : BaseMode
     
     public Vector3 GetMovementVelocity() => savedMovementVelocity;
 
-    protected override void Awake()
-    { 
-        base.Awake();
-        //rb = GetComponent<Rigidbody>();
-        mover = GetComponent<CarMover>();
-        
-        foreach (AxleInfo axleInfo in axleInfos) {
-            axleInfo.originalForwardFriction = axleInfo.leftWheel.forwardFriction;
-            axleInfo.originalSideFriction = axleInfo.leftWheel.sidewaysFriction;
-        }
-    }
-    
     protected override void  SetupStateMachine()
     {
         stateMachine = new StateMachine();
         var grounded = new GroundedState(this);
         var falling = new FallingState(this);
         var rising = new RisingState(this);
+        var sliding = new SlidingState(this);
 
         //When at grounded state, we will go to rising state when IsRising is true
         At(grounded, rising, new FuncPredicate(() => IsRising()));
+        At(grounded, sliding, new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
         At(grounded, falling, new FuncPredicate(() => !mover.IsGrounded()));
         
         
         At(falling, rising, new FuncPredicate(() => IsRising()));
-        At(falling, grounded, new FuncPredicate(() => mover.IsGrounded()));
-        
-        At(rising, grounded, new FuncPredicate(() => mover.IsGrounded()));
+        At(falling, sliding, new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
+        At(falling, grounded, new FuncPredicate(() => mover.IsGrounded() && !IsGroundTooSteep()));
+
+        At(rising, sliding, new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
+        At(rising, grounded, new FuncPredicate(() => mover.IsGrounded() && !IsGroundTooSteep()));
         At(rising, falling, new FuncPredicate(() => IsFalling()));
 
+        At(sliding, grounded, new FuncPredicate(() => mover.IsGrounded() && !IsGroundTooSteep()));
+        At(sliding, falling, new FuncPredicate(() => !mover.IsGrounded()));
+        At(sliding, rising, new FuncPredicate(() => IsRising()));
+
         stateMachine.SetState(falling);
+
     }
-
-    public override void Init(InputReader inputReader)
-    {
-        input = inputReader;
-    }
-
-
+    
+    bool IsGroundTooSteep() => !mover.IsGrounded() || Vector3.Angle(mover.GetGroundNormal(), tr.up) > slopeLimit;
+    
+    
     protected override void FixedUpdate()
     {
         base.FixedUpdate();
-        mover.CheckForGround();
         
+        mover.CheckForGround();
         HandleMomentum();
         
         //if on the ground calculate velocity from player movement
         Vector3 velocity = stateMachine.CurrentState is GroundedState ? CalculateMovementVelocity() : Vector3.zero;
         velocity += useLocalMomentum ? tr.localToWorldMatrix * momentum : momentum;
-        
-        UpdateAxles(velocity.x,velocity.y);
 
         //extend ground sensor range if on the ground
         mover.SetExtendSensorRange(IsGrounded());
@@ -119,76 +80,47 @@ public class CarMode : BaseMode
         savedMovementVelocity = CalculateMovementVelocity();
         
     }
-
-    public override void EnterMode(IState entryState, Vector3 entryMomentum)
-    {
-        stateMachine.SetState(entryState);
-        momentum = entryMomentum;
-        
-        mover.SetupMover();
-    }
-
-    public override void ExitMode()
-    {
-        mover.enabled = false;
-        print("Disabled Car Mover");
-    }
-
-
-    void UpdateAxles(float motor, float steering) {
-        foreach (AxleInfo axleInfo in axleInfos) {
-            HandleSteering(axleInfo, steering);
-            HandleMotor(axleInfo, motor);
-            HandleBrakesAndDrift(axleInfo);
-            //UpdateWheelVisuals(axleInfo.leftWheel);
-            //UpdateWheelVisuals(axleInfo.rightWheel);
-        }
-    }
-    void HandleSteering(AxleInfo axleInfo, float steering) {
-        if (axleInfo.steering) {
-            //float steeringMultiplier = input.IsBraking ? driftSteerMultiplier : 1f;
-            axleInfo.leftWheel.steerAngle = steering; //* steeringMultiplier;
-            axleInfo.rightWheel.steerAngle = steering; //* steeringMultiplier;
-        }
-    }
-    void HandleMotor(AxleInfo axleInfo, float motor) {
-        if (axleInfo.motor) {
-            axleInfo.leftWheel.motorTorque = motor;
-            axleInfo.rightWheel.motorTorque = motor;
-        }
-    }
-    float AdjustInput(float input) {
-        return input switch {
-            >= .7f => 1f,
-            <= -.7f => -1f,
-            _ => input
-        };
-    }
-    void HandleBrakesAndDrift(AxleInfo axleInfo) {
-        if (axleInfo.motor) {
-            if (input.IsBraking) {
-                mover.ConstrainRigidBody(RigidbodyConstraints.FreezeRotationX);
-                float newZ = Mathf.SmoothDamp(momentum.z, 0, ref brakeVelocity, 1f);
-                momentum.z = newZ;
-                    
-                axleInfo.leftWheel.brakeTorque = brakeTorque;
-                axleInfo.rightWheel.brakeTorque = brakeTorque;
-                //ApplyDriftFriction(axleInfo.leftWheel);
-                //ApplyDriftFriction(axleInfo.rightWheel);
-            } else {
-                mover.ConstrainRigidBody(RigidbodyConstraints.None);
-                axleInfo.leftWheel.brakeTorque = 0;
-                axleInfo.rightWheel.brakeTorque = 0;
-               //ResetDriftFriction(axleInfo.leftWheel);
-               // ResetDriftFriction(axleInfo.rightWheel);
-            }
-        }
-    }
    
     void HandleMomentum()
     {
         if (useLocalMomentum) momentum = tr.localToWorldMatrix * momentum;
+
+        Vector3 verticalMomentum = Utils.ExtractDotVector(momentum, tr.up); //extract vertical momentum
+        Vector3 horizontalMomentum = momentum - verticalMomentum; //thus leaving horizontal remaining
+
+        verticalMomentum -= tr.up * (gravity * Time.deltaTime); //add gravity
+
+        //if on ground and still applying downward force, stop applying that downward force
+        if (stateMachine.CurrentState is GroundedState && Utils.GetDotProduct(verticalMomentum, tr.up) < 0)
+        {
+            verticalMomentum = Vector3.zero;
+        }
+
+        //In-Air Momentum
+        if (!IsGrounded()) 
+        { 
+            AdjustInAirHorizontalMomentum(ref horizontalMomentum, CalculateMovementVelocity());
+        }
+        //Sliding Momentum
+        if (stateMachine.CurrentState is SlidingState)
+        { HandleSliding(ref horizontalMomentum);
+        }
+            
+        float friction = stateMachine.CurrentState is GroundedState ? groundFriction : airFriction;
+        horizontalMomentum = Vector3.MoveTowards(horizontalMomentum,Vector3.zero, friction * Time.deltaTime);
+
+        momentum = horizontalMomentum + verticalMomentum;
+
+        if (stateMachine.CurrentState is SlidingState)
+        { 
+            momentum = Vector3.ProjectOnPlane(momentum, mover.GetGroundNormal()); // project momentum onto ground normal plane, ensuring smooth sliding over minute bumps
+            if (Utils.GetDotProduct(momentum, tr.up) > 0f) momentum = Utils.RemoveDotVector(momentum, tr.up); //remove any upwards momentum if it exists
         
+            Vector3 slideDirection = Vector3.ProjectOnPlane(-tr.up, mover.GetGroundNormal().normalized); //projecting downward plane 
+            momentum += slideDirection * (slideGravity * Time.deltaTime);
+        }
+
+        if (useLocalMomentum) momentum = tr.worldToLocalMatrix * momentum;
 
     }
     public void OnGroundContactLost()
@@ -218,17 +150,20 @@ public class CarMode : BaseMode
         OnLand.Invoke(collisionVelocity);
     }
 
-    Vector3 CalculateMovementVelocity()
+    private void HandleSliding(ref Vector3 horizontalMomentum)
     {
-        Vector3 velocity = CalculateMovementDirection();
-        //for a car, x determines Torque(speed) and y determines steering, so we apply different multipliers for each here
-        velocity.x *= maxMotorTorque;
-        velocity.y *= maxSteeringAngle;
-        return velocity;
-    } 
-    
+        Vector3 pointDownVector = Vector3.ProjectOnPlane(mover.GetGroundNormal(), tr.up).normalized; //the direction of the slopes descent
+        Vector3 movementVelocity = CalculateMovementVelocity();
+        movementVelocity = Utils.RemoveDotVector(movementVelocity, pointDownVector); //remove player inputted velocity in direction of slope descent to prevent players movement adding onto the sliding
+        horizontalMomentum += movementVelocity * Time.fixedDeltaTime;
+        
+    }
+    Vector3 CalculateMovementVelocity() => CalculateMovementDirection() * movementSpeed;
+
+
     Vector3 CalculateMovementDirection()
     {
+
         Vector3 direction = cameraTransform == null //do we have a camera?
             ? tr.right * input.Direction.x + tr.forward * input.Direction.y //if not, direction determined by input directly
             : Vector3.ProjectOnPlane(cameraTransform.right, tr.up).normalized * input.Direction.x + //else direction determined by camera position plus input
@@ -237,4 +172,28 @@ public class CarMode : BaseMode
         return direction.magnitude > 1f ? direction.normalized : direction;
 
     }
+
+    void AdjustInAirHorizontalMomentum(ref Vector3 horizontalMomentum, Vector3 movementVelocity)
+    {
+        //for when we are movin faster than movement speed 
+        if (horizontalMomentum.magnitude > movementSpeed)
+        {
+            //does our velocity have any component in the current horizontal momentum direction?
+            if (Utils.GetDotProduct(movementVelocity,horizontalMomentum) > 0)
+            {
+                //remove overlapping velocity from momentum
+                movementVelocity = Utils.RemoveDotVector(movementVelocity, horizontalMomentum.normalized);
+            }
+            //scale down our air control to maintain existing higher momentum while also having some control
+            horizontalMomentum += movementVelocity * (Time.deltaTime * airControlRate * airControlScalingFactor);
+        }
+        else
+        {
+            //if within movement speed, just add without scaling and clamp inside the speed
+            horizontalMomentum += movementVelocity * (Time.deltaTime * airControlRate);
+            horizontalMomentum = Vector3.ClampMagnitude(horizontalMomentum, movementSpeed);
+        }
+    }
+
+
 }

@@ -20,8 +20,7 @@ public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IP
     public PlayerInputActions inputActions;
 
     public Vector2 Direction => inputActions.Player.Move.ReadValue<Vector2>();
-    public bool IsJumpPressed => inputActions.Player.Jump.IsPressed();
-    public bool IsBraking => inputActions.Player.Brake.ReadValue<float>() > 0;
+    public bool isJumpPressed => inputActions.Player.Jump.IsPressed();
 
     public void EnablePlayerActions()
     {
@@ -70,11 +69,6 @@ public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IP
                 Transform.Invoke(false);
                 break;
         }
-    }
-
-    public void OnBrake(InputAction.CallbackContext context)
-    {
-        throw new System.NotImplementedException();
     }
 }
 

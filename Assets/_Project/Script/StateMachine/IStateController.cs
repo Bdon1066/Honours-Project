@@ -37,5 +37,4 @@ public interface IModeStateController : IStateController
 
     public void OnTransformStart();
 
-    void OnModeExit<T>() where T : BaseMode;
 }
