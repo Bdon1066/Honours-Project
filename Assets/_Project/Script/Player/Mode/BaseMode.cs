@@ -73,7 +73,6 @@ public abstract class BaseMode : MonoBehaviour, IMode, IMovementStateController
     }
 
     public abstract void EnterMode(IState entryState, Vector3 entryMomentum);
-    public abstract void EnterMode(Vector3 entryMomentum);
     public abstract void ExitMode();
 
 }

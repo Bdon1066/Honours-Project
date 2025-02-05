@@ -86,11 +86,9 @@ public class PlayerController : MonoBehaviour, IModeStateController
 
     public void OnModeStart<T>() where T : BaseMode
     {
-        print("Starting Mode:  "+ typeof(T).Name);
         SetMode<T>();
         if (previousMode != null) currentMode.EnterMode(previousMode.GetState(),previousMode.GetMomentum());
-        else currentMode.EnterMode(Vector3.zero);
-        //TODO: Set state of mode dependent on the state of the previous mode
+       //TODO: Set state of mode dependent on the state of the previous mode
     }
 
     public void OnTransformStart()

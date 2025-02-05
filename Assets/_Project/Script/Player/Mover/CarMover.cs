@@ -11,14 +11,16 @@ public class CarMover : BaseMover
     protected override void Awake()
     {
         base.Awake();
+        SetupMover();
         RecalculateColliderDimensions();
     }
-    public void EnterMover()
+    public void SetupMover()
     {
         rb.useGravity = false;
         rb.freezeRotation = true;
         col.direction = 2;
-        RecalculateColliderDimensions();
+        
+        print("Setup Car Mover");
     }
     
    

@@ -165,8 +165,8 @@ GameObject:
   - component: {fileID: 28009202}
   - component: {fileID: 28009201}
   - component: {fileID: 28009197}
-  - component: {fileID: 28009204}
   - component: {fileID: 28009203}
+  - component: {fileID: 28009204}
   m_Layer: 0
   m_Name: Jazz
   m_TagString: Untagged
@@ -209,10 +209,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.7
-  m_Height: 2.97
+  m_Radius: 0.5
+  m_Height: 2
   m_Direction: 1
-  m_Center: {x: 0, y: 2.8214998, z: 0}
+  m_Center: {x: 0, y: 1.36, z: 0}
 --- !u!54 &28009199
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -275,7 +275,7 @@ MonoBehaviour:
   movementSpeed: 17
   groundFriction: 100
   jumpSpeed: 10
-  jumpDuration: 1
+  jumpDuration: 0.2
   gravity: 30
   airControlRate: 2
   airControlScalingFactor: 0.25
@@ -304,31 +304,24 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 28009196}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1c5e79df5ec84e52b231a8360c00c891, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  colliderHeight: 2
-  colliderThickness: 1
-  colliderOffset: {x: 0, y: 0, z: 0}
---- !u!114 &28009204
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 28009196}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8884681f1acb4884bd3c0b7a01c7eb90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   model: {fileID: 1681309527}
   useLocalMomentum: 0
-  axleInfos: []
+  axleInfos:
+  - leftWheel: {fileID: 717722458}
+    rightWheel: {fileID: 74456706}
+    motor: 0
+    steering: 1
+  - leftWheel: {fileID: 1425285153}
+    rightWheel: {fileID: 1237012540}
+    motor: 1
+    steering: 0
   maxMotorTorque: 3000
-  maxSpeed: 0
+  maxSpeed: 100
   maxSteeringAngle: 30
   turnCurve:
     serializedVersion: 2
@@ -346,6 +339,21 @@ MonoBehaviour:
   maxBankAngle: 5
   bankSpeed: 2
   cameraTransform: {fileID: 0}
+--- !u!114 &28009204
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 28009196}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c5e79df5ec84e52b231a8360c00c891, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  colliderHeight: 2
+  colliderThickness: 1
+  colliderOffset: {x: 0, y: 0.68, z: 0}
 --- !u!1 &74456704
 GameObject:
   m_ObjectHideFlags: 0

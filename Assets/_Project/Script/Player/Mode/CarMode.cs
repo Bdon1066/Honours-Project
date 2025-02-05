@@ -125,13 +125,7 @@ public class CarMode : BaseMode
         stateMachine.SetState(entryState);
         momentum = entryMomentum;
         
-        mover.EnterMover();
-    }
-    public override void EnterMode(Vector3 entryMomentum)
-    {
-        momentum = entryMomentum;
-        
-        mover.EnterMover();
+        mover.SetupMover();
     }
 
     public override void ExitMode()
