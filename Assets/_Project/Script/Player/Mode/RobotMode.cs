@@ -17,26 +17,29 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
 
     bool jumpInputLocked, jumpWasPressed, jumpLetGo, jumpIsPressed;
 
+    [Header("Ground Attributes")]
     public float movementSpeed = 7f;
     public float groundFriction = 100f;
+    [Header("In-Air Attributes")]
     public float gravity = 30f;
-    
-    public float jumpSpeed = 10f;
-    public float jumpDuration = 0.2f;
     public float airControlRate = 2f;
     [Range(0,1)]public float airControlScalingFactor = 0.25f;
     public float airFriction = 0.5f;
-   
+    [Header("Jump Attributes")]
+    public float jumpSpeed = 10f;
+    public float jumpDuration = 0.2f;
+    [Header("Slide Attributes")]
     public float slideGravity = 5f;
     public float slopeLimit = 30f;
     
-    Vector3 momentum, savedVelocity, savedMovementVelocity;
+    [Header("Momentum Settings")]
     public bool useLocalMomentum;
-    
+    Vector3 momentum, savedVelocity, savedMovementVelocity;
     
     CountdownTimer jumpTimer;
     StateMachine stateMachine;
-
+    
+    [Header("Camera")]
     [SerializeField] Transform cameraTransform;
 
     private bool isEnabled;
