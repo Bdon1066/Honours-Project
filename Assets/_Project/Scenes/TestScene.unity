@@ -165,7 +165,8 @@ GameObject:
   - component: {fileID: 28009202}
   - component: {fileID: 28009201}
   - component: {fileID: 28009197}
-  - component: {fileID: 28009203}
+  - component: {fileID: 28009205}
+  - component: {fileID: 28009204}
   m_Layer: 0
   m_Name: Jazz
   m_TagString: Untagged
@@ -274,9 +275,9 @@ MonoBehaviour:
   movementSpeed: 17
   groundFriction: 100
   gravity: 30
-  jumpSpeed: 10
-  jumpDuration: 0.2
-  airControlRate: 2
+  jumpSpeed: 15
+  jumpDuration: 0.4
+  airControlRate: 4
   airControlScalingFactor: 0.25
   airFriction: 0.5
   slideGravity: 5
@@ -297,7 +298,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   input: {fileID: 11400000, guid: 0049de2aa9e2d5645a1711574415abbd, type: 2}
   transformDuration: 1
---- !u!114 &28009203
+--- !u!114 &28009204
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -306,7 +307,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 28009196}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8884681f1acb4884bd3c0b7a01c7eb90, type: 3}
+  m_Script: {fileID: 11500000, guid: 8bc2562ecae740aabf34d0ab26f45d60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &28009205
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 28009196}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3152554e2d14b86a0ce3efee2e275c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   model: {fileID: 1681309527}

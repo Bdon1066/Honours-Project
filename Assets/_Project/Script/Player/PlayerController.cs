@@ -32,14 +32,17 @@ public class PlayerController : MonoBehaviour, IModeStateController
  
     private void Start()
     {
+        //initialize our modes on start and set up the mode state machine
         InitModes();
         SetupStateMachine();
+        
         input.EnablePlayerActions();
         input.Transform += HandleTransformInput;
     }
 
     void HandleTransformInput(bool isButtonPressed)
     {
+        //update the transform input flags with fresh input data
         if (!transformIsPressed && isButtonPressed)
         {
             transformWasPressed = true;
@@ -68,9 +71,6 @@ public class PlayerController : MonoBehaviour, IModeStateController
     {
         stateMachine.FixedUpdate();
         ResetTransformKeys();
-
-        print(stateMachine.CurrentState);
-       
     }
 
     private void SetupStateMachine()
@@ -80,7 +80,9 @@ public class PlayerController : MonoBehaviour, IModeStateController
         var car = new CarState(this);
         var transforming = new TransformingState(this);
 
+        //begin transforming from any mode state once input is/was pressed and isn't locked
         Any(transforming, new FuncPredicate(() => (transformIsPressed || transformWasPressed) && !transformInputLocked));
+        //transform into robot when we are a car and vice versa 
         At(transforming, robot, new FuncPredicate(() => transformTimer.IsFinished && currentMode is CarMode));
         At(transforming, car, new FuncPredicate(() => transformTimer.IsFinished && currentMode is RobotMode));
 
@@ -90,8 +92,19 @@ public class PlayerController : MonoBehaviour, IModeStateController
     public void OnModeStart<T>() where T : IMode
     {
         SetMode<T>();
-        if (previousMode != null) currentMode.EnterMode(previousMode.GetState(),previousMode.GetMomentum());
+        if (previousMode != null && previousMode.GetState() != null)
+        {
+            currentMode.EnterMode(previousMode.GetState(),previousMode.GetMomentum());
+        }
+        else
+        {
+            currentMode.EnterMode();
+        }
        //TODO: Set state of mode dependent on the state of the previous mode
+    }
+    public void OnModeExit<T>() where T : IMode
+    {
+        currentMode.ExitMode();
     }
 
     public void OnTransformStart()
@@ -115,9 +128,8 @@ public class PlayerController : MonoBehaviour, IModeStateController
 
         foreach (var mode in modes)
         {
-            mode.Init(input);
-
-            if (mode is RobotMode) currentMode = mode;
+            mode.Init(input); 
+            SetMode<RobotMode>();
         }
 
         
