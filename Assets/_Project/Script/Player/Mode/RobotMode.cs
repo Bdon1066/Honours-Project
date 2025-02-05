@@ -58,13 +58,7 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
 
     public void ShowModel() => model.SetActive(true);
     public void HideModel() => model.SetActive(false);
-    public void SetEnabled(bool value)
-    {
-        isEnabled = value;
-        if (IsEnabled())  input.Jump += HandleKeyJumpInput;
-        else input.Jump -= HandleKeyJumpInput;
-        
-    } 
+    public void SetEnabled(bool value) => isEnabled = value;
     public bool IsEnabled() => isEnabled;
     
     //Initialize Mode with our player controllers input, called in PlayerController Awake()
@@ -72,7 +66,6 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
     {  
         tr = transform;
        input = inputReader;
-       input.Jump += HandleKeyJumpInput;
        
        mover = GetComponent<RobotMover>();
        mover.Init();
@@ -85,17 +78,25 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
         stateMachine.SetState(entryState);
         momentum = entryMomentum;
         
-        mover.SetEnabled(true);
-        
+        OnEnter();
     }
-    public void EnterMode()
+    public void EnterMode() => OnEnter();
+    void OnEnter()
     {
+        SetEnabled(true);
+        input.Jump += HandleKeyJumpInput;
         mover.SetEnabled(true);
+        print("Entering Robot Mode");
     }
-    public void ExitMode()
+    public void ExitMode() => OnExit();
+    void OnExit()
     {
+        print("Exiting Robot Mode");
+        SetEnabled(false);
+        input.Jump -= HandleKeyJumpInput;
         mover.SetEnabled(false);
     }
+    
 
     
     void SetupStateMachine()
@@ -226,6 +227,7 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
     }
     void HandleKeyJumpInput(bool isButtonPressed)
     {
+        print("Jump Event!");
         if (!jumpIsPressed && isButtonPressed)
         {
             jumpWasPressed = true;
