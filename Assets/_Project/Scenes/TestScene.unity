@@ -281,10 +281,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.7
-  m_Height: 2.97
+  m_Radius: 0.255
+  m_Height: 2.5
   m_Direction: 2
-  m_Center: {x: 0, y: 2.8214998, z: 0}
+  m_Center: {x: 0, y: 1.275, z: 0.22500001}
 --- !u!54 &28009199
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -435,13 +435,13 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  turnStrength: 40
+  turnStrength: 50
   driftSteerMultiplier: 1.5
   brakeTorque: 100
   centerOfMass: {fileID: 1621744194}
   downForce: 50
   gravity: -30
-  lateralGScale: 5
+  lateralGScale: 1
   maxBankAngle: 5
   bankSpeed: 2
   IsGrounded: 1
@@ -2531,7 +2531,7 @@ Transform:
   m_GameObject: {fileID: 1621744193}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0, y: 0.00156, z: -0.00358}
+  m_LocalPosition: {x: 0, y: 0.00156, z: -0.00142}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
