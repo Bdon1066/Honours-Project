@@ -281,10 +281,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.255
-  m_Height: 2.5
+  m_Radius: 0.7
+  m_Height: 2.97
   m_Direction: 2
-  m_Center: {x: 0, y: 1.275, z: 0.22500001}
+  m_Center: {x: 0, y: 2.8214998, z: 0}
 --- !u!54 &28009199
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -307,7 +307,7 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 1
+  m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 112
@@ -415,8 +415,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0.012500763
-      value: 1.0023499
+      time: -0.02096939
+      value: 0.72418976
       inSlope: 2
       outSlope: 2
       tangentMode: 0
@@ -424,8 +424,8 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 1.0166626
-      value: 0.19339752
+      time: 1.007782
+      value: 0.5038223
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -435,13 +435,13 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  turnStrength: 50
+  turnStrength: 40
   driftSteerMultiplier: 1.5
   brakeTorque: 100
   centerOfMass: {fileID: 1621744194}
-  downForce: 300
+  downForce: 50
   gravity: -30
-  lateralGScale: 1
+  lateralGScale: 5
   maxBankAngle: 5
   bankSpeed: 2
   IsGrounded: 1
@@ -2531,7 +2531,7 @@ Transform:
   m_GameObject: {fileID: 1621744193}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.00156, z: -0.00142}
+  m_LocalPosition: {x: -0, y: 0.00156, z: -0.00358}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
