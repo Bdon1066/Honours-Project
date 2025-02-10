@@ -28,6 +28,7 @@ public class PlayerController : MonoBehaviour, IModeStateController
     void Awake()
     {
         transformTimer = new CountdownTimer(transformDuration);
+        Cursor.lockState = CursorLockMode.Locked;
     }
  
     private void Start()

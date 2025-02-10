@@ -144,7 +144,7 @@ Transform:
   m_GameObject: {fileID: 1073441}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 4, z: 0}
+  m_LocalPosition: {x: 0, y: 3.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -281,10 +281,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.7
-  m_Height: 2.97
+  m_Radius: 0.255
+  m_Height: 2.5
   m_Direction: 2
-  m_Center: {x: 0, y: 2.8214998, z: 0}
+  m_Center: {x: 0, y: 1.275, z: 0.22500001}
 --- !u!54 &28009199
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -510,10 +510,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e97eb64dffe5844f8159f10432ffbdf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  upperVerticalLimit: 35
-  lowerVerticalLimit: 35
-  cameraSpeed: 90
-  invertYInput: 0
+  upperVerticalLimit: 40
+  lowerVerticalLimit: 10
+  cameraSpeed: 190
+  invertYInput: 1
   smoothCameraRotation: 0
   cameraSmoothingFactor: 25
   input: {fileID: 11400000, guid: 0049de2aa9e2d5645a1711574415abbd, type: 2}
