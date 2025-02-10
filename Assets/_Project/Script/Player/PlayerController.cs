@@ -23,7 +23,7 @@ public class PlayerController : MonoBehaviour, IModeStateController
 
     public event Action<Vector3> OnTransform = delegate { };
 
-    IMode GetCurrentMode() => currentMode;
+    public IMode GetCurrentMode() => currentMode;
     IMode GetPreviousMode() => currentMode;
     void Awake()
     {

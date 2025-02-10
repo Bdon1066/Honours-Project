@@ -144,7 +144,7 @@ Transform:
   m_GameObject: {fileID: 1073441}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 4, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -281,10 +281,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.255
-  m_Height: 2.5
+  m_Radius: 0.7
+  m_Height: 2.97
   m_Direction: 2
-  m_Center: {x: 0, y: 1.275, z: 0.22500001}
+  m_Center: {x: 0, y: 2.8214998, z: 0}
 --- !u!54 &28009199
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -321,7 +321,7 @@ Transform:
   m_GameObject: {fileID: 28009196}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.11, z: 0}
+  m_LocalPosition: {x: 0, y: 0.1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -354,7 +354,7 @@ MonoBehaviour:
   slideGravity: 5
   slopeLimit: 50
   useLocalMomentum: 0
-  cameraTransform: {fileID: 0}
+  cameraTransform: {fileID: 1688028427}
 --- !u!114 &28009202
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -454,6 +454,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 95850996}
+  - component: {fileID: 95850998}
+  - component: {fileID: 95850997}
   m_Layer: 0
   m_Name: CameraControls
   m_TagString: Untagged
@@ -477,6 +479,44 @@ Transform:
   - {fileID: 1229075035}
   m_Father: {fileID: 1073442}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &95850997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 95850995}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0eba8479f404684eb375e1371365d29, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cameraTransform: {fileID: 1688028427}
+  cameraTargetTransform: {fileID: 1229075035}
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  minimumDistanceFromObstacles: 0.1
+  smoothingFactor: 25
+--- !u!114 &95850998
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 95850995}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e97eb64dffe5844f8159f10432ffbdf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  upperVerticalLimit: 35
+  lowerVerticalLimit: 35
+  cameraSpeed: 90
+  invertYInput: 0
+  smoothCameraRotation: 0
+  cameraSmoothingFactor: 25
+  input: {fileID: 11400000, guid: 0049de2aa9e2d5645a1711574415abbd, type: 2}
 --- !u!1 &156612755 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 79cb9b01fe0b0c44a9e3668725eda9fb, type: 3}
@@ -611,6 +651,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 284301861}
+  - component: {fileID: 284301862}
   m_Layer: 0
   m_Name: RobotModelRoot
   m_TagString: Untagged
@@ -634,6 +675,20 @@ Transform:
   - {fileID: 156612756}
   m_Father: {fileID: 28009200}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &284301862
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 284301860}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23ccd7fb57fb69848b2ebcbf6efac173, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  controller: {fileID: 28009202}
+  turnSpeed: 500
 --- !u!1 &314662722
 GameObject:
   m_ObjectHideFlags: 0
@@ -2244,7 +2299,7 @@ Transform:
   m_GameObject: {fileID: 1229075034}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 4.02, z: -7.31}
+  m_LocalPosition: {x: 0, y: 0, z: -6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Numerics;
-using Vector3 = UnityEngine.Vector3;
+using UnityEngine;
 
 /// <summary>
 /// A Utilities class for random useful generic functions useful in a bunch of places
@@ -41,11 +38,16 @@ public static class Utils
 
     }
     /// <summary>
-    /// 
+    /// Calculates the signed angle between two vectors on a plane defined by a normal vector.
     /// </summary>
-    /// <param name="aaa"></param>
-    /// <param name="bbb"></param>
-    /// <param name="ccc"></param>
-    /// <returns></returns>
-    public static float Yahoo(float aaa, float bbb, Vector3 ccc) => aaa;
+    /// <param name="vector1">The first vector.</param>
+    /// <param name="vector2">The second vector.</param>
+    /// <param name="planeNormal">The normal vector of the plane on which to calculate the angle.</param>
+    /// <returns>The signed angle between the vectors in degrees.</returns>
+    public static float GetAngleBetween(Vector3 vector1, Vector3 vector2, Vector3 planeNormal)
+    {
+        var angle = Vector3.Angle(vector1, vector2);
+        var sign = Mathf.Sign(Vector3.Dot(planeNormal, Vector3.Cross(vector1, vector2)));
+        return angle * sign;
+    }
 }

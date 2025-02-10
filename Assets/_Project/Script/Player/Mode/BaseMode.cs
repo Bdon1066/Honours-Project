@@ -17,6 +17,8 @@ public interface IMode
     public void HideModel();
 
     public Vector3 GetMomentum();
+
+    public Vector3 GetMovementVelocity();
     public IState GetState();
     
     public void SetEnabled(bool value);

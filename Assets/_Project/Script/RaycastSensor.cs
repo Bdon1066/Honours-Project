@@ -3,7 +3,7 @@ using UnityEngine;
 
 
 /// <summary>
-/// A generic raycast script for handling things like a ground check.
+/// This class creates a sensor using a raycast in a specified cast direction
 /// </summary>
 public class RaycastSensor
 {
@@ -19,9 +19,9 @@ public class RaycastSensor
     RaycastHit hitInfo;
 
     // constructor to initialize class with player Transform
-    public RaycastSensor(Transform playerTransform)
+    public RaycastSensor(Transform originTransform)
     {
-        tr = playerTransform;
+        tr = originTransform;
     }
     public void Cast()
     {

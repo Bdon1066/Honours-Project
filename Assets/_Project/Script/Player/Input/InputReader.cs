@@ -14,12 +14,14 @@ public interface IInputReader
 public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IPlayerActions
 {
     public event UnityAction<Vector2> Move = delegate { };
+    public event UnityAction<Vector2, bool> Look = delegate { };
     public event UnityAction<bool> Jump = delegate { };
     public event UnityAction<bool> Transform = delegate { };
 
     public PlayerInputActions inputActions;
 
     public Vector2 Direction => inputActions.Player.Move.ReadValue<Vector2>();
+    public Vector2 LookDirection => inputActions.Player.Look.ReadValue<Vector2>();
     public bool isJumpPressed => inputActions.Player.Jump.IsPressed();
 
     public bool IsBraking => inputActions.Player.Brake.ReadValue<float>() > 0;
@@ -57,7 +59,12 @@ public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IP
     }
     public void OnLook(InputAction.CallbackContext context)
     {
-
+        Look.Invoke(context.ReadValue<Vector2>(), IsDeviceMouse(context));
+    }
+    bool IsDeviceMouse(InputAction.CallbackContext context)
+    {
+        // Debug.Log($"Device name: {context.control.device.name}");
+        return context.control.device.name == "Mouse";
     }
 
     public void OnTransform(InputAction.CallbackContext context)
