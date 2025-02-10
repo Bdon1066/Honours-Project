@@ -89,12 +89,12 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
         SetEnabled(true);
         input.Jump += HandleKeyJumpInput;
         mover.SetEnabled(true);
-        print("Entering Robot Mode");
+        //print("Entering Robot Mode");
     }
     public void ExitMode() => OnExit();
     void OnExit()
     {
-        print("Exiting Robot Mode");
+        //print("Exiting Robot Mode");
         SetEnabled(false);
         input.Jump -= HandleKeyJumpInput;
         mover.SetEnabled(false);
@@ -230,7 +230,7 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
     }
     void HandleKeyJumpInput(bool isButtonPressed)
     {
-        print("Jump Event!");
+        //print("Jump Event!");
         if (!jumpIsPressed && isButtonPressed)
         {
             jumpWasPressed = true;

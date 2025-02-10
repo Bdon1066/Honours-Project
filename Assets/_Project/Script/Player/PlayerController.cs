@@ -56,6 +56,7 @@ public class PlayerController : MonoBehaviour, IModeStateController
         }
 
         transformIsPressed = isButtonPressed;
+        print("TRANBSFROM");
 
     }
     void ResetTransformKeys()

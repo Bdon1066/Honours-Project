@@ -334,6 +334,6 @@ public class CarMode : MonoBehaviour, IMode, IMovementStateController
 
     public Vector3 GetMovementVelocity()
     {
-       return Vector3.zero;
+        return kartVelocity;
     }
 }
