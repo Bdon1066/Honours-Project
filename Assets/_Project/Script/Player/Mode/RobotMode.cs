@@ -51,8 +51,16 @@ public class RobotMode : BaseMode
     public event Action<Vector3> OnLand = delegate { };
 
     #endregion
-    
-    
+
+
+    void OnCollisionEnter(Collision other)
+    {
+        if (other.gameObject.GetComponent<CarMode>() != null)
+        {
+            print("Touching up to the car");
+        }
+    }
+
     bool IsGrounded() => stateMachine.CurrentState is GroundedState or SlidingState;
     public override Vector3 GetMomentum() => useLocalMomentum ? tr.localToWorldMatrix * momentum : momentum;
     public override Vector3 GetMovementVelocity() => savedMovementVelocity;
@@ -127,7 +135,7 @@ public class RobotMode : BaseMode
         At(sliding, falling, new FuncPredicate(() => !mover.IsGrounded()));
         At(sliding, rising, new FuncPredicate(() => IsRising()));
 
-        stateMachine.SetState(grounded);
+        stateMachine.SetState(falling);
 
     }
     void At(IState from, IState to, IPredicate condition) => stateMachine.AddTransition(from, to, condition);
@@ -137,11 +145,12 @@ public class RobotMode : BaseMode
     bool IsGroundTooSteep() => !mover.IsGrounded() || Vector3.Angle(mover.GetGroundNormal(), tr.up) > slopeLimit;
     void Update()
     {
-        //if this mode is disabled, unsubscribe from events and return out of update
+        //if this mode is disabled, return out of update
         if (!IsEnabled()) return;
         stateMachine.Update();
-        
+
         print(stateMachine.CurrentState);
+        print(mover.IsGrounded());
     }
 
   
@@ -149,7 +158,7 @@ public class RobotMode : BaseMode
 
     void FixedUpdate()
     {
-        //if this mode is disabled, unsubscribe from events and return out of update
+        //if this mode is disabled, return out of update
         if (!IsEnabled()) return;
         stateMachine.FixedUpdate();
         

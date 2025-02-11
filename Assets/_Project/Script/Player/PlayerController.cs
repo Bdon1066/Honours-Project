@@ -48,8 +48,8 @@ public class PlayerController : MonoBehaviour, IModeStateController
         //initialize each of our modes
         foreach (var mode in modes)
         {
-            mode.Init(this);
             mode.transform.SetParent(null);
+            mode.Init(this);
         }
         
         //Set our initial mode to the first entry in the array

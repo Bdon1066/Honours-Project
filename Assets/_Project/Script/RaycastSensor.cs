@@ -1,6 +1,7 @@
+using System;
 using Unity.VisualScripting.FullSerializer;
+using UnityEditor;
 using UnityEngine;
-
 
 
 /// <summary>
@@ -29,8 +30,9 @@ public class RaycastSensor
         //We need world origin and direction as opposed to local
         Vector3 worldOrigin = tr.TransformPoint(origin);
         Vector3 worldDirection = GetCastDirection();
-        
+
         Physics.Raycast(worldOrigin, worldDirection, out hitInfo, castLength, layerMask,QueryTriggerInteraction.Ignore);
+        
     }
     
     public bool HasDetectedHit() => hitInfo.collider != null;
@@ -56,6 +58,16 @@ public class RaycastSensor
             CastDirection.Down => -tr.up,
             _ => Vector3.one
         };
+    }
+    public void DrawDebug()
+    {
+        if (!HasDetectedHit()) return;
+
+        Debug.DrawRay(hitInfo.point, hitInfo.normal, Color.red, Time.deltaTime);
+        float markerSize = 0.2f;
+        Debug.DrawLine(hitInfo.point + Vector3.up * markerSize, hitInfo.point - Vector3.up * markerSize, Color.green, Time.deltaTime);
+        Debug.DrawLine(hitInfo.point + Vector3.right * markerSize, hitInfo.point - Vector3.right * markerSize, Color.green, Time.deltaTime);
+        Debug.DrawLine(hitInfo.point + Vector3.forward * markerSize, hitInfo.point - Vector3.forward * markerSize, Color.green, Time.deltaTime);
     }
 }
 

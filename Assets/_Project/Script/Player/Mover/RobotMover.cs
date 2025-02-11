@@ -46,9 +46,9 @@ public class RobotMover : BaseMover
     }
     public override void Disable()
     {
-        col.enabled = false;
-        rb.isKinematic = true;
-        rb.detectCollisions = false;
+        //col.enabled = false;
+        //rb.isKinematic = true;
+        //rb.detectCollisions = false;
         print("disbable robot mover");
     }
 
@@ -57,7 +57,6 @@ public class RobotMover : BaseMover
     {
         rb.useGravity = false;
         rb.freezeRotation = true;
-        col.enabled = false;
         rb.isKinematic = true;
         rb.detectCollisions = false;
         RecalculateColliderDimensions();
@@ -70,8 +69,14 @@ public class RobotMover : BaseMover
             RecalculateColliderDimensions();
         }
     }
+    void LateUpdate() {
+        if (debugMode) {
+            sensor.DrawDebug();
+        }
+    }
     public void CheckForGround()
     {
+        RecalibrateSensor();
         if (currentLayer != gameObject.layer)
         {
             RecalculateSensorLayerMask();
@@ -83,10 +88,10 @@ public class RobotMover : BaseMover
             ? baseSensorRange + colliderHeight * tr.localScale.x * stepHeightRatio 
             : baseSensorRange;
         sensor.Cast();
-        print("casting ground sensor");
-     
+
+        isGrounded = sensor.HasDetectedHit();
         if (!isGrounded) return;
-        print("Is Grounded!");
+        
         float distance = sensor.GetDistance();
         float upperLimit = colliderHeight * tr.localScale.x * (1f - stepHeightRatio) * 0.5f; //half the collider height above step area, top boundary of ideal pos
         float middle = upperLimit + colliderHeight * tr.localScale.x * stepHeightRatio; // where the feet should be relative to ground
@@ -130,7 +135,7 @@ public class RobotMover : BaseMover
 
         const float safetyDistanceFactor = 0.001f; //Mysterious and fun factor to prevent clipping
 
-        float length = colliderHeight * (1f - stepHeightRatio) * 0.5f + colliderThickness / 2f * stepHeightRatio; //length of our ray, includes adjust collider height and step height ratio
+        float length = colliderHeight * (1f - stepHeightRatio) * 0.5f + colliderHeight / 2f * stepHeightRatio; //length of our ray, includes adjust collider height and step height ratio
         baseSensorRange = length * (1f- safetyDistanceFactor) * tr.localScale.x;
         sensor.castLength = length * tr.localScale.x;
     }
@@ -141,7 +146,7 @@ public class RobotMover : BaseMover
 
         for (int i = 0; i < 32; i++) //iterate through all layers
         {
-            if (Physics.GetIgnoreLayerCollision(objectLayer, i)) //if object's layer ought to ignore layer i
+            if (Physics.GetIgnoreLayerCollision(objectLayer, i)) //check if layer i ignores this mover's layer
             {
                 layerMask &= ~(1 << i); //remove layer i from the mask via magical bitshifting
             }
