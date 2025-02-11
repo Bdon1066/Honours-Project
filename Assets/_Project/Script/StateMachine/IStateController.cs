@@ -32,9 +32,9 @@ public interface IMovementStateController : IStateController
 /// </summary>
 public interface IModeStateController : IStateController
 {
-    public void OnModeStart<T>() where T : IMode;
+    public void OnModeStart<T>() where T : BaseMode;
     
-    public void OnModeExit<T>() where T : IMode;
+    public void OnModeExit<T>() where T : BaseMode;
 
 
     public void OnTransformStart();

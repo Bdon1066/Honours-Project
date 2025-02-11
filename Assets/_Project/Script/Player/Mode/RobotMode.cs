@@ -4,14 +4,15 @@ using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UIElements;
-
-public class RobotMode : MonoBehaviour, IMode, IMovementStateController
+[RequireComponent(typeof(RobotMover))]  
+public class RobotMode : BaseMode
 {
     #region Fields
     
     Transform tr;
     RobotMover mover;
     InputReader input;
+    PlayerController controller;
 
     [SerializeField] private GameObject model;
 
@@ -53,55 +54,50 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
     
     
     bool IsGrounded() => stateMachine.CurrentState is GroundedState or SlidingState;
-    public Vector3 GetMomentum() => useLocalMomentum ? tr.localToWorldMatrix * momentum : momentum;
-    public IState GetState() => stateMachine.CurrentState;
-    public Vector3 GetMovementVelocity() => savedMovementVelocity;
+    public override Vector3 GetMomentum() => useLocalMomentum ? tr.localToWorldMatrix * momentum : momentum;
+    public override Vector3 GetMovementVelocity() => savedMovementVelocity;
 
     public StateMachine GetStateMachine() => stateMachine;
 
-    public void ShowModel() => model.SetActive(true);
-    public void HideModel() => model.SetActive(false);
-    public void SetEnabled(bool value) => isEnabled = value;
-    public bool IsEnabled() => isEnabled;
+    public override void ShowModel() => model.SetActive(true);
+    public override void HideModel() => model.SetActive(false);
+    public override void SetEnabled(bool value) => isEnabled = value;
+    public override bool IsEnabled() => isEnabled;
     
     //Initialize Mode with our player controllers input, called in PlayerController Awake()
-    public void Init(InputReader inputReader)
-    {  
-        tr = transform;
-       input = inputReader;
-       
+    public override void Init(PlayerController playerController)
+    {  tr = transform; 
+        controller = playerController;
+       input = playerController.input;
+      
        mover = GetComponent<RobotMover>();
        mover.Init();
        
        jumpTimer = new CountdownTimer(jumpDuration);
        SetupStateMachine();
     }
-    public void EnterMode(IState entryState, Vector3 entryMomentum)
+    public override void EnterMode(Vector3 entryMomentum)
     {
-        stateMachine.SetState(entryState);
         momentum = entryMomentum;
         
         OnEnter();
     }
-    public void EnterMode() => OnEnter();
+    public override void EnterMode() => OnEnter();
     void OnEnter()
     {
         SetEnabled(true);
         input.Jump += HandleKeyJumpInput;
-        mover.SetEnabled(true);
+        mover.Enable();
         //print("Entering Robot Mode");
     }
-    public void ExitMode() => OnExit();
+    public override void ExitMode() => OnExit();
     void OnExit()
     {
         //print("Exiting Robot Mode");
         SetEnabled(false);
         input.Jump -= HandleKeyJumpInput;
-        mover.SetEnabled(false);
+        mover.Disable();
     }
-    
-
-    
     void SetupStateMachine()
     {
         stateMachine = new StateMachine();
@@ -131,7 +127,7 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
         At(sliding, falling, new FuncPredicate(() => !mover.IsGrounded()));
         At(sliding, rising, new FuncPredicate(() => IsRising()));
 
-        stateMachine.SetState(falling);
+        stateMachine.SetState(grounded);
 
     }
     void At(IState from, IState to, IPredicate condition) => stateMachine.AddTransition(from, to, condition);
@@ -144,6 +140,8 @@ public class RobotMode : MonoBehaviour, IMode, IMovementStateController
         //if this mode is disabled, unsubscribe from events and return out of update
         if (!IsEnabled()) return;
         stateMachine.Update();
+        
+        print(stateMachine.CurrentState);
     }
 
   

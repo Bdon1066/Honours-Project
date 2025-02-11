@@ -1,16 +1,15 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody), typeof(SphereCollider))]  
 public class CarMover : BaseMover
 {
     [Header("Collider Settings")]
-    [Range(0f, 1f)][SerializeField] float stepHeightRatio = 0.1f;
-    [SerializeField] float colliderHeight = 2f;
-    [SerializeField] float colliderThickness = 1f;
+    [SerializeField] float colliderRadius= 1f;
     [SerializeField] Vector3 colliderOffset = Vector3.zero;
 
     Rigidbody rb;
     Transform tr;
-    CapsuleCollider col;
+    SphereCollider col;
     RaycastSensor sensor;
 
     bool isGrounded;
@@ -24,20 +23,27 @@ public class CarMover : BaseMover
     bool usingExtendedSensorRange = true; //For use pn uneven terrain
 
 
-    public override void SetEnabled(bool value)
-    {
-        base.SetEnabled(value);
-        if (IsEnabled()) ReconfigureComponents();
-    }
+
     public override void Init()
     {
-        base.Init();
         rb = GetComponent<Rigidbody>();
         tr = GetComponent<Transform>();
-        col = GetComponent<CapsuleCollider>();
-
+        col = GetComponent<SphereCollider>();
+        Disable();
         ReconfigureComponents();
 
+    }
+    public override void Enable()
+    {
+        col.enabled = true;
+        rb.isKinematic = false;
+        rb.detectCollisions = true;
+    }
+    public override void Disable()
+    {
+        col.enabled = false;
+        rb.isKinematic = true;
+        rb.detectCollisions = false;
     }
     void OnValidate()
     {
@@ -52,26 +58,19 @@ public class CarMover : BaseMover
     {
         rb.useGravity = false;
         rb.freezeRotation = true;
-        col.direction = 2;
+        
         RecalculateColliderDimensions();
     }
     void RecalculateColliderDimensions()
     {
-        if (col == null) //i.e. in editor mode, need to run setup as Awake won't have been called
+        if (col == null) //i.e. in editor mode, need to run setup as Init won't have been called
         {
             Init();
         }
-
-        col.height = colliderHeight * (1f - stepHeightRatio);
-        col.radius = colliderThickness / 2f;
-        Vector3 stepHeightOffset = new Vector3(0f, stepHeightRatio * col.height / 2f, 0f);
-        col.center = colliderOffset * colliderHeight + stepHeightOffset;
-
-        if (col.height / 2f < col.radius) //ensure radius is not too large and creating invalid capsule shape
-        {
-            col.radius = col.height / 2f;
-        }
-
+       
+        col.radius = colliderRadius;
+        col.center = colliderOffset;
+        
         //RecalibrateSensor();
     }
 }

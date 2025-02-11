@@ -1,4 +1,6 @@
+using System;
 using Unity.VisualScripting.Dependencies.NCalc;
+using UnityEditor;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]  
@@ -26,20 +28,28 @@ public class RobotMover : BaseMover
     bool usingExtendedSensorRange = true; //For use pn uneven terrain
     
     
-    public override void SetEnabled(bool value)
-    {
-        base.SetEnabled(value);
-        if (IsEnabled())  ReconfigureComponents();
-    }
     public override void Init()
     {
-        base.Init();
         rb = GetComponent<Rigidbody>();
         tr = GetComponent<Transform>();
         col = GetComponent<CapsuleCollider>();
-
+        Disable();
         ReconfigureComponents();
         
+    }
+    public override void Enable()
+    {
+        col.enabled = true;
+        rb.isKinematic = false;
+        rb.detectCollisions = true;
+        print("enable robot mover");
+    }
+    public override void Disable()
+    {
+        col.enabled = false;
+        rb.isKinematic = true;
+        rb.detectCollisions = false;
+        print("disbable robot mover");
     }
 
     //This function will reconfigure our rigidbody and collider to this mover's specifications
@@ -47,7 +57,9 @@ public class RobotMover : BaseMover
     {
         rb.useGravity = false;
         rb.freezeRotation = true;
-        col.direction = 1;
+        col.enabled = false;
+        rb.isKinematic = true;
+        rb.detectCollisions = false;
         RecalculateColliderDimensions();
     }
     
@@ -71,10 +83,10 @@ public class RobotMover : BaseMover
             ? baseSensorRange + colliderHeight * tr.localScale.x * stepHeightRatio 
             : baseSensorRange;
         sensor.Cast();
-
-        isGrounded = sensor.HasDetectedHit();
+        print("casting ground sensor");
+     
         if (!isGrounded) return;
-
+        print("Is Grounded!");
         float distance = sensor.GetDistance();
         float upperLimit = colliderHeight * tr.localScale.x * (1f - stepHeightRatio) * 0.5f; //half the collider height above step area, top boundary of ideal pos
         float middle = upperLimit + colliderHeight * tr.localScale.x * stepHeightRatio; // where the feet should be relative to ground
