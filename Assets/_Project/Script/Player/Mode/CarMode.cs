@@ -34,6 +34,7 @@ public class CarMode : BaseMode
     void OnEnter()
     {
         SetEnabled(true);
+        ShowModel();
         //input.Jump += HandleKeyJumpInput;
         mover.Enable();
         
@@ -43,6 +44,7 @@ public class CarMode : BaseMode
     {
         //print("Exiting Robot Mode");
         SetEnabled(false);
+        HideModel();
         //input.Jump -= HandleKeyJumpInput;
         mover.Disable();
     }

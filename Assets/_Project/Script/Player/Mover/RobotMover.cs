@@ -93,11 +93,11 @@ public class RobotMover : BaseMover
         if (!isGrounded) return;
         
         float distance = sensor.GetDistance();
-        float upperLimit = colliderHeight * tr.localScale.x * (1f - stepHeightRatio) * 0.5f; //half the collider height above step area, top boundary of ideal pos
-        float middle = upperLimit + colliderHeight * tr.localScale.x * stepHeightRatio; // where the feet should be relative to ground
+        float upperLimit = colliderHeight * tr.localScale.x * (1f - stepHeightRatio) * 0.5f;
+        float middle = upperLimit + colliderHeight * tr.localScale.x * stepHeightRatio;
         float distanceToGo = middle - distance;
-        
-        currentGroundAdjustmentVelocity = tr.up *(distanceToGo / Time.fixedDeltaTime);
+            
+        currentGroundAdjustmentVelocity = tr.up * (distanceToGo / Time.fixedDeltaTime);
     }
     public bool IsGrounded() => isGrounded;
     public Vector3 GetGroundNormal() => sensor.GetNormal();
@@ -135,8 +135,8 @@ public class RobotMover : BaseMover
 
         const float safetyDistanceFactor = 0.001f; //Mysterious and fun factor to prevent clipping
 
-        float length = colliderHeight * (1f - stepHeightRatio) * 0.5f + colliderHeight / 2f * stepHeightRatio; //length of our ray, includes adjust collider height and step height ratio
-        baseSensorRange = length * (1f- safetyDistanceFactor) * tr.localScale.x;
+        float length = colliderHeight * (1f - stepHeightRatio) * 0.5f + colliderHeight * stepHeightRatio;
+        baseSensorRange = length * (1f + safetyDistanceFactor) * tr.localScale.x;
         sensor.castLength = length * tr.localScale.x;
     }
     void RecalculateSensorLayerMask()
@@ -152,7 +152,7 @@ public class RobotMover : BaseMover
             }
         }
 
-        int ignoreRaycastLayer = LayerMask.GetMask("Ignore Raycast"); // and do the same with ignore raycast layer
+        int ignoreRaycastLayer = LayerMask.NameToLayer("Ignore Raycast"); // and do the same with ignore raycast layer
         layerMask &= ~(1 << ignoreRaycastLayer);
 
         sensor.layerMask = layerMask;

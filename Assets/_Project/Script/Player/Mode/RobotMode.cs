@@ -94,8 +94,11 @@ public class RobotMode : BaseMode
     void OnEnter()
     {
         SetEnabled(true);
-        input.Jump += HandleKeyJumpInput;
+        ShowModel();
         mover.Enable();
+        
+        input.Jump += HandleKeyJumpInput;
+
         //print("Entering Robot Mode");
     }
     public override void ExitMode() => OnExit();
@@ -103,6 +106,7 @@ public class RobotMode : BaseMode
     {
         //print("Exiting Robot Mode");
         SetEnabled(false);
+        HideModel();
         input.Jump -= HandleKeyJumpInput;
         mover.Disable();
     }
@@ -265,17 +269,20 @@ public class RobotMode : BaseMode
         jumpInputLocked = true;
         OnJump.Invoke(momentum);
     }
+    public void OnFallStart() {
+        
+        var currentUpMomemtum = Utils.ExtractDotVector(momentum, tr.up);
+        momentum = Utils.RemoveDotVector(momentum, tr.up);
+        momentum -= tr.up * currentUpMomemtum.magnitude;
+    }
     public void OnGroundContactLost()
-    {
-        if (useLocalMomentum) momentum = tr.localToWorldMatrix * momentum;
+    { if (useLocalMomentum) momentum = tr.localToWorldMatrix * momentum;
             
         Vector3 velocity = GetMovementVelocity();
-        //TODO: Write comments here 
-        if (velocity.sqrMagnitude >= 0f && momentum.sqrMagnitude > 0f) 
-        {
+        if (velocity.sqrMagnitude >= 0f && momentum.sqrMagnitude > 0f) {
             Vector3 projectedMomentum = Vector3.Project(momentum, velocity.normalized);
             float dot = Utils.GetDotProduct(projectedMomentum.normalized, velocity.normalized);
-            
+                
             if (projectedMomentum.sqrMagnitude >= velocity.sqrMagnitude && dot > 0f) velocity = Vector3.zero;
             else if (dot > 0f) velocity -= projectedMomentum;
         }

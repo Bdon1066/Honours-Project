@@ -50,6 +50,8 @@ public class PlayerController : MonoBehaviour, IModeStateController
         {
             mode.transform.SetParent(null);
             mode.Init(this);
+            mode.SetEnabled(false);
+            mode.HideModel();
         }
         
         //Set our initial mode to the first entry in the array
@@ -111,14 +113,14 @@ public class PlayerController : MonoBehaviour, IModeStateController
     public void OnTransformStart()
     {
         transformInputLocked = true;
-        previousMode = currentMode;
         transformTimer.Start();
 
         OnTransform.Invoke(currentMode.GetMomentum());
     }
     public void OnTransformExit()
     {
-        currentMode.ExitMode();
+        previousMode = currentMode;
+        previousMode.ExitMode();
     }
 
     public void OnModeStart<T>() where T : BaseMode
@@ -158,20 +160,7 @@ public class PlayerController : MonoBehaviour, IModeStateController
     {
         currentMode = newMode;
         
-        //enable our set mode and disable all others
-        foreach (var mode in modes)
-        {
-            if (mode == newMode)
-            {
-                mode.SetEnabled(true);
-                mode.ShowModel();
-            }
-            else
-            {
-                mode.SetEnabled(false);
-                mode.HideModel();
-            }
-        }
+        
         
         //TODO: Refactor thjis so that its probably all done in the transform entry state since states go like this:
         //TODO: RobotExit -> TransformEnter -> TransformExit -> Car Enter
