@@ -46,7 +46,11 @@ public class PlayerController : MonoBehaviour, IModeStateController
         }
         
         //initialize each of our modes
-        foreach (var mode in modes) mode.Init(this);
+        foreach (var mode in modes)
+        {
+            mode.Init(this);
+            mode.transform.SetParent(null);
+        }
         
         //Set our initial mode to the first entry in the array
         SetCurrentMode(modes[0]); 
@@ -112,7 +116,11 @@ public class PlayerController : MonoBehaviour, IModeStateController
 
         OnTransform.Invoke(currentMode.GetMomentum());
     }
-    
+    public void OnTransformExit()
+    {
+        currentMode.ExitMode();
+    }
+
     public void OnModeStart<T>() where T : BaseMode
     {
         SetCurrentMode(GetModeOfType<T>());
@@ -124,17 +132,20 @@ public class PlayerController : MonoBehaviour, IModeStateController
     }
     public void OnModeExit<T>() where T : BaseMode
     {
-        currentMode.ExitMode();
+        //currentMode.ExitMode();
     }
     
     void Update()
     {
         stateMachine.Update();
-        //tr.position = currentMode.transform.position;
-    }
-    void LateUpdate()
-    {
-        //tr.position = currentMode.transform.position;
+        tr.position = currentMode.transform.position;
+        foreach (var mode in modes)
+        {
+            if (mode != currentMode)
+            {
+                mode.transform.position = currentMode.transform.position;
+            }
+        }
     }
 
     void FixedUpdate()

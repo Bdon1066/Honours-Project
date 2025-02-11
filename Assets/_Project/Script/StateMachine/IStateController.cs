@@ -38,6 +38,7 @@ public interface IModeStateController : IStateController
 
 
     public void OnTransformStart();
+    public void OnTransformExit();
 
     
 }

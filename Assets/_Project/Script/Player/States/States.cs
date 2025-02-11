@@ -136,5 +136,9 @@ public class TransformingState : IState
     {
         controller.OnTransformStart();
     }
+    public void OnExit()
+    {
+        controller.OnTransformExit();
+    }
 
 }
