@@ -64,13 +64,14 @@ public class RobotMode : BaseMode
     bool IsGrounded() => stateMachine.CurrentState is GroundedState or SlidingState;
     public override Vector3 GetMomentum() => useLocalMomentum ? tr.localToWorldMatrix * momentum : momentum;
     public override Vector3 GetMovementVelocity() => savedMovementVelocity;
+    public override void SetPosition(Vector3 position) => tr.position = position;
 
     public StateMachine GetStateMachine() => stateMachine;
 
-    public override void ShowModel() => model.SetActive(true);
-    public override void HideModel() => model.SetActive(false);
-    public override void SetEnabled(bool value) => isEnabled = value;
-    public override bool IsEnabled() => isEnabled;
+    void ShowModel() => model.SetActive(true);
+    void HideModel() => model.SetActive(false);
+    void SetEnabled(bool value) => isEnabled = value;
+    public  bool IsEnabled() => isEnabled;
     
     //Initialize Mode with our player controllers input, called in PlayerController Awake()
     public override void Init(PlayerController playerController)
@@ -80,6 +81,9 @@ public class RobotMode : BaseMode
       
        mover = GetComponent<RobotMover>();
        mover.Init();
+       
+       SetEnabled(false);
+       HideModel();
        
        jumpTimer = new CountdownTimer(jumpDuration);
        SetupStateMachine();
@@ -152,9 +156,6 @@ public class RobotMode : BaseMode
         //if this mode is disabled, return out of update
         if (!IsEnabled()) return;
         stateMachine.Update();
-
-        print(stateMachine.CurrentState);
-        print(mover.IsGrounded());
     }
 
   

@@ -50,8 +50,6 @@ public class PlayerController : MonoBehaviour, IModeStateController
         {
             mode.transform.SetParent(null);
             mode.Init(this);
-            mode.SetEnabled(false);
-            mode.HideModel();
         }
         
         //Set our initial mode to the first entry in the array
@@ -145,7 +143,7 @@ public class PlayerController : MonoBehaviour, IModeStateController
         {
             if (mode != currentMode)
             {
-                mode.transform.position = currentMode.transform.position;
+                mode.SetPosition(currentMode.transform.position);
             }
         }
     }

@@ -42,14 +42,13 @@ public class RobotMover : BaseMover
         col.enabled = true;
         rb.isKinematic = false;
         rb.detectCollisions = true;
-        print("enable robot mover");
+       
     }
     public override void Disable()
     {
         //col.enabled = false;
         //rb.isKinematic = true;
-        //rb.detectCollisions = false;
-        print("disbable robot mover");
+        //rb.detectCollisions = fals
     }
 
     //This function will reconfigure our rigidbody and collider to this mover's specifications
