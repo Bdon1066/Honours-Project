@@ -12,19 +12,11 @@ public interface IMode
     /// </summary>
     /// <param name="input">The input reader of player controller</param>
     public void Init(PlayerController playerController);
-    
-
-    public Vector3 GetMomentum();
-
+    public Vector3 GetVelocity();
+    public Vector3 GetDirection();
     public Vector3 GetMovementVelocity();
-
     public void SetPosition(Vector3 position);
-    
-    public void EnterMode(Vector3 entryMomentum);
-    /// <summary>
-    /// This function is called when this mode is entered (i.e transformed into)via the PlayerController. This overload is a default for the first mode entry at game start
-    /// </summary>
-    public void EnterMode();
+    public abstract void EnterMode(Vector3 entryVelocity, Vector3 entryDirection);
     /// <summary>
     /// This function is called when this mode is exited (i.e transformed out of)via the PlayerController.
     /// </summary>
@@ -36,11 +28,12 @@ public abstract class BaseMode : MonoBehaviour, IMode, IMovementStateController
 
     public abstract void Init(PlayerController playerController);
     
-    public abstract void EnterMode(Vector3 entryMomentum);
-    public abstract void EnterMode();
+    public abstract void EnterMode(Vector3 entryVelocity, Vector3 entryDirection);
+
     public abstract void ExitMode();
 
-    public abstract Vector3 GetMomentum();
+    public abstract Vector3 GetVelocity();
+    public abstract Vector3 GetDirection();
     public abstract Vector3 GetMovementVelocity();
     
     public abstract void SetPosition(Vector3 position);

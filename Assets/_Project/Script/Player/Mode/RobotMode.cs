@@ -62,7 +62,8 @@ public class RobotMode : BaseMode
     }
 
     bool IsGrounded() => stateMachine.CurrentState is GroundedState or SlidingState;
-    public override Vector3 GetMomentum() => useLocalMomentum ? tr.localToWorldMatrix * momentum : momentum;
+    public override Vector3 GetVelocity() => mover.GetVelocity();
+    public override Vector3 GetDirection() => mover.GetDirection();
     public override Vector3 GetMovementVelocity() => savedMovementVelocity;
     public override void SetPosition(Vector3 position) => tr.position = position;
 
@@ -88,13 +89,12 @@ public class RobotMode : BaseMode
        jumpTimer = new CountdownTimer(jumpDuration);
        SetupStateMachine();
     }
-    public override void EnterMode(Vector3 entryMomentum)
+    public override void EnterMode(Vector3 entryVelocity, Vector3 entryDirection)
     {
-        momentum = entryMomentum;
+        momentum = entryVelocity;
         
         OnEnter();
     }
-    public override void EnterMode() => OnEnter();
     void OnEnter()
     {
         SetEnabled(true);
@@ -124,7 +124,7 @@ public class RobotMode : BaseMode
         var sliding = new SlidingState(this);
 
         //When at grounded state, we will go to rising state when IsRising is true
-        At(grounded, rising, new FuncPredicate(() => IsRising()));
+        At(grounded, rising, new FuncPredicate(() => !mover.IsGrounded() && IsRising()));
         At(grounded, sliding, new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
         At(grounded, falling, new FuncPredicate(() => !mover.IsGrounded()));
         At(grounded, jumping, new FuncPredicate(() => (jumpIsPressed || jumpWasPressed) && !jumpInputLocked));
@@ -148,14 +148,15 @@ public class RobotMode : BaseMode
     }
     void At(IState from, IState to, IPredicate condition) => stateMachine.AddTransition(from, to, condition);
     void Any(IState to, IPredicate condition) => stateMachine.AddAnyTransition(to, condition);
-    bool IsRising() => Utils.GetDotProduct(GetMomentum(), tr.up) > 0f;
-    bool IsFalling() => Utils.GetDotProduct(GetMomentum(), tr.up) < 0f;
+    bool IsRising() => Utils.GetDotProduct(GetVelocity(), tr.up) > 0f;
+    bool IsFalling() => Utils.GetDotProduct(GetVelocity(), tr.up) < 0f;
     bool IsGroundTooSteep() => !mover.IsGrounded() || Vector3.Angle(mover.GetGroundNormal(), tr.up) > slopeLimit;
     void Update()
     {
         //if this mode is disabled, return out of update
         if (!IsEnabled()) return;
         stateMachine.Update();
+        print(stateMachine.CurrentState);
     }
 
   

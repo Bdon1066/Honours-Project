@@ -157,4 +157,6 @@ public class RobotMover : BaseMover
         sensor.layerMask = layerMask;
         currentLayer = objectLayer;
     }
+    public Vector3 GetDirection() => rb.velocity.normalized;
+    public Vector3 GetVelocity() => rb.velocity;
 }

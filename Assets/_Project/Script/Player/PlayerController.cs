@@ -113,7 +113,7 @@ public class PlayerController : MonoBehaviour, IModeStateController
         transformInputLocked = true;
         transformTimer.Start();
 
-        OnTransform.Invoke(currentMode.GetMomentum());
+        OnTransform.Invoke(currentMode.GetVelocity());
     }
     public void OnTransformExit()
     {
@@ -126,9 +126,9 @@ public class PlayerController : MonoBehaviour, IModeStateController
         SetCurrentMode(GetModeOfType<T>());
        
         //if we have a previous mode, enter new mode with previous momentum, else just enter normally 
-        if (previousMode != null) currentMode.EnterMode(previousMode.GetMomentum());
-        else currentMode.EnterMode();
-        
+        if (previousMode != null) currentMode.EnterMode(previousMode.GetVelocity(), previousMode.GetDirection());
+        else currentMode.EnterMode(Vector3.zero, Vector3.zero);
+
     }
     public void OnModeExit<T>() where T : BaseMode
     {

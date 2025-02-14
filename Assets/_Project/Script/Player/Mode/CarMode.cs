@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using ImprovedTimers;
+using NUnit.Framework;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.XR;
@@ -30,22 +31,27 @@ public class CarMode : BaseMode
     InputReader input;
     StateMachine stateMachine;
     
+    public GameObject model;
     
-    public Axle[] axles = new Axle[2];
+    public Transform cameraTransform;
+    
+    
 
     [Header("Car Attributes")] 
+    public Axle[] axles = new Axle[2];
+    [Header("Acceleration")] 
     public float acceleration = 25f;
     //This curve is how powerful the engine torque will be given our current speed
     public AnimationCurve powerCurve;
     //public float deceleration = 25f;
     public float maxSpeed = 100f;
+    [Header("Steering")] 
     public float wheelTurnSpeed = 10f;
     public float maxSteerAngle = 45f;
     //for use in calculting wheel grip
     public float wheelMass = 10f;
     public float wheelGrip = 50f;
-    public AnimationCurve wheelGripCurve;
-    public float rotateSpeed = 10f;
+    //public AnimationCurve wheelGripCurve;
     
     [Header("Suspension")] 
     //This is the distance our spring will want to rest at.
@@ -55,25 +61,21 @@ public class CarMode : BaseMode
     //How strong our spring is, stronger springs will result in faster osciliations.
     public float springStrength = 100f;
     //How strong our damping is, higher damping zeta will bring the spring to rest faster.
-    [Range(0.2f,1f)]public float dampingZeta;
+    [UnityEngine.Range(0.2f,1f)]public float dampingZeta;
     public float wheelRadius = 0.33f;
     float dampingStrength ;
     
-    
-    Vector3 currentVelocity;
-
-    float currentSpeed;
-    //this reprsents how fast we are going compared to maxSpeed, for use in accerlating the car
-    float velocityRatio;
-    
-    public Transform cameraTransform;
-    
     public bool debugMode;
+    bool isEnabled;
     
     
     #endregion
     
-    public override Vector3 GetMomentum() => Vector3.zero;
+    public override Vector3 GetVelocity() => rb.velocity;
+    public override Vector3 GetDirection()
+    {
+        return rb.velocity.normalized;
+    }
     public override Vector3 GetMovementVelocity() => rb.velocity;
     public override void SetPosition(Vector3 position) => tr.transform.position = position;
     
@@ -87,6 +89,9 @@ public class CarMode : BaseMode
 
         CreateAxleWheels();
         SetupStateMachine();
+
+        isEnabled = false;
+        HideModel();
         
     }
     void CreateAxleWheels()
@@ -102,21 +107,21 @@ public class CarMode : BaseMode
     {
         stateMachine = new StateMachine();
         var grounded = new GroundedState(this);
-        //var falling = new FallingState(this);
-        //var rising = new RisingState(this);
+        var falling = new FallingState(this);
+        var rising = new RisingState(this);
 
         //When at grounded state, we will go to rising state when IsRising is true
-        //At(grounded, rising, new FuncPredicate(() => IsRising()));
-        //At(grounded, falling, new FuncPredicate(() => IsGrounded()));
+        At(grounded, rising, new FuncPredicate(() => !IsGrounded() && IsRising()));
+        At(grounded, falling, new FuncPredicate(() => !IsGrounded()  && IsFalling()));
         
-        //At(falling, rising, new FuncPredicate(() => IsRising()));
-        //At(falling, grounded, new FuncPredicate(() => IsGrounded()));
+        At(falling, rising, new FuncPredicate(() => IsRising()));
+        At(falling, grounded, new FuncPredicate(() => IsGrounded()));
         
-        //At(rising, grounded, new FuncPredicate(() => IsGrounded()));
-        //At(rising, falling, new FuncPredicate(() => IsFalling()));
+        At(rising, grounded, new FuncPredicate(() => IsGrounded()));
+        At(rising, falling, new FuncPredicate(() => IsFalling()));
         
 
-        //stateMachine.SetState(grounded);
+        stateMachine.SetState(falling);
     }
     public bool IsGrounded()
     {
@@ -126,26 +131,40 @@ public class CarMode : BaseMode
             if (axle.leftWheel.IsGrounded() || axle.rightWheel.IsGrounded()) return true;
         }
         return false;
+
     }
-    bool IsRising() => Utils.GetDotProduct(GetMomentum(), tr.up) > 0f;
-    bool IsFalling() => Utils.GetDotProduct(GetMomentum(), tr.up) < 0f;
+    bool IsRising() => Utils.GetDotProduct(rb.velocity, tr.up) > 0f;
+    bool IsFalling() => Utils.GetDotProduct(rb.velocity, tr.up) < 0f;
     void At(IState from, IState to, IPredicate condition) => stateMachine.AddTransition(from, to, condition);
     void Any(IState to, IPredicate condition) => stateMachine.AddAnyTransition(to, condition);
     
-    public override void EnterMode(Vector3 entryMomentum)
+    public override void EnterMode(Vector3 entryVelocity, Vector3 entryDirection)
     {
-        //noop
-    }
-    public override void EnterMode()
-    {
-       //noop
+        print (entryVelocity);
+        rb.velocity = entryVelocity;
+        entryDirection = new Vector3(rb.velocity.normalized.x, entryDirection.x, entryDirection.z );
+        rb.rotation = Quaternion.LookRotation(entryDirection, Vector3.up);
+        ShowModel();
+        isEnabled = true;
     }
     public override void ExitMode()
     {
-        //noop
+        HideModel();
+        isEnabled = false;
+    }
+    void ShowModel() => model.SetActive(true);
+    void HideModel() => model.SetActive(false);
+    void Update()
+    {
+        if (!isEnabled) return;
+        
+        stateMachine.Update();
     }
     void FixedUpdate()
     {
+       
+        
+        stateMachine.Update();
         HandleMovement();
     }
     void HandleMovement()
@@ -153,19 +172,28 @@ public class CarMode : BaseMode
         float accelerationInput = input.Direction.y;
         float steeringInput = input.Direction.x;
 
+        
         foreach (var axle in axles)
         {
-            //we want suspension and steer force on all wheels 
+            //we want suspension  force on all wheels 
             HandleSuspension(axle.leftWheel);
             HandleSuspension(axle.rightWheel);
-            HandleSteering(axle.leftWheel);
-            HandleSteering(axle.rightWheel);
+            
+            if (!isEnabled) return;
             //send our steer input to the steering axles
             if (axle.steering)
             {
                 HandleSteeringInput(axle.leftWheel, steeringInput);
                 HandleSteeringInput(axle.rightWheel, steeringInput);
             }
+           
+            
+            //If we arent grounded dont apply steering or acceleration forces
+            if(stateMachine.CurrentState is not GroundedState) return;
+            //we want steering force on all wheels,the lateral force on the wheels that works agaisnt sliding
+            HandleSteering(axle.leftWheel);
+            HandleSteering(axle.rightWheel);
+            
             //send our acceleration input to our moror axles.
             if (axle.motor)
             {
@@ -198,20 +226,22 @@ public class CarMode : BaseMode
         //Quaternion targetRotation = Quaternion.LookRotation(steerDirection);
         //wheelRay.tr.rotation = Quaternion.RotateTowards( wheelRay.tr.rotation, targetRotation, 10f );
     }
-    //this is the lateral force on each wheel that acts agaisnt sliding
     void HandleSteering(WheelRay wheelRay)
     {
+        //Get our wheels current steer direction and velocity
        Vector3 steeringDirection = wheelRay.tr.right;
        Vector3 wheelVelocity = rb.GetPointVelocity(wheelRay.tr.position);
+       
        //get our wheel's velocity in the steering direction
        float steeringVelocity = Vector3.Dot(steeringDirection, wheelVelocity);
 
-       
+       //apply an opposing grip velocity that opposes the steer force
        float velocityChange = -steeringVelocity * wheelGrip;
-       //float accelerationChange = velocityChange / Time.fixedDeltaTime;
-       
+      
+       //add this veolcity as a force taking into account wheel mass at each wheel position
        rb.AddForceAtPosition(steeringDirection * wheelMass * velocityChange, wheelRay.tr.position);
-       if (debugMode) //this green line shows our wheel forward direction
+       
+       if (debugMode) //this green line shows our wheel steer direction
        {
            Debug.DrawRay(wheelRay.tr.position,steeringDirection, Color.yellow);
        }
@@ -226,15 +256,15 @@ public class CarMode : BaseMode
         //Get the ratio of our speed to our maxSpeed;
         float normalizedSpeed = Mathf.Clamp01(Mathf.Abs(speed) / maxSpeed);
 
+        //get our torque from the lookup curve and apply our accerlation based on input
         float torque = powerCurve.Evaluate(normalizedSpeed) * accelerationInput * acceleration;
         
-        print(torque);
-        
+        //create force in the wheel forward direction from our torque
        rb.AddForceAtPosition(accelerationDirection * torque, wheelRay.tr.position);
        
        if (debugMode) //this green line shows our raycast
        {
-           Debug.DrawLine(wheelRay.tr.position, wheelRay.tr.position + (normalizedSpeed * 5f) * -wheelRay.tr.up, Color.blue);
+           Debug.DrawRay(wheelRay.tr.position, accelerationDirection, Color.blue);
        }
 
     }
