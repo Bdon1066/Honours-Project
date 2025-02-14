@@ -6,15 +6,18 @@ public class WheelRay
     public RaycastSensor suspensionRay;
     
 
-    public WheelRay(Transform wheelTransform)
+    public WheelRay(Transform wheelTransform,GameObject carObject)
     {
         tr = wheelTransform;
         suspensionRay = new RaycastSensor(wheelTransform);
+
+        //Recaculate wheel force rays to include this game objects layer collision stuff
+        RecalculateSensorLayerMask(suspensionRay, carObject);
     }
     
     public bool IsGrounded() =>  suspensionRay.HasDetectedHit();
     
-    public void RecalculateSensorLayerMask(ref RaycastSensor sensor, GameObject thisObject)
+    public void RecalculateSensorLayerMask(RaycastSensor sensor, GameObject thisObject)
     {
         int objectLayer = thisObject.layer;
         int layerMask = Physics.AllLayers;

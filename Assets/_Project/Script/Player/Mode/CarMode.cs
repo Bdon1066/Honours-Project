@@ -7,6 +7,18 @@ using UnityEngine.XR;
 using Debug = UnityEngine.Debug;
 
 
+
+[System.Serializable]
+public class Axle
+{
+    public WheelRay leftWheel;
+    public WheelRay rightWheel;
+    
+    public Transform leftWheelTransform;
+    public Transform rightWheelTransform;
+    public bool steering;
+    public bool motor;
+}
 public class CarMode : BaseMode
 {
 
@@ -19,8 +31,7 @@ public class CarMode : BaseMode
     StateMachine stateMachine;
     
     
-    [SerializeField] Transform[] wheelRayTransforms;
-    WheelRay[] wheelRays = new WheelRay[4];
+    public Axle[] axles = new Axle[2];
 
     [Header("Car Attributes")] 
     public float acceleration = 25f;
@@ -28,6 +39,13 @@ public class CarMode : BaseMode
     public AnimationCurve powerCurve;
     //public float deceleration = 25f;
     public float maxSpeed = 100f;
+    public float wheelTurnSpeed = 10f;
+    public float maxSteerAngle = 45f;
+    //for use in calculting wheel grip
+    public float wheelMass = 10f;
+    public float wheelGrip = 50f;
+    public AnimationCurve wheelGripCurve;
+    public float rotateSpeed = 10f;
     
     [Header("Suspension")] 
     //This is the distance our spring will want to rest at.
@@ -43,8 +61,12 @@ public class CarMode : BaseMode
     
     
     Vector3 currentVelocity;
+
+    float currentSpeed;
     //this reprsents how fast we are going compared to maxSpeed, for use in accerlating the car
     float velocityRatio;
+    
+    public Transform cameraTransform;
     
     public bool debugMode;
     
@@ -52,7 +74,7 @@ public class CarMode : BaseMode
     #endregion
     
     public override Vector3 GetMomentum() => Vector3.zero;
-    public override Vector3 GetMovementVelocity() => Vector3.zero;
+    public override Vector3 GetMovementVelocity() => rb.velocity;
     public override void SetPosition(Vector3 position) => tr.transform.position = position;
     
 
@@ -63,31 +85,18 @@ public class CarMode : BaseMode
         rb = GetComponent<Rigidbody>();
         col = GetComponentInChildren<BoxCollider>();
 
-        CreateWheelForces();
-        ReadjustCOM();
+        CreateAxleWheels();
         SetupStateMachine();
         
     }
-    void CreateWheelForces()
+    void CreateAxleWheels()
     {
-        for (int i = 0; i < wheelRayTransforms.Length; i++)
+        for (int i = 0; i < axles.Length; i++)
         {
-            wheelRays[i] = new WheelRay(wheelRayTransforms[i]);
-            //Recaculate wheel force rays to include this game objects layer collision stuff
-            wheelRays[i].RecalculateSensorLayerMask(ref wheelRays[i].suspensionRay,this.gameObject);
-            
+            axles[i].leftWheel = new WheelRay(axles[i].leftWheelTransform, this.gameObject);
+            axles[i].rightWheel = new WheelRay(axles[i].rightWheelTransform, this.gameObject);
+
         }
-    }
-    void ReadjustCOM()
-    {
-        float totalZValue = 0;
-        
-        for (int i = 0; i < wheelRays.Length; i++)
-        {
-            totalZValue += wheelRays[i].tr.localPosition.z;
-        }
-        float newZ = totalZValue / wheelRays.Length;
-        //rb.centerOfMass = new Vector3(0, 0, newZ);
     }
     void SetupStateMachine()
     {
@@ -112,9 +121,9 @@ public class CarMode : BaseMode
     public bool IsGrounded()
     {
         //if any of our wheels are grounded, the whole car is grounded
-        foreach (WheelRay wheelRay in wheelRays)
+        foreach (var axle in axles)
         {
-            if (wheelRay.IsGrounded()) return true;
+            if (axle.leftWheel.IsGrounded() || axle.rightWheel.IsGrounded()) return true;
         }
         return false;
     }
@@ -144,18 +153,60 @@ public class CarMode : BaseMode
         float accelerationInput = input.Direction.y;
         float steeringInput = input.Direction.x;
 
-        foreach (var wheelRay in wheelRays)
+        foreach (var axle in axles)
         {
-            HandleSuspension(wheelRay);
-            HandleAcceleration(wheelRay, accelerationInput * acceleration);
+            HandleSuspension(axle.leftWheel);
+            HandleSuspension(axle.rightWheel);
+            if (axle.steering)
+            {
+                //HandleSteering(axle.leftWheel, steeringInput);
+                //HandleSteering(axle.rightWheel, steeringInput);
+            }
+            if (axle.motor)
+            {
+                HandleAcceleration(axle.leftWheel, accelerationInput * acceleration);
+                HandleAcceleration(axle.leftWheel, accelerationInput * acceleration);
+            }
+            
         }
-      
 
+        //rb.rotation = Quaternion.LookRotation(rb.velocity);
+        
+       
+        //rb.MoveRotation(Quaternion.LookRotation(rb.velocity));
        //slow to a stop if under teeny weeny velocities to stop idle sliding
         if (Mathf.Abs(rb.velocity.magnitude) < 0.01f)
         {
             rb.velocity = Vector3.Lerp(rb.velocity, Vector3.zero, 0.1f);
         }
+    }
+    void HandleSteering(WheelRay wheelRay, float steeringInput)
+    {
+        //float steerAngle = steeringInput * wheelTurnSpeed; 
+        //steerAngle = Mathf.Clamp(steerAngle, -maxSteerAngle, maxSteerAngle);
+       //wheelRay.tr.rotation = Quaternion.Euler(0,steerAngle,0);
+       //var steerDirection = CalculateWheelDirection(wheelRay.tr);
+      // Debug.DrawRay(wheelRay.tr.position,steerDirection,Color.magenta);
+       //var steerAngle = Vector3.SignedAngle(wheelRay.tr.forward, steerDirection,wheelRay.tr.up);
+       //steerAngle = Mathf.Clamp(steerAngle, -maxSteerAngle, maxSteerAngle);
+       //wheelRay.tr.rotation = Quaternion.AngleAxis(steerAngle, Vector3.up);
+       //Quaternion targetRotation = Quaternion.LookRotation(steerDirection);
+       //wheelRay.tr.rotation = Quaternion.RotateTowards( wheelRay.tr.rotation, targetRotation, 10f );
+
+       Vector3 steeringDirection = wheelRay.tr.right;
+       Vector3 wheelVelocity = rb.GetPointVelocity(wheelRay.tr.position);
+       //get our wheel's velocity in the steering direction
+       float steeringVelocity = Vector3.Dot(steeringDirection, wheelVelocity);
+
+       
+       float velocityChange = -steeringVelocity * wheelGrip;
+       //float accelerationChange = velocityChange / Time.fixedDeltaTime;
+       
+       //rb.AddForceAtPosition(steeringDirection * wheelMass * velocityChange, wheelRay.tr.position);
+       if (debugMode) //this green line shows our wheel forward direction
+       {
+           Debug.DrawRay(wheelRay.tr.position,steeringDirection, Color.yellow);
+       }
     }
     void HandleAcceleration(WheelRay wheelRay, float accelerationInput)
     {
@@ -172,6 +223,11 @@ public class CarMode : BaseMode
         print(torque);
         
        rb.AddForceAtPosition(accelerationDirection * torque, wheelRay.tr.position);
+       
+       if (debugMode) //this green line shows our raycast
+       {
+           Debug.DrawLine(wheelRay.tr.position, wheelRay.tr.position + (normalizedSpeed * 5f) * -wheelRay.tr.up, Color.blue);
+       }
 
     }
 
@@ -219,6 +275,17 @@ public class CarMode : BaseMode
             Debug.DrawLine(wheelRay.tr.position, hitPoint, Color.red);
         }
     } 
+    
+    Vector3 CalculateWheelDirection(Transform wheelTransform)
+    {
+        
+        Vector3 direction = cameraTransform == null //do we have a camera?
+            ? wheelTransform.right * input.Direction.x //if not, direction determined by input directly
+            : Vector3.ProjectOnPlane(cameraTransform.right, wheelTransform.up).normalized * input.Direction.x; //else direction determined by camera position plus input
+        //if direction greater than 1 normalize down to 1, else remain as is
+        return direction.magnitude > 1f ? direction.normalized : direction;
+
+    }
     //Use our damping zeta to calculate an ideal damping strength for our setup
     float CalculateDampingStrength()
     {
