@@ -155,19 +155,23 @@ public class CarMode : BaseMode
 
         foreach (var axle in axles)
         {
+            //we want suspension and steer force on all wheels 
             HandleSuspension(axle.leftWheel);
             HandleSuspension(axle.rightWheel);
+            HandleSteering(axle.leftWheel);
+            HandleSteering(axle.rightWheel);
+            //send our steer input to the steering axles
             if (axle.steering)
             {
-                //HandleSteering(axle.leftWheel, steeringInput);
-                //HandleSteering(axle.rightWheel, steeringInput);
+                HandleSteeringInput(axle.leftWheel, steeringInput);
+                HandleSteeringInput(axle.rightWheel, steeringInput);
             }
+            //send our acceleration input to our moror axles.
             if (axle.motor)
             {
-                HandleAcceleration(axle.leftWheel, accelerationInput * acceleration);
-                HandleAcceleration(axle.leftWheel, accelerationInput * acceleration);
+                HandleAcceleration(axle.leftWheel, accelerationInput);
+                HandleAcceleration(axle.rightWheel, accelerationInput);
             }
-            
         }
 
         //rb.rotation = Quaternion.LookRotation(rb.velocity);
@@ -180,19 +184,23 @@ public class CarMode : BaseMode
             rb.velocity = Vector3.Lerp(rb.velocity, Vector3.zero, 0.1f);
         }
     }
-    void HandleSteering(WheelRay wheelRay, float steeringInput)
+    void HandleSteeringInput(WheelRay wheelRay, float steeringInput)
     {
-        //float steerAngle = steeringInput * wheelTurnSpeed; 
+        float steerAngle = steeringInput * wheelTurnSpeed; 
+        steerAngle = Mathf.Clamp(steerAngle, -maxSteerAngle, maxSteerAngle);
+        wheelRay.tr.localRotation = Quaternion.Euler(0,steerAngle,0);
+        
+        //var steerDirection = CalculateWheelDirection(wheelRay.tr);
+        // Debug.DrawRay(wheelRay.tr.position,steerDirection,Color.magenta);
+        //var steerAngle = Vector3.SignedAngle(wheelRay.tr.forward, steerDirection,wheelRay.tr.up);
         //steerAngle = Mathf.Clamp(steerAngle, -maxSteerAngle, maxSteerAngle);
-       //wheelRay.tr.rotation = Quaternion.Euler(0,steerAngle,0);
-       //var steerDirection = CalculateWheelDirection(wheelRay.tr);
-      // Debug.DrawRay(wheelRay.tr.position,steerDirection,Color.magenta);
-       //var steerAngle = Vector3.SignedAngle(wheelRay.tr.forward, steerDirection,wheelRay.tr.up);
-       //steerAngle = Mathf.Clamp(steerAngle, -maxSteerAngle, maxSteerAngle);
-       //wheelRay.tr.rotation = Quaternion.AngleAxis(steerAngle, Vector3.up);
-       //Quaternion targetRotation = Quaternion.LookRotation(steerDirection);
-       //wheelRay.tr.rotation = Quaternion.RotateTowards( wheelRay.tr.rotation, targetRotation, 10f );
-
+        //wheelRay.tr.rotation = Quaternion.AngleAxis(steerAngle, Vector3.up);
+        //Quaternion targetRotation = Quaternion.LookRotation(steerDirection);
+        //wheelRay.tr.rotation = Quaternion.RotateTowards( wheelRay.tr.rotation, targetRotation, 10f );
+    }
+    //this is the lateral force on each wheel that acts agaisnt sliding
+    void HandleSteering(WheelRay wheelRay)
+    {
        Vector3 steeringDirection = wheelRay.tr.right;
        Vector3 wheelVelocity = rb.GetPointVelocity(wheelRay.tr.position);
        //get our wheel's velocity in the steering direction
@@ -202,7 +210,7 @@ public class CarMode : BaseMode
        float velocityChange = -steeringVelocity * wheelGrip;
        //float accelerationChange = velocityChange / Time.fixedDeltaTime;
        
-       //rb.AddForceAtPosition(steeringDirection * wheelMass * velocityChange, wheelRay.tr.position);
+       rb.AddForceAtPosition(steeringDirection * wheelMass * velocityChange, wheelRay.tr.position);
        if (debugMode) //this green line shows our wheel forward direction
        {
            Debug.DrawRay(wheelRay.tr.position,steeringDirection, Color.yellow);
@@ -218,7 +226,7 @@ public class CarMode : BaseMode
         //Get the ratio of our speed to our maxSpeed;
         float normalizedSpeed = Mathf.Clamp01(Mathf.Abs(speed) / maxSpeed);
 
-        float torque = powerCurve.Evaluate(normalizedSpeed) * accelerationInput;
+        float torque = powerCurve.Evaluate(normalizedSpeed) * accelerationInput * acceleration;
         
         print(torque);
         
