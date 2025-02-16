@@ -20,7 +20,7 @@ public class TurnTowardController : MonoBehaviour
 
     void LateUpdate()
     {
-        Vector3 velocity = Vector3.ProjectOnPlane(controller.GetCurrentMode().GetMovementVelocity(), tr.up);
+        Vector3 velocity = Vector3.ProjectOnPlane(controller.GetCurrentMode().GetVelocity(), tr.up);
         if (velocity.magnitude < 0.001f) return;
 
         float angleDifference = Utils.GetAngleBetween(tr.forward, velocity.normalized, tr.up);

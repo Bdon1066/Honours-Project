@@ -50,6 +50,8 @@ public class PlayerController : MonoBehaviour, IModeStateController
         {
             mode.transform.SetParent(null);
             mode.Init(this);
+           // OnTransform += mode.HandleTransform;
+
         }
         
         //Set our initial mode to the first entry in the array
@@ -113,6 +115,7 @@ public class PlayerController : MonoBehaviour, IModeStateController
         transformInputLocked = true;
         transformTimer.Start();
 
+        currentMode.HandleTransform(currentMode.GetVelocity());
         OnTransform.Invoke(currentMode.GetVelocity());
     }
     public void OnTransformExit()
