@@ -101,7 +101,7 @@ public class RobotMode : BaseMode, IMovementStateController
     }
     public override void HandleTransform(Vector3 momentum)
     {
-        
+        ShowModel();
     }
     void OnEnter()
     {

@@ -45,8 +45,10 @@ public class RobotAnimator : MonoBehaviour
         robot.OnFall += HandleFall;
         robot.OnLand += HandleLand;
         playerController.OnTransform += HandleTransform;
+      
         //Save our bone transforms in the "idle" state
         SaveBoneTransforms();
+        
         
     }
     //Because the transforming animtions dont account for every bone, using them causes the model to deform permanentely
@@ -80,10 +82,12 @@ public class RobotAnimator : MonoBehaviour
     }
     void HandleTransform(Vector3 momentum)
     {
+        
         if (isRobot)
         {
             animator.SetBool(isRobotHash, false);
             isRobot = false;
+            
         }
         else
         {
