@@ -91,7 +91,7 @@ public class RobotAnimator : MonoBehaviour
     private void OnTransformFinished()
     {
         isTransforming = false;
-        animator.CrossFade(LocomotionHash,0f,0 );
+        animator.CrossFade(LocomotionHash,0.1f,0 );
     }
 
     private float GetAnimStateTime(string name)
