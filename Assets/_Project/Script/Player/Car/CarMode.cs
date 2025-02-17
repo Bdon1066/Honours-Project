@@ -139,17 +139,23 @@ public class CarMode : BaseMode, IMovementStateController
     
     public override void EnterMode(Vector3 entryVelocity, Vector3 entryDirection)
     {
-        print (entryVelocity);
         rb.velocity = entryVelocity;
         entryDirection = new Vector3(rb.velocity.normalized.x, entryDirection.x, entryDirection.z );
         rb.rotation = Quaternion.LookRotation(entryDirection, Vector3.up);
         ShowModel();
         isEnabled = true;
     }
-    public override void HandleTransform(Vector3 momentum)
+
+    public override void TransformTo(Vector3 momentum)
     {
-       ExitMode();
+        //noop
     }
+
+    public override void TransformFrom(Vector3 momentum)
+    {
+       HideModel();
+    }
+    
     public override void ExitMode()
     {
         HideModel();

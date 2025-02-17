@@ -18,7 +18,7 @@ public class PlayerController : MonoBehaviour, IModeStateController
 
     CountdownTimer transformTimer;
 
-    public event Action<Vector3> OnTransform = delegate { };
+    public event Action<Vector3, BaseMode> OnTransform = delegate { };
 
     public BaseMode GetCurrentMode() => currentMode;
     BaseMode GetPreviousMode() => currentMode;
@@ -102,7 +102,6 @@ public class PlayerController : MonoBehaviour, IModeStateController
         }
 
         transformIsPressed = isButtonPressed;
-        print("TRANBSFROM");
 
     }
     void ResetTransformKeys()
@@ -114,9 +113,19 @@ public class PlayerController : MonoBehaviour, IModeStateController
     {
         transformInputLocked = true;
         transformTimer.Start();
-
-        currentMode.HandleTransform(currentMode.GetVelocity());
-        OnTransform.Invoke(currentMode.GetVelocity());
+        
+        if (currentMode is RobotMode)
+        {
+            currentMode.TransformFrom(currentMode.GetVelocity());
+            GetModeOfType<CarMode>().TransformTo(currentMode.GetVelocity());
+        }
+        else
+        {
+            currentMode.TransformFrom(currentMode.GetVelocity());
+            GetModeOfType<RobotMode>().TransformTo(currentMode.GetVelocity());
+        }
+        
+        OnTransform.Invoke(currentMode.GetVelocity(),currentMode);
     }
     public void OnTransformExit()
     {

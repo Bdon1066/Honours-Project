@@ -2628,7 +2628,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e8e439687534b86bff186968a653b83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  model: {fileID: 284301860}
+  model: {fileID: 919132147547396886}
   movementSpeed: 10
   groundFriction: 100
   gravity: 45

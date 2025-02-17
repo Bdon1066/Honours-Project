@@ -8,6 +8,8 @@ public class StateMachine
     StateNode current;
     Dictionary<Type, StateNode> nodes = new();
     HashSet<ITransition> anyTransitions = new(); //transitions that dont need a "From" state
+    
+    public event Action<IState> OnStateChanged = delegate { };
 
     public IState CurrentState => current.State;
     
@@ -37,6 +39,7 @@ public class StateMachine
         previousState?.OnExit();
         nextState?.OnEnter();
         current = nodes[state.GetType()];
+        OnStateChanged.Invoke(nextState);
 
     }
     ITransition GetTransition()

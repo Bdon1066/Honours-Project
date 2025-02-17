@@ -1,0 +1,168 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using ImprovedTimers;
+using UnityEngine;
+using UnityEngine.Animations.Rigging;
+
+/// <summary>
+/// This struct is used for saving each bones transform before and after using the wacky Transforming animations that break everything
+/// </summary>
+public struct BoneTransform
+{
+    public Vector3 position;
+    public Quaternion rotation;
+    public Vector3 scale;
+
+    public BoneTransform(Vector3 position, Quaternion rotation, Vector3 scale)
+    {
+        this.position = position;
+        this.rotation = rotation;
+        this.scale = scale;
+    }
+}
+[RequireComponent(typeof(Animator))]
+public class RobotAnimator : MonoBehaviour
+{
+    [SerializeField] PlayerController playerController;
+    [SerializeField] RobotMode robot;
+    Animator animator;
+
+    static readonly int speedHash = Animator.StringToHash("Speed");
+    
+    private static readonly int JumpHash = Animator.StringToHash("Jumping");
+    private static readonly int FallHash = Animator.StringToHash("Fall");
+    private static readonly int LandHash = Animator.StringToHash("Land");
+    private static readonly int LocomotionHash = Animator.StringToHash("Locomotion");
+    private static readonly int IdleHash = Animator.StringToHash("SwayIdle");
+    private static readonly int ToCarHash = Animator.StringToHash("TransformToCar");
+    private static readonly int ToRobotHash = Animator.StringToHash("TransformToRobot");
+
+    private CountdownTimer transformTimer;
+    
+    Dictionary<Transform, BoneTransform> boneTransformDict = new Dictionary<Transform, BoneTransform>();
+
+    private bool isTransforming;
+
+    void Start() 
+    {
+        animator = GetComponent<Animator>();
+        animator.keepAnimatorStateOnDisable = true;
+            
+        robot.OnJump += HandleJump;
+        robot.OnFall += HandleFall;
+        robot.OnLand += HandleLand;
+
+        //playerController.OnTransform += HandleTransform;
+
+        robot.ToCar += HandleTransformToCar;
+        robot.ToRobot += HandleTransformToRobot;
+
+        //init our transform timer with the transform timer's time
+      
+        //despicable hard coded string reference thank you unity
+        transformTimer = new CountdownTimer( GetAnimStateTime("transform_to_main"));
+        transformTimer.OnTimerStop += OnTransformFinished;
+        
+        //Save our bone transforms in the "idle" state
+        SaveBoneTransforms();
+    }
+
+    private void HandleTransformToRobot()
+    {
+        //reset bone transforms and animator
+        LoadBoneTransforms();
+        animator.Rebind();
+        LoadBoneTransforms();
+        
+        animator.CrossFade(ToRobotHash,0,0);
+        isTransforming = true;
+        transformTimer.Start();
+        
+    }
+
+    private void HandleTransformToCar()
+    {
+        isTransforming = true;
+        animator.CrossFade(ToCarHash,0,0);
+    }
+
+    private void OnTransformFinished()
+    {
+        isTransforming = false;
+        animator.CrossFade(LocomotionHash,0f,0 );
+    }
+
+    private float GetAnimStateTime(string name)
+    {
+        RuntimeAnimatorController ac = animator.runtimeAnimatorController;
+        float time = 0;
+        for (int i = 0; i < ac.animationClips.Length; i++)
+        {
+            if (ac.animationClips[i].name == name)
+                time = ac.animationClips[i].length;
+            
+        }
+        return time;
+    }
+    
+    //Because the transforming animtions dont account for every bone, using them causes the model to deform permanentely
+    //To fix this we save ALL the bone transforms and load back to them after each transform anim has completed
+    //I hate it too i know
+    void SaveBoneTransforms()
+    {
+        Transform[] boneTransforms = transform.GetComponentsInChildren<Transform>();
+
+        
+        foreach (var tr in boneTransforms)
+        {
+            if (tr.gameObject.name == "bn_pelvis01")
+            {
+              print(tr.localPosition);
+            }
+            BoneTransform boneTransform = new BoneTransform(tr.localPosition,tr.localRotation,tr.localScale);
+            boneTransformDict.Add(tr, boneTransform);                                                                        
+        }
+        
+    }
+    public void LoadBoneTransforms()
+    {
+        print("Loading Bone Transforms");
+        
+        foreach (var entry in boneTransformDict)
+        {
+            entry.Key.localPosition = entry.Value.position;
+            entry.Key.localRotation = entry.Value.rotation;
+            entry.Key.localScale = entry.Value.scale;
+            if (entry.Key.gameObject.name == "bn_pelvis01")
+            {
+                print(entry.Key.localPosition);
+            }
+        }
+    }
+    
+    void Update() 
+    {
+        //LoadBoneTransforms();
+        animator.SetFloat(speedHash, robot.GetInputVelocityLastFrame().magnitude,0.1f,Time.deltaTime);
+    }
+    
+    void HandleJump(Vector3 momentum)
+    {
+        if (!isTransforming)
+        animator.CrossFade(JumpHash,0,0 );
+    }
+    void HandleFall(Vector3 momentum)
+    {
+        if (!isTransforming)
+        animator.CrossFade(FallHash,0.25f,0 );
+    }
+    void HandleLand(Vector3 momentum)
+    {
+        if (!isTransforming)
+        animator.CrossFade(LocomotionHash,0.2f,0 );
+    }
+    
+    
+}

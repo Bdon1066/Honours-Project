@@ -50,6 +50,9 @@ public class RobotMode : BaseMode, IMovementStateController
     public event Action<Vector3> OnJump = delegate { };
     public event Action<Vector3> OnFall = delegate { };
     public event Action<Vector3> OnLand = delegate { };
+    
+    public event Action ToCar = delegate { };
+    public event Action ToRobot = delegate { };
 
     #endregion
 
@@ -87,7 +90,7 @@ public class RobotMode : BaseMode, IMovementStateController
        SetEnabled(false);
        HideModel();
 
-       controller.OnTransform += HandleTransform;
+       //controller.OnTransform += HandleTransform;
        
        jumpTimer = new CountdownTimer(jumpDuration);
        SetupStateMachine();
@@ -99,16 +102,26 @@ public class RobotMode : BaseMode, IMovementStateController
         
         OnEnter();
     }
-    public override void HandleTransform(Vector3 momentum)
+
+    public override void TransformTo(Vector3 momentum)
     {
         ShowModel();
+        ToRobot.Invoke();
+        print("Transforming To Robot");
     }
+
+    public override void TransformFrom(Vector3 momentum)
+    {
+        ToCar.Invoke();
+        print("Transforming From Robot");
+    }
+    
     void OnEnter()
     {
         SetEnabled(true);
         ShowModel();
         mover.Enable();
-        
+
         input.Jump += HandleKeyJumpInput;
 
         //print("Entering Robot Mode");
@@ -152,7 +165,7 @@ public class RobotMode : BaseMode, IMovementStateController
         At(sliding, rising, new FuncPredicate(() => IsRising()));
 
         stateMachine.SetState(falling);
-
+        
     }
     void At(IState from, IState to, IPredicate condition) => stateMachine.AddTransition(from, to, condition);
     void Any(IState to, IPredicate condition) => stateMachine.AddAnyTransition(to, condition);
@@ -164,6 +177,7 @@ public class RobotMode : BaseMode, IMovementStateController
         //if this mode is disabled, return out of update
         if (!IsEnabled()) return;
         stateMachine.Update();
+        
     }
 
   
@@ -277,7 +291,6 @@ public class RobotMode : BaseMode, IMovementStateController
         jumpTimer.Start();
         jumpInputLocked = true;
         OnJump.Invoke(momentum);
-        print("On Jump Start");
     }
     public void OnFallStart() {
         
