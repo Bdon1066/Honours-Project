@@ -15,6 +15,7 @@ public class RobotMode : BaseMode, IMovementStateController
     PlayerController controller;
 
     [SerializeField] private GameObject model;
+    [SerializeField] private Transform rootBone;
 
     bool jumpInputLocked, jumpWasPressed, jumpLetGo, jumpIsPressed;
 
@@ -68,7 +69,8 @@ public class RobotMode : BaseMode, IMovementStateController
     bool IsGrounded() => stateMachine.CurrentState is GroundedState or SlidingState;
     public override Vector3 GetVelocity() => mover.GetVelocity();
     public override Vector3 GetDirection() => mover.GetDirection();
-    
+    public override Transform GetRootBone() => rootBone;
+
     public Vector3 GetInputVelocityLastFrame() => inputVelocityLastFrame;
     public override void SetPosition(Vector3 position) => tr.position = position;
 
@@ -103,19 +105,19 @@ public class RobotMode : BaseMode, IMovementStateController
         OnEnter();
     }
 
-    public override void TransformTo(Vector3 momentum)
+    public override void TransformTo(BaseMode fromMode)
     {
         ShowModel();
         ToRobot.Invoke();
         print("Transforming To Robot");
     }
 
-    public override void TransformFrom(Vector3 momentum)
+    public override void TransformFrom(BaseMode toMode)
     {
         ToCar.Invoke();
         print("Transforming From Robot");
     }
-    
+   
     void OnEnter()
     {
         SetEnabled(true);

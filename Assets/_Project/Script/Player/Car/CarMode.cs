@@ -6,20 +6,6 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.XR;
 using Debug = UnityEngine.Debug;
-
-
-
-[System.Serializable]
-public class Axle
-{
-    public WheelRay leftWheel;
-    public WheelRay rightWheel;
-    
-    public Transform leftWheelTransform;
-    public Transform rightWheelTransform;
-    public bool steering;
-    public bool motor;
-}
 public class CarMode : BaseMode, IMovementStateController
 {
 
@@ -30,12 +16,12 @@ public class CarMode : BaseMode, IMovementStateController
     BoxCollider col;
     InputReader input;
     StateMachine stateMachine;
-    
-    public GameObject model;
-    
+
+    [SerializeField] GameObject model;
+    [SerializeField] Transform rootBone;
     public Transform cameraTransform;
-    
-    
+
+    Transform fromModeTr;
 
     [Header("Car Attributes")] 
     public Axle[] axles = new Axle[2];
@@ -67,15 +53,17 @@ public class CarMode : BaseMode, IMovementStateController
     
     public bool debugMode;
     bool isEnabled;
-    
-    
+
+    bool isTransforming;
+
     #endregion
-    
+
     public override Vector3 GetVelocity() => rb.velocity;
     public override Vector3 GetDirection()
     {
         return rb.velocity.normalized;
     }
+    public override Transform GetRootBone() => rootBone;
     public override void SetPosition(Vector3 position) => tr.transform.position = position;
     
 
@@ -139,19 +127,23 @@ public class CarMode : BaseMode, IMovementStateController
     
     public override void EnterMode(Vector3 entryVelocity, Vector3 entryDirection)
     {
-        rb.velocity = entryVelocity;
-        entryDirection = new Vector3(rb.velocity.normalized.x, entryDirection.x, entryDirection.z );
-        rb.rotation = Quaternion.LookRotation(entryDirection, Vector3.up);
-        ShowModel();
         isEnabled = true;
+        isTransforming = false;
+
+        //rb.velocity = entryVelocity;
+        entryDirection = new Vector3(rb.velocity.normalized.x, entryDirection.x, entryDirection.z );
+        //rb.rotation = Quaternion.LookRotation(entryDirection, Vector3.up);
+        ShowModel();
     }
 
-    public override void TransformTo(Vector3 momentum)
+    public override void TransformTo(BaseMode fromMode)
     {
-        //noop
+        isTransforming = true;
+        //cache our transfrom from modes transform so we can follow it
+        fromModeTr = fromMode.GetRootBone();
     }
 
-    public override void TransformFrom(Vector3 momentum)
+    public override void TransformFrom(BaseMode toMode)
     {
        HideModel();
     }
@@ -165,17 +157,34 @@ public class CarMode : BaseMode, IMovementStateController
     void HideModel() => model.SetActive(false);
     void Update()
     {
-        if (!isEnabled) return;
-        
         stateMachine.Update();
     }
     void FixedUpdate()
     {
+        if (isTransforming)
+        {
+            print("Transform Movement");
+            HandleTransformingMovement();
+        }
+        else
+        {
+            stateMachine.Update();
+            HandleMovement();
+        }
        
-        
-        stateMachine.Update();
-        HandleMovement();
     }
+
+    private void HandleTransformingMovement()
+    {
+        rb.position = fromModeTr.position;
+
+        Quaternion targetRotation = fromModeTr.rotation;
+
+        targetRotation *= Quaternion.AngleAxis(270f, Vector3.right);
+        rb.rotation = targetRotation;
+
+    }
+
     void HandleMovement()
     {
         float accelerationInput = input.Direction.y;

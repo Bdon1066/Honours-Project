@@ -163,13 +163,15 @@ public class PlayerController : MonoBehaviour, IModeStateController
         
         if (currentMode is RobotMode)
         {
-            currentMode.TransformFrom(currentMode.GetVelocity());
-            GetModeOfType<CarMode>().TransformTo(currentMode.GetVelocity());
+            //transform From Robot mode
+            currentMode.TransformFrom(currentMode);
+            //to Car M
+            GetModeOfType<CarMode>().TransformTo(currentMode);
         }
         else
         {
-            currentMode.TransformFrom(currentMode.GetVelocity());
-            GetModeOfType<RobotMode>().TransformTo(currentMode.GetVelocity());
+            currentMode.TransformFrom(currentMode);
+            GetModeOfType<RobotMode>().TransformTo(currentMode);
         }
         
         OnTransform.Invoke(currentMode.GetVelocity(),currentMode);
@@ -212,19 +214,9 @@ public class PlayerController : MonoBehaviour, IModeStateController
         stateMachine.FixedUpdate();
         ResetTransformKeys();
     }
-    
-    void SetCurrentMode(BaseMode newMode)
-    {
-        currentMode = newMode;
-        
-        
-        
-        //TODO: Refactor thjis so that its probably all done in the transform entry state since states go like this:
-        //TODO: RobotExit -> TransformEnter -> TransformExit -> Car Enter
-        //TODO: And we want the previous mode model to dissapear on TransformExit instead of in CarEnter
-        
-    }
-   
+
+    void SetCurrentMode(BaseMode newMode) => currentMode = newMode;
+
     BaseMode GetModeOfType<T>() where T : BaseMode
     {
         foreach (var mode in modes)

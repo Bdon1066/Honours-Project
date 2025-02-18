@@ -84,8 +84,14 @@ public class RobotAnimator : MonoBehaviour
 
     private void HandleTransformToCar()
     {
+        //Tweak rotation to account for the run anaimtion rotating the player bones, this allows for the seamless transition
+        Vector3 newRotationAngles = new Vector3(transform.rotation.eulerAngles.x, 0, transform.rotation.eulerAngles.z);
+        Quaternion newRotation = Quaternion.Euler(newRotationAngles);
+        transform.rotation = newRotation;
+        animator.Rebind();
+
         isTransforming = true;
-        animator.CrossFade(ToCarHash,0,0);
+        animator.CrossFade(ToCarHash,0f,0);
     }
 
     private void OnTransformFinished()

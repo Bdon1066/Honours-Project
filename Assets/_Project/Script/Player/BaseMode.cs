@@ -16,8 +16,8 @@ public interface IMode
     public Vector3 GetDirection();
     public void SetPosition(Vector3 position);
     public abstract void EnterMode(Vector3 entryVelocity, Vector3 entryDirection);
-    public abstract void TransformTo(Vector3 momentum);
-    public abstract void TransformFrom(Vector3 momentum);
+    public abstract void TransformTo(BaseMode fromMode);
+    public abstract void TransformFrom(BaseMode toMode);
     public void ExitMode();
 }
 
@@ -34,18 +34,20 @@ public abstract class BaseMode : MonoBehaviour, IMode
     /// Called when we begin transforming Into this mode
     /// </summary>
     /// <param name="momentum"></param>
-    public abstract void TransformTo(Vector3 momentum);
+    public abstract void TransformTo(BaseMode fromMode);
     /// <summary>
     /// Called when we begin transforming Out of this mode
     /// </summary>
     /// <param name="momentum"></param>
-    public abstract void TransformFrom(Vector3 momentum);
+    public abstract void TransformFrom(BaseMode toMode);
     /// <summary>
     /// Exit mode is called when transforming has finished and we have stopped play in this mode
     /// </summary>
     public abstract void ExitMode();
     
     public abstract Vector3 GetVelocity();
+
+    public abstract Transform GetRootBone();
     public abstract Vector3 GetDirection();
     public abstract void SetPosition(Vector3 position);
     
