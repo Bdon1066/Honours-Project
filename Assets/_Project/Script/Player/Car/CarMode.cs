@@ -232,9 +232,10 @@ public class CarMode : BaseMode, IMovementStateController
     }
     void HandleSteeringInput(WheelRay wheelRay, float steeringInput)
     {
-        float steerAngle = steeringInput * wheelTurnSpeed; 
-        steerAngle = Mathf.Clamp(steerAngle, -maxSteerAngle, maxSteerAngle);
-        wheelRay.tr.localRotation = Quaternion.Euler(0,steerAngle,0);
+        float steerAngle = steeringInput * maxSteerAngle; 
+        //steerAngle = Mathf.Clamp(steerAngle, -maxSteerAngle, maxSteerAngle);
+        Quaternion targetRotation = Quaternion.Euler(wheelRay.tr.localRotation.eulerAngles.x, steerAngle, wheelRay.tr.localRotation.eulerAngles.x);
+        wheelRay.tr.localRotation = Quaternion.Slerp(wheelRay.tr.localRotation, targetRotation, Time.fixedDeltaTime * wheelTurnSpeed);
         
         //var steerDirection = CalculateWheelDirection(wheelRay.tr);
         // Debug.DrawRay(wheelRay.tr.position,steerDirection,Color.magenta);
