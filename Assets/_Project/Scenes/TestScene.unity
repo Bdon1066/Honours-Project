@@ -288,6 +288,8 @@ MonoBehaviour:
   modes:
   - {fileID: 1379686233}
   - {fileID: 1601825004}
+  debugMode: 1
+  slowMotionRate: 0.1
 --- !u!1 &95850995
 GameObject:
   m_ObjectHideFlags: 0

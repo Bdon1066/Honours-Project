@@ -80,6 +80,24 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Toggle SlowMo"",
+                    ""type"": ""Button"",
+                    ""id"": ""1d151d7e-cf21-48cb-a9f4-62e59e5da88d"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Pause"",
+                    ""type"": ""Button"",
+                    ""id"": ""ea03b625-8ed3-4640-a08c-3c98b9399e11"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -366,6 +384,50 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Gamepad"",
                     ""action"": ""Brake"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""One Modifier"",
+                    ""id"": ""df4aa53e-f561-448f-8847-7f7356bba3bc"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Toggle SlowMo"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""aac1eac5-649c-40ca-b2bb-80309a674f76"",
+                    ""path"": ""<Keyboard>/leftShift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Toggle SlowMo"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""8c779d81-b1a4-4281-9374-799555b0c9d9"",
+                    ""path"": ""<Keyboard>/x"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Toggle SlowMo"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""be64a808-68d5-4eae-a64e-d8aed6d3fcd3"",
+                    ""path"": ""<Keyboard>/p"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Pause"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -959,6 +1021,8 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
         m_Player_Transform = m_Player.FindAction("Transform", throwIfNotFound: true);
         m_Player_Brake = m_Player.FindAction("Brake", throwIfNotFound: true);
+        m_Player_ToggleSlowMo = m_Player.FindAction("Toggle SlowMo", throwIfNotFound: true);
+        m_Player_Pause = m_Player.FindAction("Pause", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1038,6 +1102,8 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Jump;
     private readonly InputAction m_Player_Transform;
     private readonly InputAction m_Player_Brake;
+    private readonly InputAction m_Player_ToggleSlowMo;
+    private readonly InputAction m_Player_Pause;
     public struct PlayerActions
     {
         private @PlayerInputActions m_Wrapper;
@@ -1048,6 +1114,8 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         public InputAction @Jump => m_Wrapper.m_Player_Jump;
         public InputAction @Transform => m_Wrapper.m_Player_Transform;
         public InputAction @Brake => m_Wrapper.m_Player_Brake;
+        public InputAction @ToggleSlowMo => m_Wrapper.m_Player_ToggleSlowMo;
+        public InputAction @Pause => m_Wrapper.m_Player_Pause;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1075,6 +1143,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Brake.started += instance.OnBrake;
             @Brake.performed += instance.OnBrake;
             @Brake.canceled += instance.OnBrake;
+            @ToggleSlowMo.started += instance.OnToggleSlowMo;
+            @ToggleSlowMo.performed += instance.OnToggleSlowMo;
+            @ToggleSlowMo.canceled += instance.OnToggleSlowMo;
+            @Pause.started += instance.OnPause;
+            @Pause.performed += instance.OnPause;
+            @Pause.canceled += instance.OnPause;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -1097,6 +1171,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Brake.started -= instance.OnBrake;
             @Brake.performed -= instance.OnBrake;
             @Brake.canceled -= instance.OnBrake;
+            @ToggleSlowMo.started -= instance.OnToggleSlowMo;
+            @ToggleSlowMo.performed -= instance.OnToggleSlowMo;
+            @ToggleSlowMo.canceled -= instance.OnToggleSlowMo;
+            @Pause.started -= instance.OnPause;
+            @Pause.performed -= instance.OnPause;
+            @Pause.canceled -= instance.OnPause;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -1285,6 +1365,8 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         void OnJump(InputAction.CallbackContext context);
         void OnTransform(InputAction.CallbackContext context);
         void OnBrake(InputAction.CallbackContext context);
+        void OnToggleSlowMo(InputAction.CallbackContext context);
+        void OnPause(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {

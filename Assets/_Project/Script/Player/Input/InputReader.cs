@@ -17,6 +17,8 @@ public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IP
     public event UnityAction<Vector2, bool> Look = delegate { };
     public event UnityAction<bool> Jump = delegate { };
     public event UnityAction<bool> Transform = delegate { };
+    public event UnityAction<bool> SlowMotion = delegate { };
+    public event UnityAction<bool> Pause = delegate { };
 
     public PlayerInputActions inputActions;
 
@@ -83,6 +85,32 @@ public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IP
     public void OnBrake(InputAction.CallbackContext context)
     {
      
+    }
+
+    public void OnToggleSlowMo(InputAction.CallbackContext context)
+    {
+        switch (context.phase)
+        {
+            case InputActionPhase.Started:
+                SlowMotion.Invoke(true);
+                break;
+            case InputActionPhase.Canceled:
+                SlowMotion.Invoke(false);
+                break;
+        }
+    }
+
+    public void OnPause(InputAction.CallbackContext context)
+    {
+        switch (context.phase)
+        {
+            case InputActionPhase.Started:
+                Pause.Invoke(true);
+                break;
+            case InputActionPhase.Canceled:
+                Pause.Invoke(false);
+                break;
+        }
     }
 }
 

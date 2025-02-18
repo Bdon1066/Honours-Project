@@ -20,6 +20,13 @@ public class PlayerController : MonoBehaviour, IModeStateController
 
     public event Action<Vector3, BaseMode> OnTransform = delegate { };
 
+    [Header("Debug Settings")]
+    public bool debugMode;
+    [Range(0, 1)] public float slowMotionRate;
+    bool isPaused;
+    bool isSlowMotion;
+    float currentTimeScale;
+
     public BaseMode GetCurrentMode() => currentMode;
     BaseMode GetPreviousMode() => currentMode;
     void Awake()
@@ -37,7 +44,47 @@ public class PlayerController : MonoBehaviour, IModeStateController
         
         input.EnablePlayerActions();
         input.Transform += HandleTransformInput;
+        input.SlowMotion += HandleSlowMotionInput;
+        input.Pause += HandlePause;
     }
+
+    private void HandlePause(bool isButtonPressed)
+    {
+
+        if (isButtonPressed && !isPaused)
+        {
+            currentTimeScale = Time.timeScale;
+            isPaused = true;
+            Time.timeScale = 0f;
+        }
+        else if (isButtonPressed && isPaused)
+        {
+
+            isPaused = false;
+            Time.timeScale = currentTimeScale;
+        }
+    }
+
+    private void HandleSlowMotionInput(bool isButtonPressed)
+    {
+       
+        if (!debugMode) return;
+
+        if (isButtonPressed && !isSlowMotion)
+        {
+            currentTimeScale = Time.timeScale;
+            isSlowMotion = true;
+            Time.timeScale = slowMotionRate;
+        }
+        else if (isButtonPressed && isSlowMotion)
+        {
+
+            isSlowMotion = false;
+            Time.timeScale = currentTimeScale;
+        }
+       
+    }
+
     private void InitModes()
     {
         if (modes.Length == 0)
