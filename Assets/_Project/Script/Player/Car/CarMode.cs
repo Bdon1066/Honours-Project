@@ -130,7 +130,7 @@ public class CarMode : BaseMode, IMovementStateController
         isEnabled = true;
         isTransforming = false;
 
-        //rb.velocity = entryVelocity;
+        rb.velocity = entryVelocity; //need to like add a force so that the super massive car can be at the same velocity as the robot when IN AIR
         entryDirection = new Vector3(rb.velocity.normalized.x, entryDirection.x, entryDirection.z );
         //rb.rotation = Quaternion.LookRotation(entryDirection, Vector3.up);
         ShowModel();
@@ -233,17 +233,8 @@ public class CarMode : BaseMode, IMovementStateController
     void HandleSteeringInput(WheelRay wheelRay, float steeringInput)
     {
         float steerAngle = steeringInput * maxSteerAngle; 
-        //steerAngle = Mathf.Clamp(steerAngle, -maxSteerAngle, maxSteerAngle);
         Quaternion targetRotation = Quaternion.Euler(wheelRay.tr.localRotation.eulerAngles.x, steerAngle, wheelRay.tr.localRotation.eulerAngles.x);
         wheelRay.tr.localRotation = Quaternion.Slerp(wheelRay.tr.localRotation, targetRotation, Time.fixedDeltaTime * wheelTurnSpeed);
-        
-        //var steerDirection = CalculateWheelDirection(wheelRay.tr);
-        // Debug.DrawRay(wheelRay.tr.position,steerDirection,Color.magenta);
-        //var steerAngle = Vector3.SignedAngle(wheelRay.tr.forward, steerDirection,wheelRay.tr.up);
-        //steerAngle = Mathf.Clamp(steerAngle, -maxSteerAngle, maxSteerAngle);
-        //wheelRay.tr.rotation = Quaternion.AngleAxis(steerAngle, Vector3.up);
-        //Quaternion targetRotation = Quaternion.LookRotation(steerDirection);
-        //wheelRay.tr.rotation = Quaternion.RotateTowards( wheelRay.tr.rotation, targetRotation, 10f );
     }
     void HandleSteering(WheelRay wheelRay)
     {
