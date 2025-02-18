@@ -1,6 +1,7 @@
 using System;
 using ImprovedTimers;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Debug = UnityEngine.Debug;
 public class CarMode : BaseMode, IMovementStateController
 {
@@ -54,6 +55,8 @@ public class CarMode : BaseMode, IMovementStateController
     bool isEnabled;
 
     bool isTransforming;
+    bool isBraking;
+    bool isAccelerating;
 
     #endregion
 
@@ -80,6 +83,34 @@ public class CarMode : BaseMode, IMovementStateController
         HideModel();
 
     }
+
+    private void HandleBrake(bool isButtonHeld)
+    {
+        if (isButtonHeld)
+        {
+            isBraking = true;
+        }
+        else
+        {
+            isBraking = false;
+        }
+        print("Braking: " + isBraking);
+
+    }
+    private void HandleAccelerate(bool isButtonHeld)
+    {
+        if (isButtonHeld)
+        {
+            isAccelerating = true;
+        }
+        else
+        {
+            isAccelerating = false;
+        }
+        print("Accelerating: " + isAccelerating);
+
+    }
+
     void CreateAxleWheels()
     {
         for (int i = 0; i < axles.Length; i++)
@@ -133,6 +164,9 @@ public class CarMode : BaseMode, IMovementStateController
         entryDirection = new Vector3(rb.velocity.normalized.x, entryDirection.x, entryDirection.z);
         //rb.rotation = Quaternion.LookRotation(entryDirection, Vector3.up);
         ShowModel();
+
+        input.Brake += HandleBrake;
+        input.Accelerate += HandleAccelerate;
     }
 
     public override void TransformTo(BaseMode fromMode)
@@ -149,6 +183,8 @@ public class CarMode : BaseMode, IMovementStateController
 
     public override void ExitMode()
     {
+        input.Brake -= HandleBrake;
+        input.Accelerate -= HandleAccelerate;
         HideModel();
         isEnabled = false;
     }

@@ -286,8 +286,8 @@ MonoBehaviour:
   input: {fileID: 11400000, guid: 0049de2aa9e2d5645a1711574415abbd, type: 2}
   transformDuration: 0.75
   modes:
-  - {fileID: 1379686233}
   - {fileID: 1601825004}
+  - {fileID: 1379686233}
   debugMode: 1
   slowMotionRate: 0.05
 --- !u!1 &95850995

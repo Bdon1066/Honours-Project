@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Interactions;
 using static PlayerInputActions;
 
 
@@ -16,7 +17,12 @@ public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IP
     public event UnityAction<Vector2> Move = delegate { };
     public event UnityAction<Vector2, bool> Look = delegate { };
     public event UnityAction<bool> Jump = delegate { };
+
+    public event UnityAction<bool> Brake = delegate { };
+    public event UnityAction<bool> Accelerate = delegate { };
+
     public event UnityAction<bool> Transform = delegate { };
+
     public event UnityAction<bool> SlowMotion = delegate { };
     public event UnityAction<bool> Pause = delegate { };
 
@@ -84,7 +90,17 @@ public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IP
 
     public void OnBrake(InputAction.CallbackContext context)
     {
-     
+        switch (context.phase)
+        {
+            case InputActionPhase.Started:
+                Brake.Invoke(true);
+                break;
+            case InputActionPhase.Canceled:
+                Brake.Invoke(false);
+                break;
+        }
+
+
     }
 
     public void OnToggleSlowMo(InputAction.CallbackContext context)
@@ -109,6 +125,19 @@ public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IP
                 break;
             case InputActionPhase.Canceled:
                 Pause.Invoke(false);
+                break;
+        }
+    }
+
+    public void OnAccelerate(InputAction.CallbackContext context)
+    {
+        switch (context.phase)
+        {
+            case InputActionPhase.Started:
+                Accelerate.Invoke(true);
+                break;
+            case InputActionPhase.Canceled:
+                Accelerate.Invoke(false);
                 break;
         }
     }

@@ -78,7 +78,16 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""id"": ""5e5f7a8b-98dc-4863-85f7-fe595b5b4bfa"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
+                    ""interactions"": ""Hold"",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Accelerate"",
+                    ""type"": ""Button"",
+                    ""id"": ""e1feb310-1c84-4c0e-a1f6-3988bd747585"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Hold"",
                     ""initialStateCheck"": false
                 },
                 {
@@ -428,6 +437,28 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""Pause"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f4048f56-4643-49a6-bc29-676d214038f7"",
+                    ""path"": ""<Keyboard>/shift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Accelerate"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""286d7b79-a932-44dc-b295-1da042c7e1b1"",
+                    ""path"": ""<Gamepad>/rightTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Accelerate"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1021,6 +1052,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
         m_Player_Transform = m_Player.FindAction("Transform", throwIfNotFound: true);
         m_Player_Brake = m_Player.FindAction("Brake", throwIfNotFound: true);
+        m_Player_Accelerate = m_Player.FindAction("Accelerate", throwIfNotFound: true);
         m_Player_ToggleSlowMo = m_Player.FindAction("Toggle SlowMo", throwIfNotFound: true);
         m_Player_Pause = m_Player.FindAction("Pause", throwIfNotFound: true);
         // UI
@@ -1102,6 +1134,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Jump;
     private readonly InputAction m_Player_Transform;
     private readonly InputAction m_Player_Brake;
+    private readonly InputAction m_Player_Accelerate;
     private readonly InputAction m_Player_ToggleSlowMo;
     private readonly InputAction m_Player_Pause;
     public struct PlayerActions
@@ -1114,6 +1147,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         public InputAction @Jump => m_Wrapper.m_Player_Jump;
         public InputAction @Transform => m_Wrapper.m_Player_Transform;
         public InputAction @Brake => m_Wrapper.m_Player_Brake;
+        public InputAction @Accelerate => m_Wrapper.m_Player_Accelerate;
         public InputAction @ToggleSlowMo => m_Wrapper.m_Player_ToggleSlowMo;
         public InputAction @Pause => m_Wrapper.m_Player_Pause;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
@@ -1143,6 +1177,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Brake.started += instance.OnBrake;
             @Brake.performed += instance.OnBrake;
             @Brake.canceled += instance.OnBrake;
+            @Accelerate.started += instance.OnAccelerate;
+            @Accelerate.performed += instance.OnAccelerate;
+            @Accelerate.canceled += instance.OnAccelerate;
             @ToggleSlowMo.started += instance.OnToggleSlowMo;
             @ToggleSlowMo.performed += instance.OnToggleSlowMo;
             @ToggleSlowMo.canceled += instance.OnToggleSlowMo;
@@ -1171,6 +1208,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Brake.started -= instance.OnBrake;
             @Brake.performed -= instance.OnBrake;
             @Brake.canceled -= instance.OnBrake;
+            @Accelerate.started -= instance.OnAccelerate;
+            @Accelerate.performed -= instance.OnAccelerate;
+            @Accelerate.canceled -= instance.OnAccelerate;
             @ToggleSlowMo.started -= instance.OnToggleSlowMo;
             @ToggleSlowMo.performed -= instance.OnToggleSlowMo;
             @ToggleSlowMo.canceled -= instance.OnToggleSlowMo;
@@ -1365,6 +1405,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         void OnJump(InputAction.CallbackContext context);
         void OnTransform(InputAction.CallbackContext context);
         void OnBrake(InputAction.CallbackContext context);
+        void OnAccelerate(InputAction.CallbackContext context);
         void OnToggleSlowMo(InputAction.CallbackContext context);
         void OnPause(InputAction.CallbackContext context);
     }
