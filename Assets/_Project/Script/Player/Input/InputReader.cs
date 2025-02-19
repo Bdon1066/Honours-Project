@@ -95,6 +95,9 @@ public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IP
             case InputActionPhase.Started:
                 Brake.Invoke(true);
                 break;
+            case InputActionPhase.Performed:
+                Accelerate.Invoke(true);
+                break;
             case InputActionPhase.Canceled:
                 Brake.Invoke(false);
                 break;
@@ -134,6 +137,9 @@ public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IP
         switch (context.phase)
         {
             case InputActionPhase.Started:
+                Accelerate.Invoke(true);
+                break;
+            case InputActionPhase.Performed:
                 Accelerate.Invoke(true);
                 break;
             case InputActionPhase.Canceled:

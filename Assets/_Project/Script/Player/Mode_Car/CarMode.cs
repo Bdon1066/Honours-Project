@@ -23,11 +23,15 @@ public class CarMode : BaseMode, IMovementStateController
     [Header("Car Attributes")]
     public Axle[] axles = new Axle[2];
     [Header("Acceleration")]
-    public float acceleration = 25f;
+    public float acceleration = 10000f;
+    public float reverseAcceleration = 9000f;
     //This curve is how powerful the engine torque will be given our current speed
-    public CurveScriptableObject powerCurve;
-    //public float deceleration = 25f;
+    public CurveScriptableObject accelerationPowerCurve;
+    public CurveScriptableObject deccelerationPowerCurve;
     public float maxSpeed = 100f;
+    [Header("Braking")]
+    //The proportional breaking force applied when we are providing no input
+    [Range(0, 1)] public float idleBrakeForce = 0.1f;
     [Header("Steering")]
     public float wheelTurnSpeed = 10f;
     public float maxSteerAngle = 45f;
@@ -51,7 +55,9 @@ public class CarMode : BaseMode, IMovementStateController
     public float wheelRadius = 0.33f;
     float dampingStrength;
 
+    [Header("Debuig Settings")]
     public bool debugMode;
+    public bool useAccelerationButton;
     bool isEnabled;
 
     bool isTransforming;
@@ -68,6 +74,9 @@ public class CarMode : BaseMode, IMovementStateController
     public override Transform GetRootBone() => rootBone;
     public override void SetPosition(Vector3 position) => tr.transform.position = position;
 
+    void ShowModel() => model.SetActive(true);
+    void HideModel() => model.SetActive(false);
+
 
     public override void Init(PlayerController playerController)
     {
@@ -82,6 +91,39 @@ public class CarMode : BaseMode, IMovementStateController
         isEnabled = false;
         HideModel();
 
+    }
+    public override void EnterMode(Vector3 entryVelocity, Vector3 entryDirection)
+    {
+        isEnabled = true;
+        isTransforming = false;
+
+        rb.velocity = entryVelocity; //need to like add a force so that the super massive car can be at the same velocity as the robot when IN AIR
+        entryDirection = new Vector3(rb.velocity.normalized.x, entryDirection.x, entryDirection.z);
+        //rb.rotation = Quaternion.LookRotation(entryDirection, Vector3.up);
+        ShowModel();
+
+        input.Brake += HandleBrake;
+        input.Accelerate += HandleAccelerate;
+    }
+
+    public override void TransformTo(BaseMode fromMode)
+    {
+        isTransforming = true;
+        //cache our transfrom from modes transform so we can follow it
+        fromModeTr = fromMode.GetRootBone();
+    }
+
+    public override void TransformFrom(BaseMode toMode)
+    {
+        HideModel();
+    }
+
+    public override void ExitMode()
+    {
+        input.Brake -= HandleBrake;
+        input.Accelerate -= HandleAccelerate;
+        HideModel();
+        isEnabled = false;
     }
 
     private void HandleBrake(bool isButtonHeld)
@@ -117,7 +159,6 @@ public class CarMode : BaseMode, IMovementStateController
         {
             axles[i].leftWheel = new WheelRay(axles[i].leftWheelTransform, this.gameObject);
             axles[i].rightWheel = new WheelRay(axles[i].rightWheelTransform, this.gameObject);
-
         }
     }
     void SetupStateMachine()
@@ -142,54 +183,17 @@ public class CarMode : BaseMode, IMovementStateController
     }
     public bool IsGrounded()
     {
-        //if any of our wheels are grounded, the whole car is grounded
+        //if any of our wheels are grounded, set grounded true
         foreach (var axle in axles)
         {
             if (axle.leftWheel.IsGrounded() || axle.rightWheel.IsGrounded()) return true;
         }
         return false;
-
     }
     bool IsRising() => Utils.GetDotProduct(rb.velocity, tr.up) > 0f;
     bool IsFalling() => Utils.GetDotProduct(rb.velocity, tr.up) < 0f;
     void At(IState from, IState to, IPredicate condition) => stateMachine.AddTransition(from, to, condition);
     void Any(IState to, IPredicate condition) => stateMachine.AddAnyTransition(to, condition);
-
-    public override void EnterMode(Vector3 entryVelocity, Vector3 entryDirection)
-    {
-        isEnabled = true;
-        isTransforming = false;
-
-        rb.velocity = entryVelocity; //need to like add a force so that the super massive car can be at the same velocity as the robot when IN AIR
-        entryDirection = new Vector3(rb.velocity.normalized.x, entryDirection.x, entryDirection.z);
-        //rb.rotation = Quaternion.LookRotation(entryDirection, Vector3.up);
-        ShowModel();
-
-        input.Brake += HandleBrake;
-        input.Accelerate += HandleAccelerate;
-    }
-
-    public override void TransformTo(BaseMode fromMode)
-    {
-        isTransforming = true;
-        //cache our transfrom from modes transform so we can follow it
-        fromModeTr = fromMode.GetRootBone();
-    }
-
-    public override void TransformFrom(BaseMode toMode)
-    {
-        HideModel();
-    }
-
-    public override void ExitMode()
-    {
-        input.Brake -= HandleBrake;
-        input.Accelerate -= HandleAccelerate;
-        HideModel();
-        isEnabled = false;
-    }
-    void ShowModel() => model.SetActive(true);
-    void HideModel() => model.SetActive(false);
     void Update()
     {
         stateMachine.Update();
@@ -211,10 +215,13 @@ public class CarMode : BaseMode, IMovementStateController
 
     private void HandleTransformingMovement()
     {
+        //get our robot mode's transform and set position
         rb.position = fromModeTr.position;
 
+        //get the rotation from robot
         Quaternion targetRotation = fromModeTr.rotation;
 
+        //apply a 270 degree turn to the rotation so we start upright and fall into correct position
         targetRotation *= Quaternion.AngleAxis(270f, Vector3.right);
         rb.rotation = targetRotation;
 
@@ -225,7 +232,7 @@ public class CarMode : BaseMode, IMovementStateController
         float accelerationInput = input.Direction.y;
         float steeringInput = input.Direction.x;
 
-
+        //for each axle
         for (int i = 0; i < axles.Length; i++)
         {
             {
@@ -236,7 +243,7 @@ public class CarMode : BaseMode, IMovementStateController
                 //If disabled, we only want to handle suspesnion, so return
                 if (!isEnabled) return;
 
-                //send our steer input to the steering axles
+                //send our steer input to the steering axle
                 if (axles[i].steering)
                 {
                     HandleSteeringInput(axles[i].leftWheel, steeringInput);
@@ -247,10 +254,10 @@ public class CarMode : BaseMode, IMovementStateController
                 if (stateMachine.CurrentState is not GroundedState) return;
 
                 //we want steering force on all wheels,the lateral force on the wheels that works agaisnt sliding
-                HandleSteering(axles[i].leftWheel, i);
-                HandleSteering(axles[i].rightWheel, i);
+                HandleSteering(axles[i].leftWheel, axles[i]);
+                HandleSteering(axles[i].rightWheel, axles[i]);
 
-                //send our acceleration input to our motor axles
+                //send our acceleration input to our motor axle
                 if (axles[i].motor)
                 {
                     HandleAcceleration(axles[i].leftWheel, accelerationInput);
@@ -274,7 +281,7 @@ public class CarMode : BaseMode, IMovementStateController
             Quaternion targetRotation = Quaternion.Euler(wheelRay.tr.localRotation.eulerAngles.x, steerAngle, wheelRay.tr.localRotation.eulerAngles.x);
             wheelRay.tr.localRotation = Quaternion.Slerp(wheelRay.tr.localRotation, targetRotation, Time.fixedDeltaTime * wheelTurnSpeed);
         }
-        void HandleSteering(WheelRay wheelRay, int axleIndex)
+        void HandleSteering(WheelRay wheelRay, Axle axle)
         {
             // float gripFactor = axleIndex > 0 ? backWheelGripCurve.Evaluate() : 0.0f;
 
@@ -293,9 +300,9 @@ public class CarMode : BaseMode, IMovementStateController
 
             float steerVelocityRatio = Mathf.Clamp01(sideMagnitude * 5 / forwardMagnitude);
 
-            float gripFactor = axleIndex > 0 ? backWheelGrip : frontWheelGrip;
 
-            print(gripFactor);
+            float gripFactor = GetGripFactor(axle.axleLocation);
+          
             //get our wheel's velocity in the steering direction
             float steeringVelocity = Vector3.Dot(steeringDirection, wheelVelocity);
 
@@ -308,34 +315,24 @@ public class CarMode : BaseMode, IMovementStateController
             //add this veolcity as a force taking into account wheel mass at each wheel position
             rb.AddForceAtPosition(steeringDirection * wheelMass * steerAcceleration, wheelRay.tr.position);
 
-            if (debugMode) //this green line shows our wheel steer direction
+            if (debugMode) ////Show our direction of steerforce in yellow
             {
                 Debug.DrawRay(wheelRay.tr.position, steeringDirection, Color.yellow);
             }
-            if (debugMode) //this green line shows our raycast
+            if (debugMode) ////Show our direction of acceleration in blue
             {
                 Debug.DrawRay(wheelRay.tr.position, forwardDirection, Color.blue);
             }
         }
         void HandleAcceleration(WheelRay wheelRay, float accelerationInput)
         {
-            Vector3 accelerationDirection = wheelRay.tr.forward;
-
-            //get our current forward speed
-            float speed = Vector3.Dot(wheelRay.tr.forward, rb.velocity);
-
-            //Get the ratio of our speed to our maxSpeed;
-            float normalizedSpeed = Mathf.Clamp01(Mathf.Abs(speed) / maxSpeed);
-
-            //get our torque from the lookup curve and apply our accerlation based on input
-            float torque = powerCurve.Evaluate(normalizedSpeed) * accelerationInput * acceleration;
-
-            //create force in the wheel forward direction from our torque
-            rb.AddForceAtPosition(accelerationDirection * torque, wheelRay.tr.position);
-
-            if (debugMode) //this green line shows our raycast
+            if (useAccelerationButton)
             {
-                Debug.DrawRay(wheelRay.tr.position, accelerationDirection, Color.blue);
+                ButtonAcceleration(wheelRay, accelerationInput);
+            }
+            else 
+            {
+                StickAcceleration(wheelRay, accelerationInput);
             }
 
         }
@@ -400,11 +397,82 @@ public class CarMode : BaseMode, IMovementStateController
         {
             return dampingZeta * (2 * Mathf.Sqrt(springStrength * rb.mass));
         }
+    }
 
+    private float GetGripFactor(Axle.AxleLocation axleLocation)
+    {
+        switch (axleLocation)
+        {
+            case Axle.AxleLocation.Front:
+                return frontWheelGrip;
+            case Axle.AxleLocation.Back:
+                return backWheelGrip;
+            default:
+                return backWheelGrip;
+        }
+    }
 
+    private void StickAcceleration(WheelRay wheelRay, float accelerationInput)
+    {
+        Vector3 accelerationDirection = wheelRay.tr.forward;
 
+        //get our current forward speed
+        float speed = Vector3.Dot(wheelRay.tr.forward, rb.velocity);
 
+        //Get the ratio of our speed to our maxSpeed;
+        float normalizedSpeed = Mathf.Clamp01(Mathf.Abs(speed) / maxSpeed);
 
+        //if at max speed, do not apply torque
+        if (normalizedSpeed >= 1) { return; }
+
+        //get our torque from the lookup curve and apply our accerlation based on input
+        float torque = accelerationPowerCurve.Evaluate(normalizedSpeed) * accelerationInput * acceleration;
+
+        //create force in the wheel forward direction from our torque
+        rb.AddForceAtPosition(accelerationDirection * torque, wheelRay.tr.position);
+        
+    }
+
+    private void ButtonAcceleration(WheelRay wheelRay, float accelerationInput)
+    {
+        Vector3 accelerationDirection = wheelRay.tr.forward;
+
+        //get our current forward speed
+        float speed = Vector3.Dot(wheelRay.tr.forward, rb.velocity);
+
+        //Get the ratio of our speed to our maxSpeed;
+        float normalizedSpeed = Mathf.Clamp01(Mathf.Abs(speed) / maxSpeed);
+
+        //if at max speed, do not apply torque
+        if (normalizedSpeed >= 1) { return; }
+
+        //get our torque from the lookup curve and apply our accerlation 
+        float torque = accelerationPowerCurve.Evaluate(normalizedSpeed) * acceleration;
+
+        //get our torque from the lookup curve and apply our reverse based on input so its most promimenent at the lowest input
+        float reverseTorque = deccelerationPowerCurve.Evaluate(normalizedSpeed) * reverseAcceleration * accelerationInput;
+
+        Vector3 acclerationForce = accelerationDirection * torque;
+        Vector3 reverseForce = accelerationDirection * reverseTorque;
+
+        if (isAccelerating && accelerationInput >= 0)
+        {
+            //create force in the wheel forward direction from our torque
+            rb.AddForceAtPosition(acclerationForce, wheelRay.tr.position);
+        }
+        else if(isAccelerating && accelerationInput <= 0)
+        {
+            //create force in the wheel forward direction from our torque
+            rb.AddForceAtPosition(reverseForce, wheelRay.tr.position);
+        }
+        else if (!isAccelerating && speed > 0) 
+        {
+            //create force in opposing direction scaled by some idle braking force
+            Vector3 brakeForce = -acclerationForce * idleBrakeForce;
+            rb.AddForceAtPosition(brakeForce, wheelRay.tr.position);
+        }
+
+        
     }
 }
 

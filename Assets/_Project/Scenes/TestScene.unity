@@ -2803,17 +2803,22 @@ MonoBehaviour:
   rootBone: {fileID: 1601825003}
   cameraTransform: {fileID: 1688028427}
   axles:
-  - leftWheelTransform: {fileID: 599579861}
+  - axleLocation: 0
+    leftWheelTransform: {fileID: 599579861}
     rightWheelTransform: {fileID: 358646062}
     steering: 1
     motor: 0
-  - leftWheelTransform: {fileID: 1620260163}
+  - axleLocation: 1
+    leftWheelTransform: {fileID: 1620260163}
     rightWheelTransform: {fileID: 509700805}
     steering: 0
     motor: 1
   acceleration: 11000
-  powerCurve: {fileID: 11400000, guid: 9c2e92fbdedb7974e8f80b44a35b5d5f, type: 2}
+  decceleration: 10000
+  accelerationPowerCurve: {fileID: 11400000, guid: 9c2e92fbdedb7974e8f80b44a35b5d5f, type: 2}
+  deccelerationPowerCurve: {fileID: 11400000, guid: 9c2e92fbdedb7974e8f80b44a35b5d5f, type: 2}
   maxSpeed: 3000
+  idleBrakeForce: 1
   wheelTurnSpeed: 10
   maxSteerAngle: 60
   wheelMass: 50
@@ -2826,6 +2831,7 @@ MonoBehaviour:
   dampingZeta: 1
   wheelRadius: 0.05
   debugMode: 1
+  useAccelerationButton: 1
 --- !u!54 &1601825005
 Rigidbody:
   m_ObjectHideFlags: 0
