@@ -96,7 +96,7 @@ public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IP
                 Brake.Invoke(true);
                 break;
             case InputActionPhase.Performed:
-                Accelerate.Invoke(true);
+                Brake.Invoke(true);
                 break;
             case InputActionPhase.Canceled:
                 Brake.Invoke(false);

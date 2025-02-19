@@ -2632,7 +2632,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   model: {fileID: 919132147547396886}
   rootBone: {fileID: 1105596552598684807}
-  movementSpeed: 10
+  movementSpeed: 5
   groundFriction: 100
   gravity: 45
   airControlRate: 100
@@ -2814,16 +2814,17 @@ MonoBehaviour:
     steering: 0
     motor: 1
   acceleration: 11000
-  decceleration: 10000
+  reverseAcceleration: 9000
   accelerationPowerCurve: {fileID: 11400000, guid: 9c2e92fbdedb7974e8f80b44a35b5d5f, type: 2}
   deccelerationPowerCurve: {fileID: 11400000, guid: 9c2e92fbdedb7974e8f80b44a35b5d5f, type: 2}
   maxSpeed: 3000
-  idleBrakeForce: 1
+  brakeFactor: 2
+  idleBrakeFactor: 0.1
   wheelTurnSpeed: 10
-  maxSteerAngle: 60
-  wheelMass: 50
+  maxSteerAngle: 45
+  wheelMass: 1
   wheelGrip: 50
-  frontWheelGrip: 0.3
+  frontWheelGrip: 0.4
   backWheelGrip: 0.6
   restDistance: 0.47
   maxSpringOffset: 0.35
