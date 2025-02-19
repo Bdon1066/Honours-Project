@@ -39,8 +39,8 @@ public class CarMode : BaseMode, IMovementStateController
     public float wheelGrip = 50f;
     [Range(0, 1)] public float frontWheelGrip = 0.5f;
     [Range(0, 1)] public float backWheelGrip = 0.4f;
-    //public CurveScriptableObject frontWheelGripCurve;
-    //public CurveScriptableObject backWheelGripCurve;
+    public CurveScriptableObject frontWheelGripCurve;
+    public CurveScriptableObject backWheelGripCurve;
 
     [Header("Suspension")]
     //This is the distance our spring will want to rest at.
@@ -292,11 +292,13 @@ public class CarMode : BaseMode, IMovementStateController
         float forwardMagnitude = Vector3.Project(wheelVelocity, forwardDirection).magnitude;
         float sideMagnitude = Vector3.Project(wheelVelocity, steeringDirection).magnitude;
 
+        
+        float steerVelocityRatio = Mathf.Clamp01(Mathf.Abs(sideMagnitude) / wheelVelocity.magnitude);
 
-        float steerVelocityRatio = Mathf.Clamp01(sideMagnitude * 5 / forwardMagnitude);
+        print(steerVelocityRatio);
 
-
-        float gripFactor = GetGripFactor(axle.axleLocation);
+        float gripFactor = GetGripFactor(axle.axleLocation,steerVelocityRatio);
+       
       
         //get our wheel's velocity in the steering direction
         float steeringVelocity = Vector3.Dot(steeringDirection, wheelVelocity);
@@ -392,16 +394,17 @@ public class CarMode : BaseMode, IMovementStateController
     {
         return dampingZeta * (2 * Mathf.Sqrt(springStrength * rb.mass));
     }
-    float GetGripFactor(Axle.AxleLocation axleLocation)
+    float GetGripFactor(Axle.AxleLocation axleLocation, float steerVelocityRatio)
     {
         switch (axleLocation)
         {
             case Axle.AxleLocation.Front:
-                return frontWheelGrip;
+                return frontWheelGripCurve.Evaluate(steerVelocityRatio);
             case Axle.AxleLocation.Back:
-                return backWheelGrip;
+                return backWheelGripCurve.Evaluate(steerVelocityRatio);
             default:
-                return backWheelGrip;
+                return 0f;
+                
         }
     }
     private void StickAcceleration(WheelRay wheelRay, float accelerationInput)

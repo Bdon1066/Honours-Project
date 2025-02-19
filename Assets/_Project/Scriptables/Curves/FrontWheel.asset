@@ -10,37 +10,46 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0efa4760b5116f1409fbbcc62f628b35, type: 3}
-  m_Name: AccelerationCurve
+  m_Name: FrontWheel
   m_EditorClassIdentifier: 
   curve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: -0.0014228821
-      value: 0.49813843
-      inSlope: 2
-      outSlope: 2
+      time: -0.0011430173
+      value: 0.5472772
+      inSlope: -0.1960917
+      outSlope: -0.1960917
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
-      outWeight: 0
+      outWeight: 0.67479116
     - serializedVersion: 3
-      time: 0.5034629
-      value: 0.98586786
-      inSlope: 0
-      outSlope: 0
+      time: 0.31367564
+      value: 0.44730744
+      inSlope: -0.38700897
+      outSlope: -0.38700897
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
-      outWeight: 0.33333334
+      outWeight: 0.6054374
     - serializedVersion: 3
-      time: 1.0028076
-      value: 0.26651
-      inSlope: 0
-      outSlope: 0
+      time: 0.57710457
+      value: 0.07
+      inSlope: -0.17601776
+      outSlope: -0.17601776
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0
+      inWeight: 0.33333334
+      outWeight: 0.6993886
+    - serializedVersion: 3
+      time: 0.9991185
+      value: 0.024261363
+      inSlope: -0.028708758
+      outSlope: -0.028708758
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.28931138
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2

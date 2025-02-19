@@ -286,8 +286,8 @@ MonoBehaviour:
   input: {fileID: 11400000, guid: 0049de2aa9e2d5645a1711574415abbd, type: 2}
   transformDuration: 0.75
   modes:
-  - {fileID: 1601825004}
   - {fileID: 1379686233}
+  - {fileID: 1601825004}
   debugMode: 1
   slowMotionRate: 0.05
 --- !u!1 &95850995
@@ -2822,10 +2822,11 @@ MonoBehaviour:
   idleBrakeFactor: 0.1
   wheelTurnSpeed: 10
   maxSteerAngle: 45
-  wheelMass: 1
-  wheelGrip: 50
+  wheelGrip: 100
   frontWheelGrip: 0.4
   backWheelGrip: 0.6
+  frontWheelGripCurve: {fileID: 11400000, guid: 1c1ffb0fd7b3fac4998fd8b4c5689dd5, type: 2}
+  backWheelGripCurve: {fileID: 11400000, guid: 6305bef560f6d1346b52fa4cc3d186bc, type: 2}
   restDistance: 0.47
   maxSpringOffset: 0.35
   springStrength: 100

@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0efa4760b5116f1409fbbcc62f628b35, type: 3}
-  m_Name: BackWheelGripCurve
+  m_Name: BackWheel
   m_EditorClassIdentifier: 
   curve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0.6
+      value: 0.75
       inSlope: -0.1960917
       outSlope: -0.1960917
       tangentMode: 0
@@ -25,28 +25,19 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0.67479116
     - serializedVersion: 3
-      time: 0.30725294
-      value: 0.48565954
-      inSlope: -0.38700897
-      outSlope: -0.38700897
+      time: 0.25
+      value: 0.2
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
-      outWeight: 0.6054374
+      outWeight: 0.3509776
     - serializedVersion: 3
-      time: 0.5761585
-      value: 0.07743813
-      inSlope: -0.014924494
-      outSlope: -0.014924494
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.41562018
-    - serializedVersion: 3
-      time: 0.99746704
-      value: 0.05
-      inSlope: -0.028708758
-      outSlope: -0.028708758
+      time: 0.9991185
+      value: 0.1
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.28931138
