@@ -100,8 +100,11 @@ public class RobotMover : BaseMover
     }
     public bool IsGrounded() => isGrounded;
     public Vector3 GetGroundNormal() => sensor.GetNormal();
-    
-    public void SetVelocity(Vector3 velocity) => rb.velocity = velocity + currentGroundAdjustmentVelocity;
+
+    public void SetVelocity(Vector3 velocity) {
+        rb.velocity = velocity + currentGroundAdjustmentVelocity;
+        //print(rb.velocity);
+    }
     public void SetExtendSensorRange(bool isExtended) => usingExtendedSensorRange = isExtended;
     void RecalculateColliderDimensions()
     {

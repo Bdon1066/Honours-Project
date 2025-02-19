@@ -110,7 +110,7 @@ public class RobotAnimator : MonoBehaviour
                 animator.CrossFade(FallHash, 0.1f, 0);
                 break;
             case PlayerStateEvent.Land:
-                //animator.CrossFade(LandHash, 0.1f, 0);
+                animator.CrossFade(LocomotionHash, 0.1f, 0);
                 break;
             case PlayerStateEvent.Jump:
                 animator.CrossFade(JumpHash, 0.1f, 0);

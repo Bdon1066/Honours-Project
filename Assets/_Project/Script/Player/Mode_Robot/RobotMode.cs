@@ -33,12 +33,14 @@ public class RobotMode : BaseMode, IMovementStateController
     [Header("Slide Attributes")]
     public float slideGravity = 5f;
     public float slopeLimit = 30f;
-    
+    [Header("Transform Attributes")]
+    public float postTransformStateTime = 1f;
     [Header("Momentum Settings")]
     public bool useLocalMomentum;
     Vector3 momentum, velocityLastFrame, inputVelocityLastFrame;
     
     CountdownTimer jumpTimer;
+    CountdownTimer postTransformStateTimer;
     StateMachine stateMachine;
     
     [Header("Camera")]
@@ -56,6 +58,7 @@ public class RobotMode : BaseMode, IMovementStateController
     public event Action ToRobot = delegate { };
 
     bool isTransforming;
+    bool hasTransformed;
 
     #endregion
 
@@ -97,13 +100,21 @@ public class RobotMode : BaseMode, IMovementStateController
        //controller.OnTransform += HandleTransform;
        
        jumpTimer = new CountdownTimer(jumpDuration);
-       SetupStateMachine();
+        postTransformStateTimer = new CountdownTimer(postTransformStateTime);
+        postTransformStateTimer.OnTimerStop += StopPostTransform;
+        SetupStateMachine();
     }
    
     public override void EnterMode(Vector3 entryVelocity, Vector3 entryDirection)
     {
-        momentum = entryVelocity;
-        
+        if (entryVelocity != Vector3.zero) 
+        {
+            //mover.SetVelocity(entryVelocity);
+            //print(entryVelocity);
+            momentum = entryVelocity;
+            hasTransformed = true;
+            postTransformStateTimer.Start();
+        }
         OnEnter();
     }
 
@@ -149,6 +160,7 @@ public class RobotMode : BaseMode, IMovementStateController
         var falling = new FallingState(this);
         var rising = new RisingState(this);
         var sliding = new SlidingState(this);
+        var postTransform = new PostTransformState(this);
 
         //When at grounded state, we will go to rising state when IsRising is true
         At(grounded, rising, new FuncPredicate(() => !mover.IsGrounded() && IsRising()));
@@ -170,6 +182,12 @@ public class RobotMode : BaseMode, IMovementStateController
         At(sliding, falling, new FuncPredicate(() => !mover.IsGrounded()));
         At(sliding, rising, new FuncPredicate(() => IsRising()));
 
+        At(postTransform, grounded, new FuncPredicate(() => mover.IsGrounded() && !IsGroundTooSteep()));
+        At(postTransform, sliding, new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
+        At(postTransform, falling, new FuncPredicate(() => !mover.IsGrounded()));
+        At(postTransform, jumping, new FuncPredicate(() => (jumpIsPressed || jumpWasPressed) && !jumpInputLocked));
+
+        Any(postTransform, new FuncPredicate(() => hasTransformed));
         stateMachine.SetState(falling);
         
     }
@@ -183,13 +201,9 @@ public class RobotMode : BaseMode, IMovementStateController
         //if this mode is disabled, return out of update
         if (!IsEnabled())return;
         stateMachine.Update();
+        print(stateMachine.CurrentState);
       
     }
-
-
-  
-
-
     void FixedUpdate()
     {
         //if this mode is disabled, return out of update
@@ -219,12 +233,10 @@ public class RobotMode : BaseMode, IMovementStateController
    
     void HandleMomentum()
     {
-        
         if (useLocalMomentum) momentum = tr.localToWorldMatrix * momentum;
 
         Vector3 verticalMomentum = Utils.ExtractDotVector(momentum, tr.up); //extract vertical momentum
         Vector3 horizontalMomentum = momentum - verticalMomentum; //thus leaving horizontal remaining
-
         verticalMomentum -= tr.up * (gravity * Time.deltaTime); //add gravity
 
         //if on ground and still applying downward force, stop applying that downward force
@@ -265,10 +277,20 @@ public class RobotMode : BaseMode, IMovementStateController
             momentum += slideDirection * (slideGravity * Time.deltaTime);
         }
 
+        if (stateMachine.CurrentState is PostTransformState) 
+        {
+         
+           
+          
+        }
+
         if (useLocalMomentum) momentum = tr.worldToLocalMatrix * momentum;
 
 
     }
+
+    private void StopPostTransform() => hasTransformed = false;
+
     void HandleKeyJumpInput(bool isButtonPressed)
     {
         //print("Jump Event!");

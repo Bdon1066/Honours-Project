@@ -2642,6 +2642,7 @@ MonoBehaviour:
   jumpDuration: 0.2
   slideGravity: 25
   slopeLimit: 40
+  postTransformStateTime: 0.2
   useLocalMomentum: 0
   cameraTransform: {fileID: 1688028427}
 --- !u!1 &1578915842

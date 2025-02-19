@@ -86,6 +86,23 @@ public class JumpingState : IState
 
 }
 /// <summary>
+/// A state when we have finihsed transforming and need to slide with our previous modes velocity
+/// </summary>
+public class PostTransformState : IState
+{
+    readonly IMovementStateController controller;
+    public PostTransformState(IMovementStateController controller)
+    {
+        this.controller = controller;
+    }
+
+    public void OnEnter()
+    {
+
+    }
+
+}
+/// <summary>
 /// A state for when we are in Robot Mode
 /// </summary>
 public class RobotState : IState
