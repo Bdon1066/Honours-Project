@@ -2814,11 +2814,11 @@ MonoBehaviour:
     steering: 0
     motor: 1
   acceleration: 11000
-  reverseAcceleration: 9000
   accelerationPowerCurve: {fileID: 11400000, guid: 9c2e92fbdedb7974e8f80b44a35b5d5f, type: 2}
-  deccelerationPowerCurve: {fileID: 11400000, guid: 9c2e92fbdedb7974e8f80b44a35b5d5f, type: 2}
+  reverseAcceleration: 5000
+  reversePowerCurve: {fileID: 11400000, guid: 07480e4c7de3c70439f63e05845883f4, type: 2}
   maxSpeed: 3000
-  brakeFactor: 2
+  brakeForce: 10
   idleBrakeFactor: 0.1
   wheelTurnSpeed: 10
   maxSteerAngle: 45

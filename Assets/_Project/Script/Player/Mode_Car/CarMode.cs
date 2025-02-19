@@ -24,14 +24,16 @@ public class CarMode : BaseMode, IMovementStateController
     public Axle[] axles = new Axle[2];
     [Header("Acceleration")]
     public float acceleration = 10000f;
-    public float reverseAcceleration = 9000f;
+
     //This curve is how powerful the engine torque will be given our current speed
     public CurveScriptableObject accelerationPowerCurve;
-    public CurveScriptableObject deccelerationPowerCurve;
+    public float reverseAcceleration = 9000f;
+    public CurveScriptableObject reversePowerCurve;
     public float maxSpeed = 100f;
     [Header("Braking")]
+    //The force relative to current velocity we apply when braking
+    public float brakeForce = 10f;
     //The proportional breaking force applied when we are providing no input
-    [Range(1, 10)] public float brakeFactor = 2f;
     [Range(0, 1)] public float idleBrakeFactor = 0.1f;
     [Header("Steering")]
     public float wheelTurnSpeed = 10f;
@@ -101,8 +103,12 @@ public class CarMode : BaseMode, IMovementStateController
         //rb.rotation = Quaternion.LookRotation(entryDirection, Vector3.up);
         ShowModel();
 
-        input.Brake += HandleBrake;
-        input.Accelerate += HandleAccelerate;
+        input.Brake += HandleBrakeInput;
+        input.Accelerate += HandleAccelerateInput;
+
+        //if brake/accel where being pressed when we enter, fire the input event
+        HandleBrakeInput(input.IsBrakePressed);
+        HandleAccelerateInput(input.IsAcceleratePressed);
     }
 
     public override void TransformTo(BaseMode fromMode)
@@ -119,13 +125,13 @@ public class CarMode : BaseMode, IMovementStateController
 
     public override void ExitMode()
     {
-        input.Brake -= HandleBrake;
-        input.Accelerate -= HandleAccelerate;
+        input.Brake -= HandleBrakeInput;
+        input.Accelerate -= HandleAccelerateInput;
         HideModel();
         isEnabled = false;
     }
 
-    private void HandleBrake(bool isButtonHeld)
+    private void HandleBrakeInput(bool isButtonHeld)
     {
         if (isButtonHeld)
         {
@@ -138,7 +144,7 @@ public class CarMode : BaseMode, IMovementStateController
         print("Braking: " + isBraking);
 
     }
-    private void HandleAccelerate(bool isButtonHeld)
+    private void HandleAccelerateInput(bool isButtonHeld)
     {
         if (isButtonHeld)
         {
@@ -261,6 +267,9 @@ public class CarMode : BaseMode, IMovementStateController
                 HandleAcceleration(axles[i].leftWheel, accelerationInput);
                 HandleAcceleration(axles[i].rightWheel, accelerationInput);
             }
+
+            HandleBraking(axles[i].leftWheel);
+            HandleBraking(axles[i].rightWheel);
         }
     
         //slow to a stop if under teeny weeny velocities to stop idle sliding
@@ -269,6 +278,30 @@ public class CarMode : BaseMode, IMovementStateController
         rb.velocity = Vector3.Lerp(rb.velocity, Vector3.zero, 0.1f);
         }
     }
+
+    private void HandleBraking(WheelRay wheelRay)
+    {
+        Vector3 forwardDirection = wheelRay.tr.forward;
+      
+
+        //get our current forward speed
+        float forwardVelocity = Vector3.Dot(forwardDirection, rb.velocity);
+
+        float velocityChange = -forwardVelocity * brakeForce;
+
+        //calculate acceleration from velocity
+        float brakeAcceleration = velocityChange / Time.fixedDeltaTime;
+
+        //add this veolcity as a force taking into account wheel mass at each wheel position
+        //Reverse
+        if (isBraking && forwardVelocity > 0)
+        {
+            //add this veolcity as a force taking into account wheel mass at each wheel position
+            rb.AddForceAtPosition(forwardDirection * brakeAcceleration, wheelRay.tr.position);
+        }
+        
+    }
+
     void HandleSteeringInput(WheelRay wheelRay, float steeringInput)
     {
         float steerAngle = steeringInput * maxSteerAngle;
@@ -295,7 +328,7 @@ public class CarMode : BaseMode, IMovementStateController
         
         float steerVelocityRatio = Mathf.Clamp01(Mathf.Abs(sideMagnitude) / wheelVelocity.magnitude);
 
-        print(steerVelocityRatio);
+        //print(steerVelocityRatio);
 
         float gripFactor = GetGripFactor(axle.axleLocation,steerVelocityRatio);
        
@@ -306,8 +339,8 @@ public class CarMode : BaseMode, IMovementStateController
         //apply an opposing grip velocity that opposes the steer force
         float velocityChange =   -steeringVelocity * gripFactor * wheelGrip;
 
-    //calculate acceleration from velocity
-    float steerAcceleration = velocityChange / Time.fixedDeltaTime;
+        //calculate acceleration from velocity
+        float steerAcceleration = velocityChange / Time.fixedDeltaTime;
 
         //add this veolcity as a force taking into account wheel mass at each wheel position
         rb.AddForceAtPosition(steeringDirection * steerAcceleration, wheelRay.tr.position);
@@ -444,37 +477,37 @@ public class CarMode : BaseMode, IMovementStateController
         float torque = accelerationPowerCurve.Evaluate(normalizedSpeed) * acceleration;
 
         //get our torque from the lookup curve and apply our reverse based on input so its most promimenent at the lowest input
-        float reverseTorque = deccelerationPowerCurve.Evaluate(normalizedSpeed) * reverseAcceleration * accelerationInput;
+        float reverseTorque = reversePowerCurve.Evaluate(normalizedSpeed) * reverseAcceleration;
 
         Vector3 acclerationForce = accelerationDirection * torque;
-        Vector3 reverseForce = accelerationDirection * reverseTorque;
+        Vector3 reverseForce = -accelerationDirection * reverseTorque;
 
         //Acceleration
-        if (isAccelerating && accelerationInput >= 0)
+        if (isAccelerating)
         {
             //create force in the wheel forward direction from our torque
             rb.AddForceAtPosition(acclerationForce, wheelRay.tr.position);
         }
         //Reverse
-        else if (isAccelerating && accelerationInput <= 0)
+        if (isBraking)
         {
             //create force in the wheel forward direction from our torque
             rb.AddForceAtPosition(reverseForce, wheelRay.tr.position);
         }
-        //Idle Braking
-        else if (!isAccelerating && speed > 0) //TODO: Apply brake force to all wheels
-        {
-            //create force in opposing direction scaled by some idle braking force
-            Vector3 brakeForce = -acclerationForce * idleBrakeFactor;
-            rb.AddForceAtPosition(brakeForce, wheelRay.tr.position);
-        }
+        ////Idle Braking
+        //else if (!isAccelerating && speed > 0) //TODO: Apply brake force to all wheels
+        ///{
+        ///    //create force in opposing direction scaled by some idle braking force
+        ///    Vector3 brakeForce = -acclerationForce * idleBrakeFactor;
+        //    rb.AddForceAtPosition(brakeForce, wheelRay.tr.position);
+        //}
        
         //Braking
-        if (isBraking && speed > 0) //TODO: Apply brake force to all wheels
-        {
-            //create force in the wheel forward direction from our torque
-            rb.AddForceAtPosition(-acclerationForce * brakeFactor, wheelRay.tr.position);
-        }
+        //if (isBraking && speed > 0) //TODO: Apply brake force to all wheels
+        //{
+        //    //create force in the wheel forward direction from our torque
+        //    rb.AddForceAtPosition(-acclerationForce * brakeFactor, wheelRay.tr.position);
+        //}
  
     }
 }

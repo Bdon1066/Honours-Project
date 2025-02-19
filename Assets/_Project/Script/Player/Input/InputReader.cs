@@ -32,7 +32,8 @@ public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IP
     public Vector2 LookDirection => inputActions.Player.Look.ReadValue<Vector2>();
     public bool isJumpPressed => inputActions.Player.Jump.IsPressed();
 
-    public bool IsBraking => inputActions.Player.Brake.ReadValue<float>() > 0;
+    public bool IsBrakePressed => inputActions.Player.Brake.IsPressed();
+    public bool IsAcceleratePressed => inputActions.Player.Accelerate.IsPressed();
 
     public void EnablePlayerActions()
     {
