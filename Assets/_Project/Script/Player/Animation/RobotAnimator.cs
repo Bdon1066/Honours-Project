@@ -45,6 +45,10 @@ public class RobotAnimator : MonoBehaviour
 
     private bool isTransforming;
 
+    PlayerStateEvent cachedState;
+
+    public enum PlayerStateEvent {Locomotion,Fall,Land,Jump}
+
     void Start() 
     {
         animator = GetComponent<Animator>();
@@ -97,8 +101,25 @@ public class RobotAnimator : MonoBehaviour
     private void OnTransformFinished()
     {
         isTransforming = false;
-        animator.CrossFade(LocomotionHash,0.1f,0 );
-    }
+        switch (cachedState)
+        {
+            case PlayerStateEvent.Locomotion:
+                animator.CrossFade(LocomotionHash, 0.1f, 0);
+                break;
+            case PlayerStateEvent.Fall:
+                animator.CrossFade(FallHash, 0.1f, 0);
+                break;
+            case PlayerStateEvent.Land:
+                //animator.CrossFade(LandHash, 0.1f, 0);
+                break;
+            case PlayerStateEvent.Jump:
+                animator.CrossFade(JumpHash, 0.1f, 0);
+                break;
+            default:
+                break;
+        }
+        cachedState = PlayerStateEvent.Locomotion;
+    }  
 
     private float GetAnimStateTime(string name)
     {
@@ -157,17 +178,38 @@ public class RobotAnimator : MonoBehaviour
     void HandleJump(Vector3 momentum)
     {
         if (!isTransforming)
-        animator.CrossFade(JumpHash,0,0 );
+        {
+            animator.CrossFade(JumpHash, 0, 0);
+        }
+        else
+        {
+            cachedState = PlayerStateEvent.Jump;
+        }
+       
     }
     void HandleFall(Vector3 momentum)
     {
         if (!isTransforming)
-        animator.CrossFade(FallHash,0.25f,0 );
+        {
+            animator.CrossFade(FallHash, 0.25f, 0);
+        }
+        else
+        {
+            cachedState = PlayerStateEvent.Fall;
+        }
+       
     }
     void HandleLand(Vector3 momentum)
     {
         if (!isTransforming)
-        animator.CrossFade(LocomotionHash,0.2f,0 );
+        {
+            animator.CrossFade(LocomotionHash, 0.2f, 0);
+        }
+        else
+        {
+            cachedState = PlayerStateEvent.Land;
+        }
+       
     }
     
     

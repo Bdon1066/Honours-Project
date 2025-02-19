@@ -55,6 +55,8 @@ public class RobotMode : BaseMode, IMovementStateController
     public event Action ToCar = delegate { };
     public event Action ToRobot = delegate { };
 
+    bool isTransforming;
+
     #endregion
 
 
@@ -109,12 +111,14 @@ public class RobotMode : BaseMode, IMovementStateController
     {
         ShowModel();
         ToRobot.Invoke();
+        isTransforming = true;
         print("Transforming To Robot");
     }
 
     public override void TransformFrom(BaseMode toMode)
     {
         ToCar.Invoke();
+        isTransforming = true;
         print("Transforming From Robot");
     }
    
@@ -123,7 +127,7 @@ public class RobotMode : BaseMode, IMovementStateController
         SetEnabled(true);
         ShowModel();
         mover.Enable();
-
+        isTransforming = false;
         input.Jump += HandleKeyJumpInput;
 
         //print("Entering Robot Mode");
@@ -177,10 +181,11 @@ public class RobotMode : BaseMode, IMovementStateController
     void Update()
     {
         //if this mode is disabled, return out of update
-        if (!IsEnabled()) return;
+        if (!IsEnabled())return;
         stateMachine.Update();
-        
+      
     }
+
 
   
 
@@ -300,6 +305,7 @@ public class RobotMode : BaseMode, IMovementStateController
         momentum = Utils.RemoveDotVector(momentum, tr.up);
         momentum -= tr.up * currentUpMomemtum.magnitude;
         OnFall.Invoke(momentum);
+        print("on fall start");
     }
     public void OnGroundContactLost()
     { if (useLocalMomentum) momentum = tr.localToWorldMatrix * momentum;

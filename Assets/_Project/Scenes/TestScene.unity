@@ -2632,7 +2632,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   model: {fileID: 919132147547396886}
   rootBone: {fileID: 1105596552598684807}
-  movementSpeed: 5
+  movementSpeed: 10
   groundFriction: 100
   gravity: 45
   airControlRate: 100

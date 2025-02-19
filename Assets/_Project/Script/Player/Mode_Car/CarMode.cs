@@ -131,32 +131,8 @@ public class CarMode : BaseMode, IMovementStateController
         isEnabled = false;
     }
 
-    private void HandleBrakeInput(bool isButtonHeld)
-    {
-        if (isButtonHeld)
-        {
-            isBraking = true;
-        }
-        else
-        {
-            isBraking = false;
-        }
-        print("Braking: " + isBraking);
-
-    }
-    private void HandleAccelerateInput(bool isButtonHeld)
-    {
-        if (isButtonHeld)
-        {
-            isAccelerating = true;
-        }
-        else
-        {
-            isAccelerating = false;
-        }
-        print("Accelerating: " + isAccelerating);
-
-    }
+    private void HandleBrakeInput(bool isButtonHeld) => isBraking = isButtonHeld;
+    private void HandleAccelerateInput(bool isButtonHeld) => isAccelerating = isButtonHeld;
 
     void CreateAxleWheels()
     {
