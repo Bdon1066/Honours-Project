@@ -694,7 +694,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 284301860}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 200, y: 200, z: 200}
   m_ConstrainProportionsScale: 1
@@ -2824,8 +2824,6 @@ MonoBehaviour:
   wheelTurnSpeed: 10
   maxSteerAngle: 45
   wheelGrip: 100
-  frontWheelGrip: 0.4
-  backWheelGrip: 0.6
   frontWheelGripCurve: {fileID: 11400000, guid: 1c1ffb0fd7b3fac4998fd8b4c5689dd5, type: 2}
   backWheelGripCurve: {fileID: 11400000, guid: 6305bef560f6d1346b52fa4cc3d186bc, type: 2}
   restDistance: 0.47

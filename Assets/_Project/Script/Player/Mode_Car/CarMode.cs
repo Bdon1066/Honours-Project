@@ -23,7 +23,6 @@ public class CarMode : BaseMode, IMovementStateController
     public Axle[] axles = new Axle[2];
     [Header("Acceleration")]
     public float acceleration = 10000f;
-
     //This curve is how powerful the engine torque will be given our current speed
     public CurveScriptableObject accelerationPowerCurve;
     public float reverseAcceleration = 9000f;
@@ -38,8 +37,6 @@ public class CarMode : BaseMode, IMovementStateController
     public float wheelTurnSpeed = 10f;
     public float maxSteerAngle = 45f;
     public float wheelGrip = 50f;
-    [Range(0, 1)] public float frontWheelGrip = 0.5f;
-    [Range(0, 1)] public float backWheelGrip = 0.4f;
     public CurveScriptableObject frontWheelGripCurve;
     public CurveScriptableObject backWheelGripCurve;
 
