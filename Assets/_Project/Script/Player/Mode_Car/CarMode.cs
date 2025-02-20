@@ -5,7 +5,6 @@ using UnityEngine.InputSystem;
 using Debug = UnityEngine.Debug;
 public class CarMode : BaseMode, IMovementStateController
 {
-
     #region Fields
 
     Transform tr;
@@ -33,7 +32,7 @@ public class CarMode : BaseMode, IMovementStateController
     [Header("Braking")]
     //The force relative to current velocity we apply when braking
     public float brakeForce = 10f;
-    //The proportional breaking force applied when we are providing no input
+    //What proportion of our brake force should be applied when idling (no acceleration)
     [Range(0, 1)] public float idleBrakeFactor = 0.1f;
     [Header("Steering")]
     public float wheelTurnSpeed = 10f;
@@ -52,7 +51,7 @@ public class CarMode : BaseMode, IMovementStateController
     //How strong our spring is, stronger springs will result in faster osciliations.
     public float springStrength = 100f;
     //How strong our damping is, higher damping zeta will bring the spring to rest faster.
-    [UnityEngine.Range(0.2f, 1f)] public float dampingZeta;
+    [Range(0.2f, 1f)] public float dampingZeta;
     public float wheelRadius = 0.33f;
     float dampingStrength;
 
@@ -68,10 +67,7 @@ public class CarMode : BaseMode, IMovementStateController
     #endregion
 
     public override Vector3 GetVelocity() => rb.velocity;
-    public override Vector3 GetDirection()
-    {
-        return rb.velocity.normalized;
-    }
+    public override Vector3 GetDirection() => rb.velocity.normalized;
     public override Transform GetRootBone() => rootBone;
     public override void SetPosition(Vector3 position) => tr.transform.position = position;
 
@@ -148,8 +144,7 @@ public class CarMode : BaseMode, IMovementStateController
         var grounded = new GroundedState(this);
         var falling = new FallingState(this);
         var rising = new RisingState(this);
-
-        //When at grounded state, we will go to rising state when IsRising is true
+        
         At(grounded, rising, new FuncPredicate(() => !IsGrounded() && IsRising()));
         At(grounded, falling, new FuncPredicate(() => !IsGrounded() && IsFalling()));
 
@@ -175,10 +170,7 @@ public class CarMode : BaseMode, IMovementStateController
     bool IsFalling() => Utils.GetDotProduct(rb.velocity, tr.up) < 0f;
     void At(IState from, IState to, IPredicate condition) => stateMachine.AddTransition(from, to, condition);
     void Any(IState to, IPredicate condition) => stateMachine.AddAnyTransition(to, condition);
-    void Update()
-    {
-        stateMachine.Update();
-    }
+    void Update() => stateMachine.Update();
     void FixedUpdate()
     {
         if (isTransforming)
@@ -205,7 +197,6 @@ public class CarMode : BaseMode, IMovementStateController
         //apply a 270 degree turn to the rotation so we start upright and fall into correct position
         targetRotation *= Quaternion.AngleAxis(270f, Vector3.right);
         rb.rotation = targetRotation;
-
     }
 
     void HandleMovement()
@@ -216,7 +207,7 @@ public class CarMode : BaseMode, IMovementStateController
         //for each axle
         for (int i = 0; i < axles.Length; i++)
         {
-            //we want suspension  force on all wheels 
+            //we want suspension force on all wheels 
             HandleSuspension(axles[i].leftWheel);
             HandleSuspension(axles[i].rightWheel);
 
@@ -243,7 +234,7 @@ public class CarMode : BaseMode, IMovementStateController
                 HandleAcceleration(axles[i].leftWheel, accelerationInput);
                 HandleAcceleration(axles[i].rightWheel, accelerationInput);
             }
-
+            //handle braking for all wheels
             HandleBraking(axles[i].leftWheel);
             HandleBraking(axles[i].rightWheel);
         }
@@ -254,44 +245,61 @@ public class CarMode : BaseMode, IMovementStateController
         rb.velocity = Vector3.Lerp(rb.velocity, Vector3.zero, 0.1f);
         }
     }
-
-    private void HandleBraking(WheelRay wheelRay)
+    void HandleSuspension(WheelRay wheelRay)
     {
-        Vector3 forwardDirection = wheelRay.tr.forward;
-      
+        dampingStrength = CalculateDampingStrength();
 
-        //get our current forward speed
-        float forwardVelocity = Vector3.Dot(forwardDirection, rb.velocity);
+        float maxLength = restDistance + maxSpringOffset;
+        //setup a suspesnion ray to start from the wheel force position, pointing downwards
+        wheelRay.suspensionRay.SetCastOrigin(wheelRay.tr.position);
+        wheelRay.suspensionRay.SetCastDirection(RaycastSensor.CastDirection.Down);
+        wheelRay.suspensionRay.castLength = (maxLength + wheelRadius) * tr.localScale.x;
 
-        float velocityChange = -forwardVelocity * brakeForce;
+        wheelRay.suspensionRay.Cast();
 
-        //calculate acceleration from velocity
-        float brakeAcceleration = velocityChange / Time.fixedDeltaTime;
-
-        //add this veolcity as a force taking into account wheel mass at each wheel position
-        //Reverse
-        if (isBraking && forwardVelocity > 0)
+        //if we havent hit anything, bail out
+        if (!wheelRay.suspensionRay.HasDetectedHit())
         {
-            //add this veolcity as a force taking into account wheel mass at each wheel position
-            rb.AddForceAtPosition(forwardDirection * brakeAcceleration, wheelRay.tr.position);
+            if (debugMode) //this green line shows our raycast
+            {
+                Debug.DrawLine(wheelRay.tr.position,
+                    wheelRay.tr.position + (wheelRadius + maxLength) * -wheelRay.tr.up, Color.green);
+            }
+            return;
         }
-        
-    }
+        Vector3 hitPoint = wheelRay.suspensionRay.GetPosition();
+        float hitDistance = wheelRay.suspensionRay.GetDistance();
 
+        //calculate how much our spring is offset from rest
+        float springOffset = (restDistance - (hitDistance - wheelRadius)) / maxSpringOffset;
+
+        //Get the springs current velocity in the up direction
+        float springVelocity = Vector3.Dot(wheelRay.tr.up, rb.GetPointVelocity(wheelRay.tr.position));
+
+        //calculate force based on how far the spring is offset and the spring strength, and include damping
+        float force = (springOffset * springStrength * 100f) - (springVelocity * dampingStrength);
+        
+        //apply upwards force to the rb at the wheelforce position
+        rb.AddForceAtPosition(force * wheelRay.tr.up, wheelRay.tr.position);
+
+        if (debugMode) //this red line shows our suspsension once we hit something
+        {
+            Debug.DrawLine(wheelRay.tr.position, hitPoint, Color.red);
+        }
+    }
+    //Use our damping zeta to calculate an ideal damping strength for our setup
+    float CalculateDampingStrength()
+    {
+        return dampingZeta * (2 * Mathf.Sqrt(springStrength * rb.mass));
+    }
     void HandleSteeringInput(WheelRay wheelRay, float steeringInput)
     {
         float steerAngle = steeringInput * maxSteerAngle;
         Quaternion targetRotation = Quaternion.Euler(wheelRay.tr.localRotation.eulerAngles.x, steerAngle, wheelRay.tr.localRotation.eulerAngles.x);
         wheelRay.tr.localRotation = Quaternion.Slerp(wheelRay.tr.localRotation, targetRotation, Time.fixedDeltaTime * wheelTurnSpeed);
     }
-    void HandleSteering(WheelRay wheelRay, Axle axle)
+     void HandleSteering(WheelRay wheelRay, Axle axle)
     {
-        // float gripFactor = axleIndex > 0 ? backWheelGripCurve.Evaluate() : 0.0f;
-
-        //Get the angle in the right vector
-        //divide by 90 to get float , then clamp between 0 and 1 
-        //feed that into the evaluate
-
         //Get our wheels current forward, steer direction and velocity
         Vector3 forwardDirection = wheelRay.tr.forward;
         Vector3 steeringDirection = wheelRay.tr.right;
@@ -330,79 +338,6 @@ public class CarMode : BaseMode, IMovementStateController
             Debug.DrawRay(wheelRay.tr.position, forwardDirection, Color.blue);
         }
     }
-    void HandleAcceleration(WheelRay wheelRay, float accelerationInput)
-    {
-        if (useAccelerationButton)
-        {
-            ButtonAcceleration(wheelRay, accelerationInput);
-        }
-        else 
-        {
-            StickAcceleration(wheelRay, accelerationInput);
-        }
-
-    }
-
-    void HandleSuspension(WheelRay wheelRay)
-    {
-        dampingStrength = CalculateDampingStrength();
-
-        float maxLength = restDistance + maxSpringOffset;
-        //setup a suspesnion ray to start from the wheel force position, pointing downwards
-        wheelRay.suspensionRay.SetCastOrigin(wheelRay.tr.position);
-        wheelRay.suspensionRay.SetCastDirection(RaycastSensor.CastDirection.Down);
-        wheelRay.suspensionRay.castLength = (maxLength + wheelRadius) * tr.localScale.x;
-
-        wheelRay.suspensionRay.Cast();
-
-        //if we havent hit anything, bail out
-        if (!wheelRay.suspensionRay.HasDetectedHit())
-        {
-            if (debugMode) //this green line shows our raycast
-            {
-                Debug.DrawLine(wheelRay.tr.position,
-                    wheelRay.tr.position + (wheelRadius + maxLength) * -wheelRay.tr.up, Color.green);
-            }
-            return;
-        }
-
-        Vector3 hitPoint = wheelRay.suspensionRay.GetPosition();
-        float hitDistance = wheelRay.suspensionRay.GetDistance();
-
-        //calculate how much our spring is offset from rest
-        float springOffset = (restDistance - (hitDistance - wheelRadius)) / maxSpringOffset;
-
-        //Get the springs current velocity in the up direction
-        float springVelocity = Vector3.Dot(wheelRay.tr.up, rb.GetPointVelocity(wheelRay.tr.position));
-
-        //calculate force based on how far the spring is offset and the spring strength, and include damping
-        float force = (springOffset * springStrength * 100f) - (springVelocity * dampingStrength); ;
-
-
-        //apply upwards force to the rb at the wheelforce position
-        rb.AddForceAtPosition(force * wheelRay.tr.up, wheelRay.tr.position);
-
-        if (debugMode) //this red line shows our suspsension once we hit something
-        {
-            Debug.DrawLine(wheelRay.tr.position, hitPoint, Color.red);
-        }
-    }
-
-    Vector3 CalculateWheelDirection(Transform wheelTransform)
-    {
-
-        Vector3 direction = cameraTransform == null //do we have a camera?
-            ? wheelTransform.right * input.Direction.x //if not, direction determined by input directly
-            : Vector3.ProjectOnPlane(cameraTransform.right, wheelTransform.up).normalized * input.Direction.x; //else direction determined by camera position plus input
-                                                                                                               //if direction greater than 1 normalize down to 1, else remain as is
-        return direction.magnitude > 1f ? direction.normalized : direction;
-
-    }
-    //Use our damping zeta to calculate an ideal damping strength for our setup
-    float CalculateDampingStrength()
-    {
-        return dampingZeta * (2 * Mathf.Sqrt(springStrength * rb.mass));
-    }
     float GetGripFactor(Axle.AxleLocation axleLocation, float steerVelocityRatio)
     {
         switch (axleLocation)
@@ -413,7 +348,17 @@ public class CarMode : BaseMode, IMovementStateController
                 return backWheelGripCurve.Evaluate(steerVelocityRatio);
             default:
                 return 0f;
-                
+        }
+    }
+    void HandleAcceleration(WheelRay wheelRay, float accelerationInput)
+    {
+        if (useAccelerationButton)
+        {
+            ButtonAcceleration(wheelRay, accelerationInput);
+        }
+        else 
+        {
+            StickAcceleration(wheelRay, accelerationInput);
         }
     }
     private void StickAcceleration(WheelRay wheelRay, float accelerationInput)
@@ -470,21 +415,33 @@ public class CarMode : BaseMode, IMovementStateController
             //create force in the wheel forward direction from our torque
             rb.AddForceAtPosition(reverseForce, wheelRay.tr.position);
         }
-        ////Idle Braking
-        //else if (!isAccelerating && speed > 0) //TODO: Apply brake force to all wheels
-        ///{
-        ///    //create force in opposing direction scaled by some idle braking force
-        ///    Vector3 brakeForce = -acclerationForce * idleBrakeFactor;
-        //    rb.AddForceAtPosition(brakeForce, wheelRay.tr.position);
-        //}
-       
-        //Braking
-        //if (isBraking && speed > 0) //TODO: Apply brake force to all wheels
-        //{
-        //    //create force in the wheel forward direction from our torque
-        //    rb.AddForceAtPosition(-acclerationForce * brakeFactor, wheelRay.tr.position);
-        //}
- 
+        
+
+    }
+    
+    private void HandleBraking(WheelRay wheelRay)
+    {
+        Vector3 forwardDirection = wheelRay.tr.forward;
+        
+        //get our current forward speed
+        float forwardVelocity = Vector3.Dot(forwardDirection, rb.velocity);
+
+        //find a change in velocity that negates our existing forward velocity
+        float velocityChange = -forwardVelocity * brakeForce;
+
+        //calculate decceleration from velocity
+        float brakeDecceleration = velocityChange / Time.fixedDeltaTime;
+
+        //if is braking
+        if (isBraking && forwardVelocity > 0)
+        {
+            rb.AddForceAtPosition(forwardDirection * brakeDecceleration, wheelRay.tr.position);
+        }
+        //if not accelerating, add a subtle brake to bring to stop
+        if (!isAccelerating && forwardVelocity > 0) 
+        {
+            rb.AddForceAtPosition(forwardDirection * brakeDecceleration * idleBrakeFactor, wheelRay.tr.position);
+        }
     }
 }
 

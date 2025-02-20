@@ -2820,7 +2820,7 @@ MonoBehaviour:
   reversePowerCurve: {fileID: 11400000, guid: 07480e4c7de3c70439f63e05845883f4, type: 2}
   maxSpeed: 3000
   brakeForce: 10
-  idleBrakeFactor: 0.1
+  idleBrakeFactor: 0.2
   wheelTurnSpeed: 10
   maxSteerAngle: 45
   wheelGrip: 100
