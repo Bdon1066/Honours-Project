@@ -64,7 +64,6 @@ public class CarMode : BaseMode, IMovementStateController
     #endregion
 
     public override Vector3 GetVelocity() => rb.velocity;
-    public override Vector3 GetDirection() => rb.velocity.normalized;
     public override Transform GetRootBone() => rootBone;
     public override void SetPosition(Vector3 position) => tr.transform.position = position;
 
@@ -72,7 +71,7 @@ public class CarMode : BaseMode, IMovementStateController
     void HideModel() => model.SetActive(false);
 
 
-    public override void Init(PlayerController playerController)
+    public override void AwakeMode(PlayerController playerController)
     {
         tr = transform;
         input = playerController.input;
@@ -86,13 +85,13 @@ public class CarMode : BaseMode, IMovementStateController
         HideModel();
 
     }
-    public override void EnterMode(Vector3 entryVelocity, Vector3 entryDirection)
+    public override void EnterMode(Vector3 entryVelocity)
     {
         isEnabled = true;
         isTransforming = false;
 
-        rb.velocity = entryVelocity; //need to like add a force so that the super massive car can be at the same velocity as the robot when IN AIR
-        entryDirection = new Vector3(rb.velocity.normalized.x, entryDirection.x, entryDirection.z);
+        rb.velocity = entryVelocity;
+        //entryDirection = new Vector3(rb.velocity.normalized.x, entryDirection.x, entryDirection.z);
         //rb.rotation = Quaternion.LookRotation(entryDirection, Vector3.up);
         ShowModel();
 

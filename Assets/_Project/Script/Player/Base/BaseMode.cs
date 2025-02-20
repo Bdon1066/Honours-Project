@@ -7,15 +7,10 @@ using UnityEngine;
 /// </summary>
 public interface IMode
 {
-    /// <summary>
-    ///  //For Initializing Mode with our player controllers input, used instead of Awake().This is called by PlayerController Start().
-    /// </summary>
-    /// <param name="input">The input reader of player controller</param>
-    public void Init(PlayerController playerController);
+    public void AwakeMode(PlayerController playerController);
     public Vector3 GetVelocity();
-    public Vector3 GetDirection();
     public void SetPosition(Vector3 position);
-    public abstract void EnterMode(Vector3 entryVelocity, Vector3 entryDirection);
+    public abstract void EnterMode(Vector3 entryVelocity);
     public abstract void TransformTo(BaseMode fromMode);
     public abstract void TransformFrom(BaseMode toMode);
     public void ExitMode();
@@ -23,13 +18,13 @@ public interface IMode
 
 public abstract class BaseMode : MonoBehaviour, IMode
 {
-    public abstract void Init(PlayerController playerController);
+    public abstract void AwakeMode(PlayerController playerController);
     /// <summary>
     /// Enter Mode is called when transforming has finished and we have began play in this mode
     /// </summary>
     /// <param name="entryVelocity"></param>
     /// <param name="entryDirection"></param>
-    public abstract void EnterMode(Vector3 entryVelocity, Vector3 entryDirection);
+    public abstract void EnterMode(Vector3 entryVelocity);
     /// <summary>
     /// Called when we begin transforming Into this mode
     /// </summary>
@@ -48,7 +43,6 @@ public abstract class BaseMode : MonoBehaviour, IMode
     public abstract Vector3 GetVelocity();
 
     public abstract Transform GetRootBone();
-    public abstract Vector3 GetDirection();
     public abstract void SetPosition(Vector3 position);
     
 }

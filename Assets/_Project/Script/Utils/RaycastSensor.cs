@@ -25,6 +25,11 @@ public class RaycastSensor
     {
         tr = originTransform;
     }
+    public RaycastSensor(GameObject originGameObject)
+    {
+        tr = originGameObject.transform;
+        RecalculateSensorLayerMask(originGameObject);
+    }
     public void Cast()
     {
         //We need world origin and direction as opposed to local
@@ -58,6 +63,20 @@ public class RaycastSensor
             CastDirection.Down => -tr.up,
             _ => Vector3.one
         };
+    }
+    public void RecalculateSensorLayerMask(GameObject thisObject)
+    {
+        int objectLayer = thisObject.layer;
+        
+        for (int i = 0; i < 32; i++) //iterate through all layers
+        {
+            if (Physics.GetIgnoreLayerCollision(objectLayer, i)) //check if layer i ignores this mover's layer
+            {
+                layerMask &= ~(1 << i); //remove layer i from the mask via magical bitshifting
+            }
+        }
+        int ignoreRaycastLayer = LayerMask.NameToLayer("Ignore Raycast"); // and do the same with ignore raycast layer
+        layerMask &= ~(1 << ignoreRaycastLayer);
     }
     public void DrawDebug()
     {

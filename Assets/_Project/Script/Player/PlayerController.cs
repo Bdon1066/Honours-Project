@@ -39,7 +39,7 @@ public class PlayerController : MonoBehaviour, IModeStateController
     private void Start()
     {
         //initialize our modes on start and set up the mode state machine
-        InitModes();
+        AwakeModes();
         SetupStateMachine();
         
         input.EnablePlayerActions();
@@ -50,7 +50,6 @@ public class PlayerController : MonoBehaviour, IModeStateController
 
     private void HandlePause(bool isButtonPressed)
     {
-
         if (isButtonPressed && !isPaused)
         {
             currentTimeScale = Time.timeScale;
@@ -67,7 +66,6 @@ public class PlayerController : MonoBehaviour, IModeStateController
 
     private void HandleSlowMotionInput(bool isButtonPressed)
     {
-       
         if (!debugMode) return;
 
         if (isButtonPressed && !isSlowMotion)
@@ -78,32 +76,25 @@ public class PlayerController : MonoBehaviour, IModeStateController
         }
         else if (isButtonPressed && isSlowMotion)
         {
-
             isSlowMotion = false;
             Time.timeScale = currentTimeScale;
         }
-       
     }
 
-    private void InitModes()
+    private void AwakeModes()
     {
         if (modes.Length == 0)
         {
             throw new Exception("Modes is null, please assign nodes to the controller's array");
         }
-        
-        //initialize each of our modes
+        //Awake each of our modes
         foreach (var mode in modes)
         {
             mode.transform.SetParent(null);
-            mode.Init(this);
-           // OnTransform += mode.HandleTransform;
-
+            mode.AwakeMode(this);
         }
-        
         //Set our initial mode to the first entry in the array
         SetCurrentMode(modes[0]); 
-
     }
     private void SetupStateMachine()
     {
@@ -127,8 +118,6 @@ public class PlayerController : MonoBehaviour, IModeStateController
             case RobotMode:
                 stateMachine.SetState(robot);
                 break;
-            default:
-                break;
         }
     }
     void At(IState from, IState to, IPredicate condition) => stateMachine.AddTransition(from, to, condition);
@@ -141,15 +130,12 @@ public class PlayerController : MonoBehaviour, IModeStateController
         {
             transformWasPressed = true;
         }
-
         if (transformIsPressed && !isButtonPressed)
         {
             transformLetGo = true;
             transformInputLocked = false;
         }
-
         transformIsPressed = isButtonPressed;
-
     }
     void ResetTransformKeys()
     {
@@ -163,9 +149,7 @@ public class PlayerController : MonoBehaviour, IModeStateController
         
         if (currentMode is RobotMode)
         {
-            //transform From Robot mode
             currentMode.TransformFrom(currentMode);
-            //to Car M
             GetModeOfType<CarMode>().TransformTo(currentMode);
         }
         else
@@ -187,13 +171,12 @@ public class PlayerController : MonoBehaviour, IModeStateController
         SetCurrentMode(GetModeOfType<T>());
        
         //if we have a previous mode, enter new mode with previous momentum, else just enter normally 
-        if (previousMode != null) currentMode.EnterMode(previousMode.GetVelocity(), previousMode.GetDirection());
-        else currentMode.EnterMode(Vector3.zero, Vector3.zero);
-
+        if (previousMode != null) currentMode.EnterMode(previousMode.GetVelocity());
+        else currentMode.EnterMode(Vector3.zero);
     }
     public void OnModeExit<T>() where T : BaseMode
     {
-        //currentMode.ExitMode();
+        //noop
     }
     
     void Update()
@@ -225,6 +208,4 @@ public class PlayerController : MonoBehaviour, IModeStateController
         }
         throw new Exception("Could not find mode of Type T in controller mode array");
     }
-    
-
 }
