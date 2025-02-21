@@ -14,7 +14,7 @@ public class PlayerController : MonoBehaviour, IModeStateController
 
     public BaseMode[] modes;
 
-    bool transformInputLocked, transformWasPressed, transformLetGo, transformIsPressed;
+    bool transformInputLocked,transformIsPressed;
 
     CountdownTimer transformTimer;
 
@@ -104,7 +104,7 @@ public class PlayerController : MonoBehaviour, IModeStateController
         var transforming = new TransformingState(this);
 
         //begin transforming from any mode state once input is/was pressed and isn't locked
-        Any(transforming, new FuncPredicate(() => (transformIsPressed || transformWasPressed) && !transformInputLocked));
+        Any(transforming, new FuncPredicate(() => (transformIsPressed  && !transformInputLocked)));
         //transform into robot when we are a car and vice versa 
         At(transforming, robot, new FuncPredicate(() => transformTimer.IsFinished && currentMode is CarMode));
         At(transforming, car, new FuncPredicate(() => transformTimer.IsFinished && currentMode is RobotMode));
@@ -125,25 +125,16 @@ public class PlayerController : MonoBehaviour, IModeStateController
 
     void HandleTransformInput(bool isButtonPressed)
     {
-        //update the transform input flags with fresh input data
-        if (!transformIsPressed && isButtonPressed)
-        {
-            transformWasPressed = true;
-        }
-        if (transformIsPressed && !isButtonPressed)
-        {
-            transformLetGo = true;
-            transformInputLocked = false;
-        }
         transformIsPressed = isButtonPressed;
     }
     void ResetTransformKeys()
     {
-        transformLetGo = false;
-        transformWasPressed = false;
+        //transformLetGo = false;
+        //transformWasPressed = false;
     }
     public void OnTransformStart()
     {
+        
         transformInputLocked = true;
         transformTimer.Start();
         
@@ -173,6 +164,8 @@ public class PlayerController : MonoBehaviour, IModeStateController
         //if we have a previous mode, enter new mode with previous momentum, else just enter normally 
         if (previousMode != null) currentMode.EnterMode(previousMode.GetVelocity());
         else currentMode.EnterMode(Vector3.zero);
+        
+        transformInputLocked = false;
     }
     public void OnModeExit<T>() where T : BaseMode
     {

@@ -36,6 +36,8 @@ public class RobotMode : BaseMode, IMovementStateController
     public float acceleration = 100f;
     public float maxAccelerationForce = 50f;
     public float slopeLimit = 45f;
+
+    public float postTransformVelocityMultiplier = 2f;
     
     Vector3 currentVelocity;
     Vector3 velocityStep;
@@ -104,11 +106,11 @@ public class RobotMode : BaseMode, IMovementStateController
     public override void EnterMode(Vector3 entryVelocity)
     {
         // rb.AddForce(entryVelocity * 1000f);
-        rb.velocity = entryVelocity;
-       print(rb.velocity);
-       isTransforming = false;
-       ShowModel();
-       isEnabled = true;
+        rb.velocity = entryVelocity * postTransformVelocityMultiplier;
+        print(rb.velocity);
+        isTransforming = false;
+        ShowModel();
+        isEnabled = true;
     }
     public override void TransformTo(BaseMode fromMode)
     {
