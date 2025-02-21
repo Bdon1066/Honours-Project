@@ -1,7 +1,11 @@
+using System;
+
 /// <summary>
 /// An interface allowing class functions to be refrenced by states (for use in player controller and handles mode change states)
 /// </summary>
-public interface IStateController{}
+public interface IStateController
+{
+}
 /// <summary>
 /// An interface allowing specifically movement class functions to be refrenced by states
 /// </summary>
@@ -24,6 +28,7 @@ public interface IMovementStateController : IStateController
     {
         //noop
     }
+
 
 
 }

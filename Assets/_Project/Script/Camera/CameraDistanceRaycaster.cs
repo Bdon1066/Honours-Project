@@ -19,6 +19,8 @@ public class CameraDistanceRaycaster : MonoBehaviour
         tr = transform;
 
         layerMask &= ~(1 << LayerMask.NameToLayer("Ignore Raycast")); //exclude ignore raycast layer from our layer mask
+        layerMask &= ~(1 << LayerMask.NameToLayer("Car")); //exclude car layer from our layer mask
+        layerMask &= ~(1 << LayerMask.NameToLayer("Robot")); //exclude robot layer from our layer mask
         currentDistance = (cameraTargetTransform.position - tr.position).magnitude;
     }
 

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TurnTowardController : MonoBehaviour
 {
-    [SerializeField] PlayerController controller;
+    [SerializeField] RobotMode robot;
     public float turnSpeed = 50f;
 
     Transform tr;
@@ -20,7 +20,8 @@ public class TurnTowardController : MonoBehaviour
 
     void LateUpdate()
     {
-        Vector3 velocity = Vector3.ProjectOnPlane(controller.GetCurrentMode().GetVelocity(), tr.up);
+        if (robot.isTransforming) return;
+        Vector3 velocity = Vector3.ProjectOnPlane(robot.GetVelocity(), tr.up);
         if (velocity.magnitude < 0.001f) return;
 
         float angleDifference = Utils.GetAngleBetween(tr.forward, velocity.normalized, tr.up);

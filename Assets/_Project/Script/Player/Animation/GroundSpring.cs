@@ -20,17 +20,23 @@ public class GroundSpring : MonoBehaviour
     
     public bool IsGrounded() =>  groundSensor.HasDetectedHit();
     public Vector3 GroundNormal() =>  groundSensor.GetNormal();
-
+    
     public void AwakeGroundSpring()
     {
         tr = transform;
         rb = tr.GetComponent<Rigidbody>();
         col = tr.GetComponent<Collider>();
+        ResetGroundSpring();
+        
+    }
+    public void ResetGroundSpring()
+    {
         rayStartPosition = col.bounds.center;
     }
    
     void OnDrawGizmos()
     { 
+       
         AwakeGroundSpring();
         using (new Handles.DrawingScope(Color.red))
         {
@@ -44,6 +50,7 @@ public class GroundSpring : MonoBehaviour
 
     public void CheckForGround()
     {
+        ResetGroundSpring();
         SetupGroundSensor();
         
         groundSensor.Cast();
@@ -75,8 +82,11 @@ public class GroundSpring : MonoBehaviour
     }
     void SetupGroundSensor()
     {
+        
         //null assigment operator, if we dont have a sensor, make one, else use the one that exists
         groundSensor ??= new RaycastSensor(tr);
+        
+       
         
         groundSensor.SetCastOrigin(rayStartPosition);
         groundSensor.SetCastDirection(RaycastSensor.CastDirection.Down);

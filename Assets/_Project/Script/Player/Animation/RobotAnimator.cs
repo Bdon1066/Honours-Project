@@ -172,7 +172,7 @@ public class RobotAnimator : MonoBehaviour
     void Update() 
     {
         //LoadBoneTransforms();
-        //animator.SetFloat(speedHash, robot.GetInputVelocityLastFrame().magnitude,0.1f,Time.deltaTime);
+        animator.SetFloat(speedHash, robot.GetVelocity().magnitude,0.1f,Time.deltaTime);
     }
     
     void HandleJump(Vector3 momentum)
