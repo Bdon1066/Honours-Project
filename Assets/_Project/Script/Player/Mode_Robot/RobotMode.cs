@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.InputSystem.XR.Haptics;
 
 public class RobotMode : BaseMode, IMovementStateController
 {
@@ -23,11 +24,12 @@ public class RobotMode : BaseMode, IMovementStateController
     
     public event Action ToCar = delegate { };
     public event Action ToRobot = delegate { };
-    
-    
+
+    Transform fromModeTr;
+
     //MOVEMENT PROPERTIES 
-    
-   
+
+
     [Header("Movement")]
     [Header("Ground")]
     public float maxSpeed = 10f;
@@ -71,7 +73,7 @@ public class RobotMode : BaseMode, IMovementStateController
     {
         stateMachine = new StateMachine();
         var grounded = new GroundedState(this);
-        //var jumping = new JumpingState(this);
+        var jumping = new JumpingState(this);
         var falling = new FallingState(this);
         var rising = new RisingState(this);
         //var sliding = new SlidingState(this);
@@ -105,11 +107,12 @@ public class RobotMode : BaseMode, IMovementStateController
     bool IsGroundTooSteep() => !groundSpring.IsGrounded() || Vector3.Angle(groundSpring.GroundNormal(), tr.up) > slopeLimit;
     public override void EnterMode(Vector3 entryVelocity)
     {
-        // rb.AddForce(entryVelocity * 1000f);
+        //add our previous mode velocity to this rb
         rb.velocity = entryVelocity * postTransformVelocityMultiplier;
-        print(rb.velocity);
-        isTransforming = false;
+
         ShowModel();
+
+        isTransforming = false;
         isEnabled = true;
     }
     public override void TransformTo(BaseMode fromMode)
@@ -117,11 +120,11 @@ public class RobotMode : BaseMode, IMovementStateController
         isTransforming = true;
         ShowModel();
         ToRobot.Invoke();
+        fromModeTr = fromMode.GetRootBone();
     }
 
     public override void TransformFrom(BaseMode toMode)
     {
-        isTransforming = true;
         ToCar.Invoke();
     }
     public override void ExitMode()
@@ -133,17 +136,49 @@ public class RobotMode : BaseMode, IMovementStateController
     void Update() => stateMachine.Update();
     void FixedUpdate()
     {
+        if (isTransforming)
+        {
+            HandleTransformMovement();
+        }
+        else
+        {
+            HandleMovement();
+        }
+
         //if (!isEnabled) return;
-        HandleMovement();
         stateMachine.FixedUpdate();
     }
+
+    void HandleTransformMovement()
+    {
+        if (fromModeTr == null) return;
+        //get our robot mode's transform and set position
+        //rb.position = fromModeTr.position;
+
+        //get the rotation from robot
+        Quaternion targetRotation = fromModeTr.rotation;
+
+        //apply a 270 degree turn to the rotation so we start upright and fall into correct position
+       // targetRotation *= Quaternion.AngleAxis(270f, Vector3.right);
+        rb.rotation = targetRotation;
+    }
+
     void HandleMovement()
     {
         groundSpring.CheckForGround();
         
         SetRBRotation();
         HandleMoveInput();
+        HandleJumping();
     }
+
+    private void HandleJumping()
+    {
+        if (stateMachine.CurrentState is not JumpingState) return;
+
+
+    }
+
     void HandleMoveInput()
     {
 

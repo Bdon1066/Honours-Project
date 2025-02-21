@@ -2872,9 +2872,11 @@ MonoBehaviour:
   rootBone: {fileID: 1105596552598684807}
   cameraTransform: {fileID: 1688028427}
   maxSpeed: 15
+  rotateSpeed: 10
   acceleration: 100
   maxAccelerationForce: 150
   slopeLimit: 45
+  postTransformVelocityMultiplier: 1
   debugMode: 0
   isTransforming: 0
 --- !u!114 &1379686233
