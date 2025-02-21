@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.XR;
@@ -18,9 +19,11 @@ public class GroundSpring : MonoBehaviour
     
     Vector3 rayStartPosition;
     
-    public bool IsGrounded() =>  groundSensor.HasDetectedHit();
+    public bool IsGrounded() =>  groundSensor.HasDetectedHit() && enableSpring;
     public Vector3 GroundNormal() =>  groundSensor.GetNormal();
-    
+
+    public bool enableSpring = true;
+
     public void AwakeGroundSpring()
     {
         tr = transform;
@@ -68,6 +71,7 @@ public class GroundSpring : MonoBehaviour
     }
     public void ApplySpringForce()
     {
+        if (!enableSpring) return;
         //get velocity in the downward direction
         float downwardVelocity = Vector3.Dot(rb.velocity, -tr.up);
         

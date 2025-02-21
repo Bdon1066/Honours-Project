@@ -261,7 +261,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 28009196}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0.1409013, z: 0, w: 0.9900237}
   m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -270,7 +270,7 @@ Transform:
   - {fileID: 1601825003}
   - {fileID: 1073442}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 16.2, z: 0}
 --- !u!114 &28009202
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2851,7 +2851,7 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 1
+  m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 80
@@ -2876,6 +2876,10 @@ MonoBehaviour:
   acceleration: 100
   maxAccelerationForce: 150
   slopeLimit: 45
+  maxJumpHeight: 4
+  maxJumpTime: 1
+  postApexGravity: 2
+  gravity: 9.8
   postTransformVelocityMultiplier: 1
   debugMode: 0
   isTransforming: 0
@@ -2891,10 +2895,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e237c2e3117420289f16b5367881cf3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  groundRayLength: 3
-  restDistance: 2.33
+  groundRayLength: 3.2
+  restDistance: 2.5
   springStrength: 1000
   springDampening: 1000
+  enableSpring: 1
 --- !u!1 &1395983110
 GameObject:
   m_ObjectHideFlags: 0

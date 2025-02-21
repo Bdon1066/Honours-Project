@@ -172,14 +172,16 @@ public class RobotAnimator : MonoBehaviour
     void Update() 
     {
         //LoadBoneTransforms();
-        animator.SetFloat(speedHash, robot.GetVelocity().magnitude,0.1f,Time.deltaTime);
+        Vector3 horizontalVelocity = new Vector3(robot.GetVelocity().x, 0, robot.GetVelocity().z);
+        animator.SetFloat(speedHash, horizontalVelocity.magnitude,0.1f,Time.deltaTime);
     }
     
     void HandleJump(Vector3 momentum)
     {
         if (!isTransforming)
         {
-            animator.CrossFade(JumpHash, 0, 0);
+            animator.CrossFade(JumpHash, 0.1f, 0);
+            print("Jump");
         }
         else
         {
@@ -191,7 +193,8 @@ public class RobotAnimator : MonoBehaviour
     {
         if (!isTransforming)
         {
-            animator.CrossFade(FallHash, 0.25f, 0);
+            animator.CrossFade(FallHash, 0.3f, 0);
+            print("Fall");
         }
         else
         {
@@ -204,6 +207,7 @@ public class RobotAnimator : MonoBehaviour
         if (!isTransforming)
         {
             animator.CrossFade(LocomotionHash, 0.2f, 0);
+            print("Land");
         }
         else
         {
