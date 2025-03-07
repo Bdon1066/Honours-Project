@@ -21,6 +21,7 @@ public class CarMode : BaseMode, IMovementStateController
 
     [Header("Car Attributes")]
     public Axle[] axles = new Axle[2];
+    public Vector3 centerOfMass;
     [Header("Acceleration")]
     public float acceleration = 10000f;
     //This curve is how powerful the engine torque will be given our current speed
@@ -169,6 +170,7 @@ public class CarMode : BaseMode, IMovementStateController
     void Update() => stateMachine.Update();
     void FixedUpdate()
     {
+        UpdateCOM();
         if (isTransforming)
         {
             print("Transform Movement");
@@ -180,6 +182,12 @@ public class CarMode : BaseMode, IMovementStateController
             HandleMovement();
         }
 
+    }
+
+    private void UpdateCOM()
+    {
+        rb.centerOfMass = centerOfMass;
+       
     }
 
     private void HandleTransformingMovement()

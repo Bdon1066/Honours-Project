@@ -168,7 +168,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &23507520
 Transform:
   m_ObjectHideFlags: 0
@@ -508,7 +508,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &272413019
 Transform:
   m_ObjectHideFlags: 0
@@ -801,7 +801,7 @@ Transform:
   m_GameObject: {fileID: 358646061}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.55, y: 0.45, z: 0.995}
+  m_LocalPosition: {x: 0.55, y: 0.4, z: 0.995}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1189,7 +1189,7 @@ Transform:
   m_GameObject: {fileID: 509700804}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.55, y: 0.45, z: -0.633}
+  m_LocalPosition: {x: 0.55, y: 0.4, z: -0.633}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1221,7 +1221,7 @@ Transform:
   m_GameObject: {fileID: 599579860}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.55, y: 0.45, z: 0.995}
+  m_LocalPosition: {x: -0.55, y: 0.4, z: 0.995}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1766,7 +1766,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &836129396
 Transform:
   m_ObjectHideFlags: 0
@@ -3204,6 +3204,7 @@ MonoBehaviour:
     rightWheelTransform: {fileID: 509700805}
     steering: 0
     motor: 1
+  centerOfMass: {x: 0, y: 0.3, z: 0.2}
   acceleration: 11000
   accelerationPowerCurve: {fileID: 11400000, guid: 9c2e92fbdedb7974e8f80b44a35b5d5f, type: 2}
   reverseAcceleration: 5000
@@ -3234,7 +3235,7 @@ Rigidbody:
   m_Mass: 1000
   m_Drag: 0.2
   m_AngularDrag: 5
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_CenterOfMass: {x: 0, y: 0, z: 0.1}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
   m_IncludeLayers:
@@ -3243,7 +3244,7 @@ Rigidbody:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_ImplicitCom: 1
+  m_ImplicitCom: 0
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
@@ -3275,7 +3276,7 @@ Transform:
   m_GameObject: {fileID: 1620260162}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.55, y: 0.45, z: -0.633}
+  m_LocalPosition: {x: -0.55, y: 0.4, z: -0.633}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3982,7 +3983,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2066224618
 Transform:
   m_ObjectHideFlags: 0
