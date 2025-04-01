@@ -144,7 +144,7 @@ Transform:
   m_GameObject: {fileID: 1073441}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 1, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -411,7 +411,7 @@ Transform:
   m_GameObject: {fileID: 95850995}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -454,7 +454,7 @@ MonoBehaviour:
   cameraTargetTransform: {fileID: 1229075035}
   input: {fileID: 11400000, guid: 0049de2aa9e2d5645a1711574415abbd, type: 2}
   player: {fileID: 28009202}
-  upperVerticalLimit: 40
+  upperVerticalLimit: 10
   lowerVerticalLimit: 10
   followTransform: {fileID: 415503407}
   followCamDelay: 0.25

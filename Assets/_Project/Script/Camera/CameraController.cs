@@ -72,18 +72,16 @@ public class CameraController : MonoBehaviour
                 FreeRotate(input.LookDirection.x, input.LookDirection.y * YInverter);
                 break;
             case CameraState.Follow:
-                FollowRotate(input.LookDirection.x);
+                FollowRotate();
                 break;
         }
     }
 
-    private void FollowRotate(float horizontalInput)
+    private void FollowRotate()
     {
        var modeTransform = player.GetCurrentMode().gameObject.transform;
 
-       var YOffset = followCamDirectionOffset * horizontalInput;
-       print(YOffset);
-       Quaternion targetRotation =  Quaternion.Euler(modeTransform.localRotation.eulerAngles.x, modeTransform.localRotation.eulerAngles.y + YOffset, 0);;
+       Quaternion targetRotation =  Quaternion.Euler(modeTransform.localRotation.eulerAngles.x, modeTransform.localRotation.eulerAngles.y, 0);;
       // tr.localRotation = Quaternion.Euler(modeTransform.eulerAngles.x, modeTransform.eulerAngles.y, 0);
        tr.localRotation = Quaternion.Slerp(tr.localRotation, targetRotation, followCamDelay);
        
