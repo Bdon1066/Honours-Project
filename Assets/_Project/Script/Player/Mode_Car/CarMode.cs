@@ -37,7 +37,8 @@ public class CarMode : BaseMode, IMovementStateController
     [Header("Steering")]
     public float wheelTurnSpeed = 10f;
     public float maxSteerAngle = 45f;
-    public float wheelGrip = 50f;
+    public float frontWheelGrip = 50f;
+    public float backWheelGrip = 50f;
     public CurveScriptableObject frontWheelGripCurve;
     public CurveScriptableObject backWheelGripCurve;
 
@@ -53,7 +54,7 @@ public class CarMode : BaseMode, IMovementStateController
     public float wheelRadius = 0.33f;
     float dampingStrength;
 
-    [Header("Debuig Settings")]
+    [Header("Debug Settings")]
     public bool debugMode;
     public bool useAccelerationButton;
     bool isEnabled;
@@ -298,8 +299,9 @@ public class CarMode : BaseMode, IMovementStateController
     }
     void HandleSteeringInput(WheelRay wheelRay, float steeringInput)
     {
-        float steerAngle = steeringInput * maxSteerAngle;
-        Quaternion targetRotation = Quaternion.Euler(wheelRay.tr.localRotation.eulerAngles.x, steerAngle, wheelRay.tr.localRotation.eulerAngles.x);
+        float steerAngle = Mathf.Sign(steeringInput)*(steeringInput* steeringInput) * maxSteerAngle;
+        
+        Quaternion targetRotation = Quaternion.Euler(wheelRay.tr.localRotation.eulerAngles.x, steerAngle, wheelRay.tr.localRotation.eulerAngles.z);
         wheelRay.tr.localRotation = Quaternion.Slerp(wheelRay.tr.localRotation, targetRotation, Time.fixedDeltaTime * wheelTurnSpeed);
     }
      void HandleSteering(WheelRay wheelRay, Axle axle)
@@ -318,14 +320,14 @@ public class CarMode : BaseMode, IMovementStateController
 
         //print(steerVelocityRatio);
 
-        float gripFactor = GetGripFactor(axle.axleLocation,steerVelocityRatio);
+        float grip = CalculateWheelGrip(axle.axleLocation,steerVelocityRatio);
        
       
         //get our wheel's velocity in the steering direction
         float steeringVelocity = Vector3.Dot(steeringDirection, wheelVelocity);
 
         //apply an opposing grip velocity that opposes the steer force
-        float velocityChange =   -steeringVelocity * gripFactor * wheelGrip;
+        float velocityChange = -steeringVelocity * grip;
 
         //calculate acceleration from velocity
         float steerAcceleration = velocityChange / Time.fixedDeltaTime;
@@ -342,14 +344,14 @@ public class CarMode : BaseMode, IMovementStateController
             Debug.DrawRay(wheelRay.tr.position, forwardDirection, Color.blue);
         }
     }
-    float GetGripFactor(Axle.AxleLocation axleLocation, float steerVelocityRatio)
+    float CalculateWheelGrip(Axle.AxleLocation axleLocation, float steerVelocityRatio)
     {
         switch (axleLocation)
         {
             case Axle.AxleLocation.Front:
-                return frontWheelGripCurve.Evaluate(steerVelocityRatio);
+                return frontWheelGripCurve.Evaluate(steerVelocityRatio) * frontWheelGrip;
             case Axle.AxleLocation.Back:
-                return backWheelGripCurve.Evaluate(steerVelocityRatio);
+                return backWheelGripCurve.Evaluate(steerVelocityRatio) * backWheelGrip;
             default:
                 return 0f;
         }

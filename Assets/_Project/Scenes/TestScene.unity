@@ -3372,15 +3372,16 @@ MonoBehaviour:
     motor: 1
   centerOfMass: {x: 0, y: 0.3, z: 0.2}
   acceleration: 11000
-  accelerationPowerCurve: {fileID: 11400000, guid: 9c2e92fbdedb7974e8f80b44a35b5d5f, type: 2}
+  accelerationPowerCurve: {fileID: 11400000, guid: 07480e4c7de3c70439f63e05845883f4, type: 2}
   reverseAcceleration: 5000
-  reversePowerCurve: {fileID: 11400000, guid: 07480e4c7de3c70439f63e05845883f4, type: 2}
+  reversePowerCurve: {fileID: 11400000, guid: 9c2e92fbdedb7974e8f80b44a35b5d5f, type: 2}
   maxSpeed: 3000
   brakeForce: 10
   idleBrakeFactor: 0.2
-  wheelTurnSpeed: 10
+  wheelTurnSpeed: 100
   maxSteerAngle: 45
-  wheelGrip: 100
+  frontWheelGrip: 120
+  backWheelGrip: 120
   frontWheelGripCurve: {fileID: 11400000, guid: 1c1ffb0fd7b3fac4998fd8b4c5689dd5, type: 2}
   backWheelGripCurve: {fileID: 11400000, guid: 6305bef560f6d1346b52fa4cc3d186bc, type: 2}
   restDistance: 0.47
