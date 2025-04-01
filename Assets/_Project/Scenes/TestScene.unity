@@ -411,7 +411,7 @@ Transform:
   m_GameObject: {fileID: 95850995}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 1, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -458,6 +458,7 @@ MonoBehaviour:
   lowerVerticalLimit: 10
   followTransform: {fileID: 415503407}
   followCamDelay: 0.25
+  followCamDirectionOffset: 50
   freeTransform: {fileID: 1594621160}
   freeCamDelay: 0.25
   cameraSpeed: 90

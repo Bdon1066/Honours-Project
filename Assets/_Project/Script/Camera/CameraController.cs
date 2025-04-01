@@ -22,6 +22,7 @@ public class CameraController : MonoBehaviour
     [Header("Follow Camera")]
     public Transform followTransform;
     public float followCamDelay = 0.25f;
+    public float followCamDirectionOffset = 10f;
     
     [Header("Free Camera")]
     public Transform freeTransform;
@@ -71,17 +72,20 @@ public class CameraController : MonoBehaviour
                 FreeRotate(input.LookDirection.x, input.LookDirection.y * YInverter);
                 break;
             case CameraState.Follow:
-                FollowRotate();
+                FollowRotate(input.LookDirection.x);
                 break;
         }
     }
 
-    private void FollowRotate()
+    private void FollowRotate(float horizontalInput)
     {
        var modeTransform = player.GetCurrentMode().gameObject.transform;
-       
+
+       var YOffset = followCamDirectionOffset * horizontalInput;
+       print(YOffset);
+       Quaternion targetRotation =  Quaternion.Euler(modeTransform.localRotation.eulerAngles.x, modeTransform.localRotation.eulerAngles.y + YOffset, 0);;
       // tr.localRotation = Quaternion.Euler(modeTransform.eulerAngles.x, modeTransform.eulerAngles.y, 0);
-       tr.localRotation = Quaternion.Slerp(tr.localRotation, modeTransform.localRotation, followCamDelay);
+       tr.localRotation = Quaternion.Slerp(tr.localRotation, targetRotation, followCamDelay);
        
        currentXAngle = tr.localRotation.eulerAngles.x;
        currentYAngle = tr.localRotation.eulerAngles.y;
