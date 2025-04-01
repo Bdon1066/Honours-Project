@@ -2,8 +2,12 @@ using System;
 using System.Net.Http.Headers;
 using UnityEngine;
 
+
 public class CameraController : MonoBehaviour
 {
+    enum CameraState{Free,Follow}
+    CameraState cameraState = CameraState.Follow;
+    
     float currentXAngle;
     float currentYAngle;
 
@@ -18,6 +22,8 @@ public class CameraController : MonoBehaviour
     Transform tr;
     Camera cam;
     [SerializeField] InputReader input;
+    [SerializeField] PlayerController player;
+    private Vector3 cameraVelocity;
 
     private void Awake()
     {
@@ -26,16 +32,44 @@ public class CameraController : MonoBehaviour
 
         currentXAngle = tr.localRotation.eulerAngles.x;
         currentYAngle = tr.localRotation.eulerAngles.y;
+        player.OnTransform += HandleTransform;
+    }
+
+    private void HandleTransform(ModeType fromMode, ModeType toMode)
+    {
+        switch (toMode)
+        {
+            case ModeType.Robot:
+                cameraState = CameraState.Free;
+                break;
+            case ModeType.Car:
+                cameraState = CameraState.Follow;
+                break;
+        }
     }
 
     private void Update()
     { 
         var YInverter = invertYInput ? -1f : 1f; //Invert our Y direction if we invertYInput is true
-        
-        RotateCamera(input.LookDirection.x, input.LookDirection.y * YInverter);
+        switch (cameraState)
+        {
+            case CameraState.Free:
+                FreeRotate(input.LookDirection.x, input.LookDirection.y * YInverter);
+                break;
+            case CameraState.Follow:
+                FollowRotate();
+                break;
+        }
     }
 
-    private void RotateCamera(float horizontalInput, float verticalInput)
+    private void FollowRotate()
+    {
+       var modeTransform = player.GetCurrentMode().gameObject.transform;
+       
+       tr.localRotation = Quaternion.Euler(modeTransform.eulerAngles.x, modeTransform.eulerAngles.y, 0);
+    }
+
+    private void FreeRotate(float horizontalInput, float verticalInput)
     {
         if (smoothCameraRotation)
         {
@@ -51,3 +85,4 @@ public class CameraController : MonoBehaviour
         tr.localRotation = Quaternion.Euler(currentXAngle, currentYAngle, 0);
     }
 }
+

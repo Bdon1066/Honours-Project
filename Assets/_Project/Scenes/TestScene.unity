@@ -362,6 +362,7 @@ MonoBehaviour:
   smoothCameraRotation: 0
   cameraSmoothingFactor: 25
   input: {fileID: 11400000, guid: 0049de2aa9e2d5645a1711574415abbd, type: 2}
+  player: {fileID: 28009202}
 --- !u!1 &134755409
 GameObject:
   m_ObjectHideFlags: 0

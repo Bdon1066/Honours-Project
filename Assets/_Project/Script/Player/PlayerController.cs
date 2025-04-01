@@ -2,6 +2,10 @@ using System;
 using ImprovedTimers;
 using UnityEngine;
 
+[System.Serializable]
+public enum ModeType{Robot = 1, Car = 2}
+[System.Flags]
+public enum ModeTypeMask{Robot = 1, Car = 2}
 public class PlayerController : MonoBehaviour, IModeStateController
 {
     public InputReader input;
@@ -11,14 +15,24 @@ public class PlayerController : MonoBehaviour, IModeStateController
 
     BaseMode currentMode;
     BaseMode previousMode;
+    
+    ModeType currentModeType;
 
     public BaseMode[] modes;
+    
+    public ModeTypeMask enabledModes;
+    
+    public ModeType startingMode = ModeType.Robot;
+    
+    //TODO: In future, we will want to change this, so we only use the enum, and we just grab thje base mdoes from some scritable object when we need it
+    // very busy tho so do this before adding other modes
+    // replace array with some lookup for each enabled mode and itll be way cleaner
 
     bool transformInputLocked,transformIsPressed;
 
     CountdownTimer transformTimer;
 
-    public event Action<Vector3, BaseMode> OnTransform = delegate { };
+    public event Action<ModeType, ModeType> OnTransform = delegate { };
 
     [Header("Debug Settings")]
     public bool debugMode;
@@ -94,7 +108,7 @@ public class PlayerController : MonoBehaviour, IModeStateController
             mode.AwakeMode(this);
         }
         //Set our initial mode to the first entry in the array
-        SetCurrentMode(modes[0]); 
+        SetCurrentMode(startingMode);
     }
     private void SetupStateMachine()
     {
@@ -142,14 +156,17 @@ public class PlayerController : MonoBehaviour, IModeStateController
         {
             currentMode.TransformFrom(currentMode);
             GetModeOfType<CarMode>().TransformTo(currentMode);
+            
+            OnTransform.Invoke(ModeType.Robot,ModeType.Car);
         }
         else
         {
             currentMode.TransformFrom(currentMode);
             GetModeOfType<RobotMode>().TransformTo(currentMode);
+            
+            OnTransform.Invoke(ModeType.Car,ModeType.Robot);
         }
-        
-        OnTransform.Invoke(currentMode.GetVelocity(),currentMode);
+
     }
     public void OnTransformExit()
     {
@@ -178,20 +195,50 @@ public class PlayerController : MonoBehaviour, IModeStateController
         tr.position = currentMode.transform.position;
         foreach (var mode in modes)
         {
+            //update inactive mode position(s) to current mode position
             if (mode != currentMode)
             {
                 mode.SetPosition(currentMode.transform.position);
             }
         }
+        print(currentModeType);
     }
 
     void FixedUpdate()
     {
         stateMachine.FixedUpdate();
         ResetTransformKeys();
+        
     }
 
-    void SetCurrentMode(BaseMode newMode) => currentMode = newMode;
+    void SetCurrentMode(BaseMode newMode)
+    {
+        currentMode = newMode;
+        switch (currentMode)
+        {
+            case CarMode:
+                currentModeType = ModeType.Car;
+                break;
+            case RobotMode:
+                currentModeType = ModeType.Robot;
+                break;
+        }
+        
+    } 
+    void SetCurrentMode(ModeType newModeType)
+    {
+        currentModeType = newModeType;
+        switch (currentModeType)
+        {
+            case ModeType.Car:
+                currentMode = GetModeOfType<CarMode>();
+                break;
+            case ModeType.Robot:
+                currentMode = GetModeOfType<RobotMode>();
+                break;
+        }
+        
+    } 
 
     BaseMode GetModeOfType<T>() where T : BaseMode
     {
