@@ -10,7 +10,7 @@ public class CameraController : MonoBehaviour
     [Header("Camera")]
     public Transform cameraTargetTransform;
     Transform tr;
-    Camera cam;
+    Camera mainCamera;
     [SerializeField] InputReader input;
     [SerializeField] PlayerController player;
     
@@ -38,7 +38,7 @@ public class CameraController : MonoBehaviour
     private void Awake()
     {
         tr = transform;
-        cam = GetComponentInChildren<Camera>();
+        mainCamera = GetComponentInChildren<Camera>();
 
         currentXAngle = tr.localRotation.eulerAngles.x;
         currentYAngle = tr.localRotation.eulerAngles.y;
@@ -53,10 +53,12 @@ public class CameraController : MonoBehaviour
             case ModeType.Robot:
                 cameraState = CameraState.Free;
                 StartCoroutine(SwitchCamera(cameraTargetTransform,freeTransform));
+                tr.localPosition = new Vector3(0, tr.localPosition.y, tr.localPosition.z);
                 break;
             case ModeType.Car:
                 cameraState = CameraState.Follow;
                 StartCoroutine(SwitchCamera(cameraTargetTransform,followTransform));
+                tr.localPosition = new Vector3(tr.localPosition.x + 1, tr.localPosition.y, tr.localPosition.z);
                 break;
         }
     }
@@ -64,15 +66,17 @@ public class CameraController : MonoBehaviour
 
     private void FixedUpdate()
     { 
-        var YInverter = invertYInput ? -1f : 1f; //Invert our Y direction if we invertYInput is true
+        var YInverter = invertYInput ? -1f : 1f; //Invert our Y direction if invertYInput is true
         
         switch (cameraState)
         {
             case CameraState.Free:
                 FreeRotate(input.LookDirection.x, input.LookDirection.y * YInverter);
+               
                 break;
             case CameraState.Follow:
                 FollowRotate();
+               
                 break;
         }
     }
@@ -84,9 +88,13 @@ public class CameraController : MonoBehaviour
        Quaternion targetRotation =  Quaternion.Euler(modeTransform.localRotation.eulerAngles.x, modeTransform.localRotation.eulerAngles.y, 0);;
       // tr.localRotation = Quaternion.Euler(modeTransform.eulerAngles.x, modeTransform.eulerAngles.y, 0);
        tr.localRotation = Quaternion.Slerp(tr.localRotation, targetRotation, followCamDelay);
+
+        
        
        currentXAngle = tr.localRotation.eulerAngles.x;
        currentYAngle = tr.localRotation.eulerAngles.y;
+
+       
     }
 
     private void FreeRotate(float horizontalInput, float verticalInput)
@@ -112,7 +120,7 @@ public class CameraController : MonoBehaviour
         Camera firstCam = firstCamera.GetComponentInChildren<Camera>();
         Camera secondCam = secondCamera.GetComponentInChildren<Camera>();
         
-        var animSpeed = 1f;
+        var animSpeed = 1.33f;
         
         Vector3 pos = firstCamera.localPosition;
         Quaternion rot = firstCamera.localRotation;
@@ -122,7 +130,7 @@ public class CameraController : MonoBehaviour
 
         float progress = 0.0f;  //This value is used for LERP
 
-        while (progress < 0.75f)
+        while (progress < 1f)
         {
             firstCamera.localPosition = Vector3.Lerp(pos, secondCamera.transform.localPosition, progress);
             firstCamera.localRotation = Quaternion.Lerp(rot, secondCamera.transform.localRotation, progress);

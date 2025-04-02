@@ -144,7 +144,7 @@ Transform:
   m_GameObject: {fileID: 1073441}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -304,7 +304,7 @@ GameObject:
   - component: {fileID: 79251192}
   - component: {fileID: 79251191}
   m_Layer: 0
-  m_Name: Camera
+  m_Name: DummyCamera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -454,8 +454,8 @@ MonoBehaviour:
   cameraTargetTransform: {fileID: 1229075035}
   input: {fileID: 11400000, guid: 0049de2aa9e2d5645a1711574415abbd, type: 2}
   player: {fileID: 28009202}
-  upperVerticalLimit: 10
-  lowerVerticalLimit: 10
+  upperVerticalLimit: 20
+  lowerVerticalLimit: 20
   followTransform: {fileID: 415503407}
   followCamDelay: 0.25
   followCamDirectionOffset: 50
@@ -3301,14 +3301,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1594621159}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.08715578, y: 0, z: 0, w: 0.9961947}
-  m_LocalPosition: {x: 0, y: 1.89, z: -4.5}
+  m_LocalRotation: {x: 0.1622927, y: 0, z: 0, w: 0.9867427}
+  m_LocalPosition: {x: 1.5, y: 4, z: -4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 79251190}
   m_Father: {fileID: 95850996}
-  m_LocalEulerAnglesHint: {x: -10, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 18.68, y: 0, z: 0}
 --- !u!1 &1601825002
 GameObject:
   m_ObjectHideFlags: 0
@@ -3463,7 +3463,7 @@ GameObject:
   - component: {fileID: 1688028429}
   - component: {fileID: 1688028428}
   m_Layer: 0
-  m_Name: Camera
+  m_Name: MainCamera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4146,7 +4146,7 @@ GameObject:
   - component: {fileID: 2038696176}
   - component: {fileID: 2038696175}
   m_Layer: 0
-  m_Name: Camera
+  m_Name: DummyCamera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4182,7 +4182,7 @@ Camera:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2038696173}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -4208,7 +4208,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 70
+  field of view: 75
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
