@@ -1,8 +1,5 @@
-using System;
-using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.XR;
 
 public class GroundSpring : MonoBehaviour
 {
@@ -41,6 +38,7 @@ public class GroundSpring : MonoBehaviour
     { 
        
         AwakeGroundSpring();
+        #if  UNITY_EDITOR
         using (new Handles.DrawingScope(Color.red))
         {
             Handles.DrawLine(rayStartPosition, rayStartPosition + groundRayLength * -tr.up, 5f);
@@ -49,6 +47,7 @@ public class GroundSpring : MonoBehaviour
         {
             Handles.DrawLine(rayStartPosition + Vector3.forward, rayStartPosition + restDistance * -tr.up + Vector3.forward, 5f);
         }
+        #endif
     }
 
     public void CheckForGround()
