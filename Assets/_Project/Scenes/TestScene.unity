@@ -465,6 +465,9 @@ MonoBehaviour:
   followTransform: {fileID: 415503407}
   followCamDelay: 0.25
   followCamDirectionOffset: 50
+  minFOV: 75
+  maxFOV: 100
+  carMode: {fileID: 1601825004}
   freeTransform: {fileID: 1594621160}
   freeCamDelay: 0.25
   cameraSpeed: 90

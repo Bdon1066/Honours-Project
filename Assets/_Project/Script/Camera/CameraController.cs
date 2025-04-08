@@ -24,6 +24,11 @@ public class CameraController : MonoBehaviour
     private Camera followCam;
     public float followCamDelay = 0.25f;
     public float followCamDirectionOffset = 10f;
+    public float minFOV;
+    public float maxFOV;
+    public CarMode carMode;
+    private bool adjustFov;
+    float targetFOV;
     
     [Header("Free Camera")]
     public Transform freeTransform;
@@ -81,9 +86,18 @@ public class CameraController : MonoBehaviour
                 break;
             case CameraState.Follow:
                 FollowRotate();
-               
+                HandleFOV();
                 break;
         }
+    }
+
+    private void HandleFOV()
+    {
+        if (!adjustFov) return;
+        targetFOV = Mathf.Lerp(minFOV, maxFOV,  carMode.normalizedSpeed);
+        
+        cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, targetFOV, 0.1f);
+       
     }
 
     private void FollowRotate()
@@ -122,6 +136,7 @@ public class CameraController : MonoBehaviour
     //https://discussions.unity.com/t/how-to-lerp-between-cameras-on-a-ui-button-click/55842
     IEnumerator SwitchCamera(Transform targetTransform, Camera targetCamera)
     {
+        adjustFov = false;
         var animSpeed = 1.33f;
         
         Vector3 pos = cameraTargetTransform.localPosition;
@@ -143,6 +158,8 @@ public class CameraController : MonoBehaviour
         cameraTargetTransform.localPosition = targetTransform.transform.localPosition;
         cameraTargetTransform.localRotation = targetTransform.transform.localRotation;
         cam.fieldOfView = targetCamera.fieldOfView;
+        
+        adjustFov = true;
     }
 
 }

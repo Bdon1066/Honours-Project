@@ -17,11 +17,11 @@ public class CarAudioPlayer : MonoBehaviour
         //carMode.OnLand += HandleLand;
         carMode.ToRobot += HandleTransformToRobot;
         carMode.ToCar += HandleTransformToCar;
-        
+        carMode.OnEnter += HandleCarEnter;
 
     }
 
-    private void HandleTransformToCar()
+    private void HandleCarEnter()
     {
         PLAYBACK_STATE currentState;
         Engine.getPlaybackState(out currentState);
@@ -31,6 +31,11 @@ public class CarAudioPlayer : MonoBehaviour
             RuntimeManager.AttachInstanceToGameObject(Engine, gameObject);
             Engine.start();
         }
+    }
+
+    private void HandleTransformToCar()
+    {
+       
     }
 
     private void HandleTransformToRobot()

@@ -69,6 +69,8 @@ public class CarMode : BaseMode, IMovementStateController
     public event Action ToCar = delegate { };
     public event Action ToRobot = delegate { };
     
+    public event Action OnEnter = delegate { };
+    
    
     
     public override Vector3 GetVelocity() => rb.velocity;
@@ -109,6 +111,8 @@ public class CarMode : BaseMode, IMovementStateController
         //if brake/accel where being pressed when we enter, fire the input event
         HandleBrakeInput(input.IsBrakePressed);
         HandleAccelerateInput(input.IsAcceleratePressed);
+        
+        OnEnter.Invoke();
     }
 
     public override void TransformTo(BaseMode fromMode)
