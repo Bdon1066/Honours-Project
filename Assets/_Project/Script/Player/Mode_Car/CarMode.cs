@@ -65,6 +65,9 @@ public class CarMode : BaseMode, IMovementStateController
 
     #endregion
 
+    public event Action ToCar = delegate { };
+    public event Action ToRobot = delegate { };
+    
     public override Vector3 GetVelocity() => rb.velocity;
     public override Transform GetRootBone() => rootBone;
     public override void SetPosition(Vector3 position) => tr.transform.position = position;
@@ -108,12 +111,13 @@ public class CarMode : BaseMode, IMovementStateController
     public override void TransformTo(BaseMode fromMode)
     {
         isTransforming = true;
-        //cache our transfrom from modes transform so we can follow it
+        ToCar.Invoke();
         fromModeTr = fromMode.GetRootBone();
     }
 
     public override void TransformFrom(BaseMode toMode)
     {
+        ToRobot.Invoke();
         HideModel();
     }
 

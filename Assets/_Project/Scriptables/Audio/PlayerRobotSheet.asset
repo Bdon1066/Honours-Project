@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 020c932131769e64285d9473c4f11f46, type: 3}
+  m_Name: PlayerRobotSheet
+  m_EditorClassIdentifier: 
+  footsteps:
+    Guid:
+      Data1: -779869130
+      Data2: 1077693912
+      Data3: -1661867341
+      Data4: 1186142442
+    Path: event:/Footsteps 2
+  jump:
+    Guid:
+      Data1: 933988686
+      Data2: 1296693990
+      Data3: 339924131
+      Data4: -1717245165
+    Path: event:/Jump
+  land:
+    Guid:
+      Data1: -1775678275
+      Data2: 1164375719
+      Data3: 1657778579
+      Data4: 656093311
+    Path: event:/Land
+  transform:
+    Guid:
+      Data1: 1325726131
+      Data2: 1237942308
+      Data3: 524922278
+      Data4: 535083376
+    Path: event:/Transform

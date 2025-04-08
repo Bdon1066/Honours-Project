@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem.XR.Haptics;
 
+
 public class RobotMode : BaseMode, IMovementStateController
 {
     //MODE PROPERTIES
@@ -28,8 +29,7 @@ public class RobotMode : BaseMode, IMovementStateController
     Transform fromModeTr;
 
     //MOVEMENT PROPERTIES 
-
-
+    
     [Header("Movement")]
     [Header("Ground")]
     public float maxSpeed = 10f;
@@ -150,7 +150,7 @@ public class RobotMode : BaseMode, IMovementStateController
     {
        HideModel();
        isEnabled = false;
-        input.Jump -= HandleJumpInput;
+       input.Jump -= HandleJumpInput;
     }
    
     void Update() => stateMachine.Update();
