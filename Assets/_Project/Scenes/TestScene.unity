@@ -332,7 +332,7 @@ Camera:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 79251189}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -941,14 +941,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 415503406}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 2, z: -5}
+  m_LocalRotation: {x: 0.10687147, y: 0, z: 0, w: 0.9942729}
+  m_LocalPosition: {x: 0, y: 1.73, z: -2.46}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2038696174}
   m_Father: {fileID: 95850996}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 12.27, y: 0, z: 0}
 --- !u!1 &424230771
 GameObject:
   m_ObjectHideFlags: 0
@@ -3379,11 +3379,11 @@ MonoBehaviour:
     steering: 0
     motor: 1
   centerOfMass: {x: 0, y: 0.3, z: 0.2}
-  acceleration: 11000
+  acceleration: 10000
   accelerationPowerCurve: {fileID: 11400000, guid: 07480e4c7de3c70439f63e05845883f4, type: 2}
-  reverseAcceleration: 5000
+  reverseAcceleration: 1800
   reversePowerCurve: {fileID: 11400000, guid: 9c2e92fbdedb7974e8f80b44a35b5d5f, type: 2}
-  maxSpeed: 3000
+  maxSpeed: 50
   brakeForce: 10
   idleBrakeFactor: 0.2
   wheelTurnSpeed: 100
@@ -3397,6 +3397,7 @@ MonoBehaviour:
   springStrength: 100
   dampingZeta: 1
   wheelRadius: 0.05
+  normalizedSpeed: 0
   debugMode: 1
   useAccelerationButton: 1
 --- !u!54 &1601825005
@@ -4171,7 +4172,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2038696174}
   - component: {fileID: 2038696176}
-  - component: {fileID: 2038696177}
   m_Layer: 0
   m_Name: DummyCamera
   m_TagString: Untagged
@@ -4245,20 +4245,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!114 &2038696177
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2038696173}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 86c6556701af9e04380698b89f691b6e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  nonRigidbodyVelocity: 0
-  attenuationObject: {fileID: 0}
 --- !u!1 &2066224617
 GameObject:
   m_ObjectHideFlags: 0

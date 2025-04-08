@@ -18,21 +18,21 @@ MonoBehaviour:
       Data2: 1077693912
       Data3: -1661867341
       Data4: 1186142442
-    Path: event:/Footsteps 2
+    Path: event:/Robot/Footsteps 2
   jump:
     Guid:
       Data1: 933988686
       Data2: 1296693990
       Data3: 339924131
       Data4: -1717245165
-    Path: event:/Jump
+    Path: event:/Robot/Jump
   land:
     Guid:
       Data1: -1775678275
       Data2: 1164375719
       Data3: 1657778579
       Data4: 656093311
-    Path: event:/Land
+    Path: event:/Robot/Land
   transform:
     Guid:
       Data1: 1325726131

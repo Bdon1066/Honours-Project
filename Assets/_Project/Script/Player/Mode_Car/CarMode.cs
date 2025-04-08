@@ -54,6 +54,7 @@ public class CarMode : BaseMode, IMovementStateController
     public float wheelRadius = 0.33f;
     float dampingStrength;
 
+    [HideInInspector] public float normalizedSpeed;
     [Header("Debug Settings")]
     public bool debugMode;
     public bool useAccelerationButton;
@@ -67,6 +68,8 @@ public class CarMode : BaseMode, IMovementStateController
 
     public event Action ToCar = delegate { };
     public event Action ToRobot = delegate { };
+    
+   
     
     public override Vector3 GetVelocity() => rb.velocity;
     public override Transform GetRootBone() => rootBone;
@@ -380,7 +383,8 @@ public class CarMode : BaseMode, IMovementStateController
 
         //Get the ratio of our speed to our maxSpeed;
         float normalizedSpeed = Mathf.Clamp01(Mathf.Abs(speed) / maxSpeed);
-
+       
+        
         //if at max speed, do not apply torque
         if (normalizedSpeed >= 1) { return; }
 
@@ -399,8 +403,10 @@ public class CarMode : BaseMode, IMovementStateController
         float speed = Vector3.Dot(wheelRay.tr.forward, rb.velocity);
 
         //Get the ratio of our speed to our maxSpeed;
-        float normalizedSpeed = Mathf.Clamp01(Mathf.Abs(speed) / maxSpeed);
-
+        normalizedSpeed = Mathf.Clamp01(Mathf.Abs(speed) / maxSpeed);
+        
+        print(normalizedSpeed);
+        
         //if at max speed, do not apply torque
         if (normalizedSpeed >= 1) { return; }
 

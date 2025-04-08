@@ -12,6 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e97f609de1169cc4cb7beb5b821c5b2f, type: 3}
   m_Name: CarAudioSheet
   m_EditorClassIdentifier: 
+  engine:
+    Guid:
+      Data1: -1888629189
+      Data2: 1182979820
+      Data3: -52413784
+      Data4: -1917984781
+    Path: event:/Car/Engine
   transform:
     Guid:
       Data1: 1325726131

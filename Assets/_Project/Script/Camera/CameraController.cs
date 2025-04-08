@@ -10,7 +10,7 @@ public class CameraController : MonoBehaviour
     [Header("Camera")]
     public Transform cameraTargetTransform;
     Transform tr;
-    Camera mainCamera;
+    Camera cam;
     [SerializeField] InputReader input;
     [SerializeField] PlayerController player;
     
@@ -21,11 +21,13 @@ public class CameraController : MonoBehaviour
     
     [Header("Follow Camera")]
     public Transform followTransform;
+    private Camera followCam;
     public float followCamDelay = 0.25f;
     public float followCamDirectionOffset = 10f;
     
     [Header("Free Camera")]
     public Transform freeTransform;
+    private Camera freeCam;
     public float freeCamDelay = 0.25f;
     public float cameraSpeed = 90f;
     public bool invertYInput;
@@ -38,11 +40,14 @@ public class CameraController : MonoBehaviour
     private void Awake()
     {
         tr = transform;
-        mainCamera = GetComponentInChildren<Camera>();
-
+        cam = cameraTargetTransform.GetComponentInChildren<Camera>();
+        followCam = followTransform.GetComponentInChildren<Camera>();
+        freeCam = freeTransform.GetComponentInChildren<Camera>();
+        
         currentXAngle = tr.localRotation.eulerAngles.x;
         currentYAngle = tr.localRotation.eulerAngles.y;
         player.OnTransform += HandleTransform;
+        
 
     }
 
@@ -52,13 +57,13 @@ public class CameraController : MonoBehaviour
         {
             case ModeType.Robot:
                 cameraState = CameraState.Free;
-                StartCoroutine(SwitchCamera(cameraTargetTransform,freeTransform));
-                tr.localPosition = new Vector3(0, tr.localPosition.y, tr.localPosition.z);
+                StartCoroutine(SwitchCamera(freeTransform,freeCam));
+               // tr.localPosition = new Vector3(0, tr.localPosition.y, tr.localPosition.z);
                 break;
             case ModeType.Car:
                 cameraState = CameraState.Follow;
-                StartCoroutine(SwitchCamera(cameraTargetTransform,followTransform));
-                tr.localPosition = new Vector3(tr.localPosition.x + 1, tr.localPosition.y, tr.localPosition.z);
+                StartCoroutine(SwitchCamera(followTransform,followCam));
+                //tr.localPosition = new Vector3(tr.localPosition.x + 1, tr.localPosition.y, tr.localPosition.z);
                 break;
         }
     }
@@ -115,34 +120,29 @@ public class CameraController : MonoBehaviour
     }
     
     //https://discussions.unity.com/t/how-to-lerp-between-cameras-on-a-ui-button-click/55842
-    IEnumerator SwitchCamera(Transform firstCamera, Transform secondCamera)
+    IEnumerator SwitchCamera(Transform targetTransform, Camera targetCamera)
     {
-        Camera firstCam = firstCamera.GetComponentInChildren<Camera>();
-        Camera secondCam = secondCamera.GetComponentInChildren<Camera>();
-        
         var animSpeed = 1.33f;
         
-        Vector3 pos = firstCamera.localPosition;
-        Quaternion rot = firstCamera.localRotation;
-        float fov = firstCam.fieldOfView;
+        Vector3 pos = cameraTargetTransform.localPosition;
+        Quaternion rot = cameraTargetTransform.localRotation;
+        float fov = cam.fieldOfView;
         
-        
-
         float progress = 0.0f;  //This value is used for LERP
 
         while (progress < 1f)
         {
-            firstCamera.localPosition = Vector3.Lerp(pos, secondCamera.transform.localPosition, progress);
-            firstCamera.localRotation = Quaternion.Lerp(rot, secondCamera.transform.localRotation, progress);
-            firstCam.fieldOfView = Mathf.Lerp(fov, secondCam.fieldOfView, progress);
+            cameraTargetTransform.localPosition = Vector3.Lerp(pos, targetTransform.localPosition, progress);
+            cameraTargetTransform.localRotation = Quaternion.Lerp(rot, targetTransform.localRotation, progress);
+            cam.fieldOfView = Mathf.Lerp(fov, targetCamera.fieldOfView, progress);
             yield return new WaitForEndOfFrame();
             progress += Time.deltaTime * animSpeed;
         }
 
         //Set final transform
-        firstCamera.localPosition = secondCamera.transform.localPosition;
-        firstCamera.localRotation = secondCamera.transform.localRotation;
-        firstCam.fieldOfView = secondCam.fieldOfView;
+        cameraTargetTransform.localPosition = targetTransform.transform.localPosition;
+        cameraTargetTransform.localRotation = targetTransform.transform.localRotation;
+        cam.fieldOfView = targetCamera.fieldOfView;
     }
 
 }
