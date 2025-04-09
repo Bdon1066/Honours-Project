@@ -146,7 +146,6 @@ public class RobotAnimator : MonoBehaviour
         {
             if (tr.gameObject.name == "bn_pelvis01")
             {
-              print(tr.localPosition);
             }
             BoneTransform boneTransform = new BoneTransform(tr.localPosition,tr.localRotation,tr.localScale);
             boneTransformDict.Add(tr, boneTransform);                                                                        
@@ -155,17 +154,11 @@ public class RobotAnimator : MonoBehaviour
     }
     public void LoadBoneTransforms()
     {
-        print("Loading Bone Transforms");
-        
         foreach (var entry in boneTransformDict)
         {
             entry.Key.localPosition = entry.Value.position;
             entry.Key.localRotation = entry.Value.rotation;
             entry.Key.localScale = entry.Value.scale;
-            if (entry.Key.gameObject.name == "bn_pelvis01")
-            {
-                print(entry.Key.localPosition);
-            }
         }
     }
     
@@ -181,7 +174,6 @@ public class RobotAnimator : MonoBehaviour
         if (!isTransforming)
         {
             animator.CrossFade(JumpHash, 0.1f, 0);
-            print("Jump");
         }
         else
         {
@@ -194,7 +186,6 @@ public class RobotAnimator : MonoBehaviour
         if (!isTransforming)
         {
             animator.CrossFade(FallHash, 0.3f, 0);
-            print("Fall");
         }
         else
         {
@@ -207,7 +198,6 @@ public class RobotAnimator : MonoBehaviour
         if (!isTransforming)
         {
             animator.CrossFade(LocomotionHash, 0.2f, 0);
-            print("Land");
         }
         else
         {

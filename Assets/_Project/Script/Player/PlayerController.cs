@@ -201,7 +201,6 @@ public class PlayerController : MonoBehaviour, IModeStateController
                 mode.SetPosition(currentMode.transform.position);
             }
         }
-        print(currentModeType);
     }
 
     void FixedUpdate()

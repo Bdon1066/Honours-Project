@@ -486,6 +486,7 @@ GameObject:
   - component: {fileID: 134755413}
   - component: {fileID: 134755412}
   - component: {fileID: 134755411}
+  - component: {fileID: 134755414}
   m_Layer: 10
   m_Name: CarBody
   m_TagString: Untagged
@@ -581,6 +582,18 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 134755409}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &134755414
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 134755409}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b1605624b13bdc4ba3ffccfe0f9a896, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!95 &156612757
 Animator:
   serializedVersion: 7
@@ -2914,6 +2927,37 @@ Transform:
   - {fileID: 1688028427}
   m_Father: {fileID: 95850996}
   m_LocalEulerAnglesHint: {x: -10, y: 0, z: 0}
+--- !u!1 &1257314172
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1257314173}
+  m_Layer: 11
+  m_Name: FootstepPosition
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1257314173
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1257314172}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 543450652085584300}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1379686228
 GameObject:
   m_ObjectHideFlags: 0
@@ -3330,6 +3374,7 @@ GameObject:
   - component: {fileID: 1601825004}
   - component: {fileID: 1601825005}
   - component: {fileID: 1601825006}
+  - component: {fileID: 1601825007}
   m_Layer: 10
   m_Name: CarRoot
   m_TagString: Untagged
@@ -3443,7 +3488,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   carMode: {fileID: 1601825004}
+  carCollision: {fileID: 1601825007}
   carAudio: {fileID: 11400000, guid: d061817633a7d3548a94bcc554c7c854, type: 2}
+--- !u!114 &1601825007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1601825002}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b1605624b13bdc4ba3ffccfe0f9a896, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1620260162
 GameObject:
   m_ObjectHideFlags: 0
@@ -4474,6 +4532,7 @@ Transform:
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 3174601068123773294}
+  - {fileID: 1257314173}
   m_Father: {fileID: 937833767}
   m_LocalEulerAnglesHint: {x: 20.379272, y: 5.7331367, z: 6.351388}
 --- !u!1 &545833709458616010
@@ -4651,6 +4710,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   robotMode: {fileID: 1379686232}
   robotAudio: {fileID: 11400000, guid: 667b762e2d06d65409a3057b00e6f530, type: 2}
+  footstepPosition: {fileID: 1257314173}
 --- !u!4 &981516243782213282
 Transform:
   m_ObjectHideFlags: 0

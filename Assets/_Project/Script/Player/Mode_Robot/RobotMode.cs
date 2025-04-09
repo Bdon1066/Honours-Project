@@ -306,6 +306,7 @@ public class RobotMode : BaseMode, IMovementStateController
     }
     public void OnFallStart() 
     {
+        
         jumpVelocityAdded = false;
         groundSpring.enableSpring = true;
         postApexGravityMultiplier = postApexGravity;
@@ -317,7 +318,6 @@ public class RobotMode : BaseMode, IMovementStateController
     public void OnGroundContactRegained()
     {
         postApexGravityMultiplier = 1f;
-
         OnLand.Invoke(velocityThisFrame);
     }
 

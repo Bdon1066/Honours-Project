@@ -68,8 +68,8 @@ public class CarMode : BaseMode, IMovementStateController
 
     public event Action ToCar = delegate { };
     public event Action ToRobot = delegate { };
-    
     public event Action OnEnter = delegate { };
+    public event Action<Vector3> OnLand = delegate { };
     
    
     
@@ -185,7 +185,6 @@ public class CarMode : BaseMode, IMovementStateController
         UpdateCOM();
         if (isTransforming)
         {
-            print("Transform Movement");
             HandleTransformingMovement();
         }
         else
@@ -409,7 +408,6 @@ public class CarMode : BaseMode, IMovementStateController
         //Get the ratio of our speed to our maxSpeed;
         normalizedSpeed = Mathf.Clamp01(Mathf.Abs(speed) / maxSpeed);
         
-        print(normalizedSpeed);
         
         //if at max speed, do not apply torque
         if (normalizedSpeed >= 1) { return; }
@@ -462,6 +460,11 @@ public class CarMode : BaseMode, IMovementStateController
         {
             rb.AddForceAtPosition(forwardDirection * brakeDecceleration * idleBrakeFactor, wheelRay.tr.position);
         }
+    }
+
+    public void OnGroundContactRegained()
+    {
+        OnLand.Invoke(rb.velocity);
     }
 }
 

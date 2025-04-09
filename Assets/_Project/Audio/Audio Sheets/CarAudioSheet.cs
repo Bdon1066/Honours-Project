@@ -7,4 +7,8 @@ public class CarAudioSheet : ScriptableObject
     public EventReference engine;
     
     public EventReference transform;
+
+    public EventReference land;
+    
+    public EventReference impact;
 }

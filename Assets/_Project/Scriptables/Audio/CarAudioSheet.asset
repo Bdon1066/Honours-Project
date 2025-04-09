@@ -26,3 +26,17 @@ MonoBehaviour:
       Data3: 524922278
       Data4: 535083376
     Path: event:/Transform
+  land:
+    Guid:
+      Data1: -1040387158
+      Data2: 1223281165
+      Data3: -1155526745
+      Data4: 2044306941
+    Path: event:/Car/CarLand
+  impact:
+    Guid:
+      Data1: 1303430706
+      Data2: 1277683518
+      Data3: 459291016
+      Data4: -54605389
+    Path: event:/Car/CarImpact

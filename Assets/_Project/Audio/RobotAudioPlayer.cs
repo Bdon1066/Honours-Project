@@ -2,6 +2,7 @@ using System;
 using FMOD.Studio;
 using FMODUnity;
 using UnityEngine;
+using UnityEngine.XR;
 
 
 public class RobotAudioPlayer : MonoBehaviour
@@ -10,37 +11,34 @@ public class RobotAudioPlayer : MonoBehaviour
     
     public RobotAudioSheet robotAudio;
 
-    EventInstance Jump;
-    EventInstance Land;
-    EventInstance Footsteps;
-    EventInstance Transform;
-    
+    public Transform footstepPosition;
+
+    bool playAudio = true;
     void Awake()
     {
         robotMode.OnJump += HandleJump;
         robotMode.OnLand += HandleLand;
         robotMode.ToCar += HandleTransformToCar;
+        robotMode.ToRobot += HandleTransformToRobot;
         
-        
-       //RuntimeManager.AttachInstanceToGameObject(Jump, robotMode.gameObject);
-       //RuntimeManager.AttachInstanceToGameObject(Land, robotMode.gameObject);
-       //RuntimeManager.AttachInstanceToGameObject(Footsteps, robotMode.gameObject);
-       //RuntimeManager.AttachInstanceToGameObject(Transform, robotMode.gameObject);
+    }
+
+    private void HandleTransformToRobot()
+    {
+        robotMode.OnJump += HandleJump;
+        robotMode.OnLand += HandleLand;
     }
 
     private void HandleTransformToCar()
     {
-        //Transform.start();
-       // Transform.release();
         FMODUnity.RuntimeManager.PlayOneShotAttached(robotAudio.transform, robotMode.gameObject);
+        robotMode.OnJump -= HandleJump;
+        robotMode.OnLand -= HandleLand;
     }
 
     private void HandleLand(Vector3 velocity)
     {
-        //EventInstance landInstance = FMODUnity.RuntimeManager.CreateInstance(robotAudio.land);
-        //print(velocity);
-        FMODUnity.RuntimeManager.PlayOneShotAttached(robotAudio.land, robotMode.gameObject);
-        //RuntimeManager.AttachInstanceToGameObject(landInstance, GetComponent<Transform>(), robotMode.gameObject.GetComponent<Rigidbody>());
+        FMODUnity.RuntimeManager.PlayOneShotAttached(robotAudio.land, footstepPosition.gameObject);
     }
 
     private void HandleJump(Vector3 velocity)
@@ -50,7 +48,7 @@ public class RobotAudioPlayer : MonoBehaviour
 
     public void HandleFootstep()
     {
-        FMODUnity.RuntimeManager.PlayOneShotAttached(robotAudio.footsteps,  robotMode.gameObject);
+        FMODUnity.RuntimeManager.PlayOneShotAttached(robotAudio.footsteps,  footstepPosition.gameObject);
     }
 
     void Update()
