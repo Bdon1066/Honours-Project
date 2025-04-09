@@ -9,22 +9,20 @@ public class RobotMode : BaseMode, IMovementStateController
     Transform tr;
     Rigidbody rb;
     CapsuleCollider col;
-    GroundSpring groundSpring;
+   
     InputReader input;
     StateMachine stateMachine;
     
-    [Header("Mode References")]
+    [Header("References")]
     [SerializeField] GameObject model;
     [SerializeField] Transform rootBone;
     
+    public GroundSpring groundSpring;
+    public GroundSpring wallSpring;
+    
     [SerializeField] Transform cameraTransform;
     
-    public event Action<Vector3> OnJump = delegate { };
-    public event Action<Vector3> OnFall = delegate { };
-    public event Action<Vector3> OnLand = delegate { };
-    
-    public event Action ToCar = delegate { };
-    public event Action ToRobot = delegate { };
+
 
     Transform fromModeTr;
 
@@ -59,9 +57,14 @@ public class RobotMode : BaseMode, IMovementStateController
 
     [Header("Debug")]
     public bool debugMode;
-
     bool isEnabled;
     public bool isTransforming;
+    
+    public event Action<Vector3> OnJump = delegate { };
+    public event Action<Vector3> OnFall = delegate { };
+    public event Action<Vector3> OnLand = delegate { };
+    public event Action ToCar = delegate { };
+    public event Action ToRobot = delegate { };
     public override Vector3 GetVelocity() => rb.velocity;
     public Vector3 GetHorizontalVelocity() => horizontalVelocityThisFrame;
     public override Transform GetRootBone() => rootBone;
@@ -77,9 +80,9 @@ public class RobotMode : BaseMode, IMovementStateController
         col = tr.GetComponent<CapsuleCollider>();
         input = playerController.input;
         
-        groundSpring = tr.GetComponent<GroundSpring>();
         groundSpring.AwakeGroundSpring();
-
+        wallSpring.AwakeGroundSpring();
+       
         SetupStateMachine();
         SetupJumpParameters();
 
@@ -95,19 +98,19 @@ public class RobotMode : BaseMode, IMovementStateController
         //var sliding = new SlidingState(this);
 
         //When at grounded state, we will go to rising state when IsRising is true
-        At(grounded, rising, new FuncPredicate(() => !groundSpring.IsGrounded() && IsRising()));
+        At(grounded, rising, new FuncPredicate(() => !groundSpring.InContact() && IsRising()));
         //At(grounded, sliding, new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
-        At(grounded, falling, new FuncPredicate(() => !groundSpring.IsGrounded()));
+        At(grounded, falling, new FuncPredicate(() => !groundSpring.InContact()));
         At(grounded, jumping, new FuncPredicate(() => (jumpIsPressed || jumpWasPressed)  && !jumpInputLocked));
 
         At(jumping, rising, new FuncPredicate(() => jumpVelocityAdded));
         
         At(falling, rising, new FuncPredicate(() => IsRising()));
         //At(falling, sliding, new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
-        At(falling, grounded, new FuncPredicate(() => groundSpring.IsGrounded() && !IsGroundTooSteep()));
+        At(falling, grounded, new FuncPredicate(() => groundSpring.InContact() && !IsGroundTooSteep()));
 
         //At(rising, sliding, new FuncPredicate(() => mover.IsGrounded() && IsGroundTooSteep()));
-        At(rising, grounded, new FuncPredicate(() => groundSpring.IsGrounded() && !IsGroundTooSteep()));
+        At(rising, grounded, new FuncPredicate(() => groundSpring.InContact() && !IsGroundTooSteep()));
         At(rising, falling, new FuncPredicate(() => IsFalling()));
 
         //At(sliding, grounded, new FuncPredicate(() => mover.IsGrounded() && !IsGroundTooSteep()));
@@ -120,7 +123,7 @@ public class RobotMode : BaseMode, IMovementStateController
     void Any(IState to, IPredicate condition) => stateMachine.AddAnyTransition(to, condition);
     bool IsRising() => Utils.GetDotProduct(rb.velocity, tr.up) > 0f;
     bool IsFalling() => Utils.GetDotProduct(rb.velocity, tr.up) < 0f;
-    bool IsGroundTooSteep() => !groundSpring.IsGrounded() || Vector3.Angle(groundSpring.GroundNormal(), tr.up) > slopeLimit;
+    bool IsGroundTooSteep() => !groundSpring.InContact() || Vector3.Angle(groundSpring.ContactNormal(), tr.up) > slopeLimit;
     public override void EnterMode(Vector3 entryVelocity)
     {
         //add our previous mode velocity to this rb
@@ -137,6 +140,7 @@ public class RobotMode : BaseMode, IMovementStateController
     {
         isTransforming = true;
         groundSpring.enableSpring = true;
+        wallSpring.enableSpring = false;
         ShowModel();
         ToRobot.Invoke();
         fromModeTr = fromMode.GetRootBone();
@@ -183,16 +187,28 @@ public class RobotMode : BaseMode, IMovementStateController
         ResetVelocity();
 
         groundSpring.CheckForGround();
-
+        wallSpring.CheckForGround();
         SetRBRotation();
         HandleMoveInput();
         HandleJumping();
         HandleGravity();
-
+        
+        if (wallSpring.InContact())
+        { 
+            //print("Hit Wall " + horizontalVelocityThisFrame + " " + Utils.RemoveDotVector(horizontalVelocityThisFrame,tr.forward));
+            //horizontalVelocityThisFrame = Utils.RemoveDotVector(horizontalVelocityThisFrame,tr.forward);
+            //horizontalVelocityThisFrame = Utils.RemoveDotVector(horizontalVelocityThisFrame,tr.right);
+            //horizontalVelocityThisFrame = Utils.RemoveDotVector(horizontalVelocityThisFrame,-tr.right);
+            //horizontalVelocityThisFrame = Vector3.zero;
+            print("In contact with wall!");
+           
+        }
         ApplyVelocity();
+        ApplyFriction();
 
         ResetJumpKeys();
     }
+    
 
     void HandleGravity()
     {
@@ -203,6 +219,10 @@ public class RobotMode : BaseMode, IMovementStateController
     {
         velocityThisFrame = horizontalVelocityThisFrame + verticalVelocityThisFrame;
         rb.AddForce(velocityThisFrame);
+    }
+    void ApplyFriction()
+    {
+        //rb.AddForce(velocityThisFrame * );
     }
 
     void ResetVelocity()
@@ -240,8 +260,10 @@ public class RobotMode : BaseMode, IMovementStateController
         //if no velocity, don't rotate
         if (horizontalMovement.magnitude < 0.001f) return;
 
+        
         //get our velocity direction, ignoring Y
         Vector3 lookDirection = new Vector3(rb.velocity.x, 0, rb.velocity.z).normalized;
+        
         //create a target rotation in that direction
         Quaternion targetRotation = Quaternion.LookRotation(lookDirection, Vector3.up);
         //lerp toward that rotation via rotateSpeed

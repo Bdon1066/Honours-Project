@@ -1,5 +1,6 @@
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class GroundSpring : MonoBehaviour
 {
@@ -7,23 +8,31 @@ public class GroundSpring : MonoBehaviour
     Rigidbody rb;
     Collider col;
     RaycastSensor groundSensor;
-    [Header("Spring Distances")]
-    public float groundRayLength = 3f;
-    public float restDistance = 2f;
     [Header("Spring Properties")]
+    public Transform originTransform;
+    public CastDirection springDirection;
+    public Vector3 originOffset;
+    public bool useSphereCast;
+    public float sphereRadius;
+    public LayerMask layerMask;
+    [Header("Spring Length")]
+    public float springLength = 3.2f;
+    public float restDistance = 2.5f;
+    [Header("Spring Strength")]
     public float springStrength = 100f;
     public float springDampening = 100f;
     
     Vector3 rayStartPosition;
     
-    public bool IsGrounded() =>  groundSensor.HasDetectedHit() && enableSpring;
-    public Vector3 GroundNormal() =>  groundSensor.GetNormal();
+    
+    public bool InContact() =>  groundSensor.HasDetectedHit() && enableSpring;
+    public Vector3 ContactNormal() =>  groundSensor.GetNormal();
 
     public bool enableSpring = true;
 
     public void AwakeGroundSpring()
     {
-        tr = transform;
+        tr = originTransform;
         rb = tr.GetComponent<Rigidbody>();
         col = tr.GetComponent<Collider>();
         ResetGroundSpring();
@@ -31,22 +40,24 @@ public class GroundSpring : MonoBehaviour
     }
     public void ResetGroundSpring()
     {
-        rayStartPosition = col.bounds.center;
+        rayStartPosition = col.bounds.center + originOffset;
     }
    
     void OnDrawGizmos()
     { 
        
         AwakeGroundSpring();
+        SetupGroundSensor();
         #if  UNITY_EDITOR
         using (new Handles.DrawingScope(Color.red))
         {
-            Handles.DrawLine(rayStartPosition, rayStartPosition + groundRayLength * -tr.up, 5f);
+            Handles.DrawLine(rayStartPosition, rayStartPosition + springLength * groundSensor.GetCastDirection(), 10f);
         }
         using (new Handles.DrawingScope(Color.green))
         {
-            Handles.DrawLine(rayStartPosition + Vector3.forward, rayStartPosition + restDistance * -tr.up + Vector3.forward, 5f);
+            Handles.DrawLine(rayStartPosition, rayStartPosition + restDistance * groundSensor.GetCastDirection(), 5f);
         }
+        SceneView.RepaintAll();
         #endif
     }
 
@@ -54,45 +65,51 @@ public class GroundSpring : MonoBehaviour
     {
         ResetGroundSpring();
         SetupGroundSensor();
-        
-        groundSensor.Cast();
+        if (useSphereCast)
+        {
+            groundSensor.Cast(sphereRadius);
+        }
+        else
+        {
+            groundSensor.Cast();
+        }
 
-        if (IsGrounded())
+        if (InContact())
         {
             ApplySpringForce();
             Debug.DrawLine(rayStartPosition, groundSensor.GetPosition(), Color.green);
         }
         else
         {
-            Debug.DrawLine(rayStartPosition, rayStartPosition + groundRayLength * -tr.up, Color.red);
+            Debug.DrawLine(rayStartPosition, rayStartPosition + springLength * groundSensor.GetCastDirection(), Color.red);
         }
-        
+        groundSensor.GetCastDirection();
     }
     public void ApplySpringForce()
     {
         if (!enableSpring) return;
-        //get velocity in the downward direction
-        float downwardVelocity = Vector3.Dot(rb.velocity, -tr.up);
+        //get velocity in the spring direction
+        float springVelocity = Vector3.Dot(rb.velocity, groundSensor.GetCastDirection());
         
         //get how much our spring has been offset from our rest distance
         float springOffset = groundSensor.GetDistance() - restDistance;
         
         //calculate the force from our strength and dampening
-        float force = (springOffset * springStrength * 100f) - (downwardVelocity * springDampening * 10f);
+        float force = (springOffset * springStrength * 100f) - (springVelocity * springDampening * 10f);
         
-        //add this force in the downward direction (the force itself will be negative if we need to go up)
-        rb.AddForce(-tr.up * force);
+        //add this force in the spring direction (the force itself will be negative if we need to go up)
+        rb.AddForce(groundSensor.GetCastDirection() * force);
     }
     void SetupGroundSensor()
     {
         
         //null assigment operator, if we dont have a sensor, make one, else use the one that exists
-        groundSensor ??= new RaycastSensor(tr);
+        groundSensor ??= new RaycastSensor(tr,layerMask);
         
        
         
         groundSensor.SetCastOrigin(rayStartPosition);
-        groundSensor.SetCastDirection(RaycastSensor.CastDirection.Down);
-        groundSensor.castLength = groundRayLength * tr.localScale.x;
+        groundSensor.SetCastDirection(springDirection);
+        groundSensor.castLength = springLength * tr.localScale.x;
     }
 }

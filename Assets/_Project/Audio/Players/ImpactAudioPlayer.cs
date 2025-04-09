@@ -28,7 +28,6 @@ public class ImpactAudioPlayer : MonoBehaviour
         
         float normalizedImpactSpeed = Mathf.Clamp01(Mathf.Abs(impactSpeed) / maxImpactSpeed);
         
-        print(normalizedImpactSpeed);
         Impact = RuntimeManager.CreateInstance(impactEvent);
         //set impact to trigger at contact point
         Impact.set3DAttributes(other.GetContact(0).point.To3DAttributes());

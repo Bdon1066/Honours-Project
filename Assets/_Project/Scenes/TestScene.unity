@@ -1214,6 +1214,63 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!1 &160820986
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 160820987}
+  - component: {fileID: 160820988}
+  m_Layer: 12
+  m_Name: GroundSpring
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &160820987
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 160820986}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1379686229}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &160820988
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 160820986}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e237c2e3117420289f16b5367881cf3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  originTransform: {fileID: 1379686229}
+  springDirection: 5
+  originOffset: {x: 0, y: 0, z: 0}
+  useSphereCast: 0
+  sphereRadius: 0
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 12343
+  springLength: 3.2
+  restDistance: 2.5
+  springStrength: 1000
+  springDampening: 1000
+  enableSpring: 1
 --- !u!1 &205052886
 GameObject:
   m_ObjectHideFlags: 0
@@ -1527,6 +1584,63 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1024331699}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &283366247
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 283366248}
+  - component: {fileID: 283366249}
+  m_Layer: 11
+  m_Name: WallSpring
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &283366248
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 283366247}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1379686229}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &283366249
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 283366247}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e237c2e3117420289f16b5367881cf3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  originTransform: {fileID: 1379686229}
+  springDirection: 0
+  originOffset: {x: 0, y: 0, z: 0}
+  useSphereCast: 1
+  sphereRadius: 1
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 8192
+  springLength: 2.32
+  restDistance: 1.97
+  springStrength: 1000
+  springDampening: 1000
+  enableSpring: 1
 --- !u!1 &314662722
 GameObject:
   m_ObjectHideFlags: 0
@@ -4722,7 +4836,7 @@ GameObject:
   - component: {fileID: 1051364754}
   - component: {fileID: 1051364753}
   - component: {fileID: 1051364752}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: Cube (5)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5739,7 +5853,6 @@ GameObject:
   - component: {fileID: 1379686231}
   - component: {fileID: 1379686230}
   - component: {fileID: 1379686232}
-  - component: {fileID: 1379686233}
   - component: {fileID: 1379686234}
   m_Layer: 11
   m_Name: RobotRoot
@@ -5762,6 +5875,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 937833767}
+  - {fileID: 160820987}
+  - {fileID: 283366248}
   m_Father: {fileID: 28009200}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &1379686230
@@ -5828,6 +5943,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   model: {fileID: 937833766}
   rootBone: {fileID: 1105596552598684807}
+  groundSpring: {fileID: 160820988}
+  wallSpring: {fileID: 283366249}
   cameraTransform: {fileID: 1688028427}
   maxSpeed: 15
   rotateSpeed: 10
@@ -5841,23 +5958,6 @@ MonoBehaviour:
   postTransformVelocityMultiplier: 1
   debugMode: 0
   isTransforming: 0
---- !u!114 &1379686233
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1379686228}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0e237c2e3117420289f16b5367881cf3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  groundRayLength: 3.2
-  restDistance: 2.5
-  springStrength: 1000
-  springDampening: 1000
-  enableSpring: 1
 --- !u!114 &1379686234
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12813,7 +12913,7 @@ GameObject:
   - component: {fileID: 1923714599}
   - component: {fileID: 1923714598}
   - component: {fileID: 1923714597}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: Cube (6)
   m_TagString: Untagged
   m_Icon: {fileID: 0}

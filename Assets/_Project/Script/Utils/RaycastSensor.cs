@@ -1,8 +1,10 @@
 using System;
 using Unity.VisualScripting.FullSerializer;
 using UnityEditor;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
+public enum CastDirection {Forward, Right, Up, Backward, Left, Down }
 
 /// <summary>
 /// This class creates a sensor using a raycast in a specified cast direction
@@ -10,34 +12,42 @@ using UnityEngine;
 public class RaycastSensor
 {
     public float castLength = 1.0f;
-    public LayerMask layerMask = 255; //using numbers for layers is easier
+    public LayerMask layerMask = 255; //using numbers for layers 
 
     Vector3 origin = Vector3.zero;
     Transform tr;
-
-    public enum CastDirection {Forward, Right, Up, Backward, Left, Down }
-    CastDirection castDirection;
     
+    CastDirection castDirection;
     RaycastHit hitInfo;
+    int sensorLayer;
 
-    // constructor to initialize class with player Transform
-    public RaycastSensor(Transform originTransform)
+
+    public RaycastSensor(Transform tr, LayerMask layerMask)
     {
-        tr = originTransform;
+        this.tr = tr;
+        this.layerMask = layerMask;
     }
-    public RaycastSensor(GameObject originGameObject)
+    public RaycastSensor(Transform tr)
     {
-        tr = originGameObject.transform;
-        RecalculateSensorLayerMask(originGameObject);
+        this.tr = tr;
     }
+    
     public void Cast()
     {
+        
         //We need world origin and direction as opposed to local
         Vector3 worldOrigin = tr.TransformPoint(origin);
         Vector3 worldDirection = GetCastDirection();
 
         Physics.Raycast(worldOrigin, worldDirection, out hitInfo, castLength, layerMask,QueryTriggerInteraction.Ignore);
+    }
+    public void Cast(float sphereRadius)
+    {
+        //We need world origin and direction as opposed to local
+        Vector3 worldOrigin = tr.TransformPoint(origin);
+        Vector3 worldDirection = GetCastDirection();
         
+        Physics.SphereCast(worldOrigin,sphereRadius,worldDirection,out hitInfo, castLength, layerMask,QueryTriggerInteraction.Ignore);
     }
     
     public bool HasDetectedHit() => hitInfo.collider != null;
@@ -51,7 +61,7 @@ public class RaycastSensor
     public void SetCastOrigin(Vector3 pos) => origin = tr.InverseTransformPoint(pos);
     
     //Gets the actual vector direction from the corresponding enum
-    Vector3 GetCastDirection()
+    public Vector3 GetCastDirection()
     {
         return castDirection switch
         {
@@ -64,13 +74,11 @@ public class RaycastSensor
             _ => Vector3.one
         };
     }
-    public void RecalculateSensorLayerMask(GameObject thisObject)
+    public void RecalculateSensorLayerMask()
     {
-        int objectLayer = thisObject.layer;
-        
         for (int i = 0; i < 32; i++) //iterate through all layers
         {
-            if (Physics.GetIgnoreLayerCollision(objectLayer, i)) //check if layer i ignores this mover's layer
+            if (Physics.GetIgnoreLayerCollision(sensorLayer, i)) //check uf sensorLayer ignores layer i
             {
                 layerMask &= ~(1 << i); //remove layer i from the mask via magical bitshifting
             }
@@ -89,4 +97,5 @@ public class RaycastSensor
         Debug.DrawLine(hitInfo.point + Vector3.forward * markerSize, hitInfo.point - Vector3.forward * markerSize, Color.green, Time.deltaTime);
     }
 }
+
 

@@ -267,7 +267,7 @@ public class CarMode : BaseMode, IMovementStateController
         float maxLength = restDistance + maxSpringOffset;
         //setup a suspesnion ray to start from the wheel force position, pointing downwards
         wheelRay.suspensionRay.SetCastOrigin(wheelRay.tr.position);
-        wheelRay.suspensionRay.SetCastDirection(RaycastSensor.CastDirection.Down);
+        wheelRay.suspensionRay.SetCastDirection(CastDirection.Down);
         wheelRay.suspensionRay.castLength = (maxLength + wheelRadius) * tr.localScale.x;
 
         wheelRay.suspensionRay.Cast();
