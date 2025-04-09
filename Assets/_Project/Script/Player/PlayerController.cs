@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour, IModeStateController
 {
     public InputReader input;
     public float transformDuration = 1f;
+    public float transformCooldownDuration = 1f;
     StateMachine stateMachine;
     Transform tr;
 
@@ -28,9 +29,11 @@ public class PlayerController : MonoBehaviour, IModeStateController
     // very busy tho so do this before adding other modes
     // replace array with some lookup for each enabled mode and itll be way cleaner
 
-    bool transformInputLocked,transformIsPressed;
+    bool transformInputLocked,transformIsPressed,transformWasPressed,transformLetGo;
 
     CountdownTimer transformTimer;
+    CountdownTimer transformCooldowmTimer;
+    
 
     public event Action<ModeType, ModeType> OnTransform = delegate { };
 
@@ -43,13 +46,18 @@ public class PlayerController : MonoBehaviour, IModeStateController
 
     public BaseMode GetCurrentMode() => currentMode;
     BaseMode GetPreviousMode() => currentMode;
+    bool IsTransforming() => stateMachine.CurrentState is TransformingState;
     void Awake()
     {
         tr = transform;
         transformTimer = new CountdownTimer(transformDuration);
+        transformCooldowmTimer = new CountdownTimer(transformCooldownDuration);
+        transformCooldowmTimer.OnTimerStop += HandleTransformCooldown;
         Cursor.lockState = CursorLockMode.Locked;
     }
- 
+
+   
+
     private void Start()
     {
         //initialize our modes on start and set up the mode state machine
@@ -118,7 +126,8 @@ public class PlayerController : MonoBehaviour, IModeStateController
         var transforming = new TransformingState(this);
 
         //begin transforming from any mode state once input is/was pressed and isn't locked
-        Any(transforming, new FuncPredicate(() => (transformIsPressed  && !transformInputLocked)));
+        At(robot,transforming, new FuncPredicate(() => (transformWasPressed)  && !transformInputLocked));
+        At(car,transforming, new FuncPredicate(() => (transformWasPressed)  && !transformInputLocked));
         //transform into robot when we are a car and vice versa 
         At(transforming, robot, new FuncPredicate(() => transformTimer.IsFinished && currentMode is CarMode));
         At(transforming, car, new FuncPredicate(() => transformTimer.IsFinished && currentMode is RobotMode));
@@ -139,16 +148,27 @@ public class PlayerController : MonoBehaviour, IModeStateController
 
     void HandleTransformInput(bool isButtonPressed)
     {
+        //print("Jump Event!");
+        if (!transformIsPressed && isButtonPressed)
+        {
+            transformWasPressed = true;
+        }
+
+        if (transformIsPressed && !isButtonPressed)
+        {
+            transformLetGo = true;
+        }
+
         transformIsPressed = isButtonPressed;
+
     }
     void ResetTransformKeys()
     {
-        //transformLetGo = false;
-        //transformWasPressed = false;
+        transformLetGo = false;
+        transformWasPressed = false;
     }
     public void OnTransformStart()
-    {
-        
+    {  
         transformInputLocked = true;
         transformTimer.Start();
         
@@ -172,7 +192,9 @@ public class PlayerController : MonoBehaviour, IModeStateController
     {
         previousMode = currentMode;
         previousMode.ExitMode();
+        transformCooldowmTimer.Start();
     }
+    private void HandleTransformCooldown() => transformInputLocked = false;
 
     public void OnModeStart<T>() where T : BaseMode
     {
@@ -182,7 +204,6 @@ public class PlayerController : MonoBehaviour, IModeStateController
         if (previousMode != null) currentMode.EnterMode(previousMode.GetVelocity());
         else currentMode.EnterMode(Vector3.zero);
         
-        transformInputLocked = false;
     }
     public void OnModeExit<T>() where T : BaseMode
     {
@@ -207,7 +228,6 @@ public class PlayerController : MonoBehaviour, IModeStateController
     {
         stateMachine.FixedUpdate();
         ResetTransformKeys();
-        
     }
 
     void SetCurrentMode(BaseMode newMode)

@@ -413,7 +413,7 @@ public class CarMode : BaseMode, IMovementStateController
         if (normalizedSpeed >= 1) { return; }
 
         //get our torque from the lookup curve and apply our accerlation 
-        float torque = accelerationPowerCurve.Evaluate(normalizedSpeed) * acceleration;
+        float torque = accelerationPowerCurve.Evaluate(normalizedSpeed) * acceleration; //todo add acceleration input here
 
         //get our torque from the lookup curve and apply our reverse based on input so its most promimenent at the lowest input
         float reverseTorque = reversePowerCurve.Evaluate(normalizedSpeed) * reverseAcceleration;

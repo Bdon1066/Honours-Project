@@ -285,6 +285,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   input: {fileID: 11400000, guid: 0049de2aa9e2d5645a1711574415abbd, type: 2}
   transformDuration: 0.75
+  transformCooldownDuration: 0.3
   modes:
   - {fileID: 1379686232}
   - {fileID: 1601825004}
@@ -3490,6 +3491,8 @@ MonoBehaviour:
   carMode: {fileID: 1601825004}
   carCollision: {fileID: 1601825007}
   carAudio: {fileID: 11400000, guid: d061817633a7d3548a94bcc554c7c854, type: 2}
+  minImpactSpeed: 1
+  maxImpactSpeed: 30
 --- !u!114 &1601825007
 MonoBehaviour:
   m_ObjectHideFlags: 0
