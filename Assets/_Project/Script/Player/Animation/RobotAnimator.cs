@@ -30,10 +30,12 @@ public class RobotAnimator : MonoBehaviour
     Animator animator;
 
     static readonly int speedHash = Animator.StringToHash("Speed");
+    static readonly int wallSpeedHash = Animator.StringToHash("WallSpeed");
     
     private static readonly int JumpHash = Animator.StringToHash("Jumping");
     private static readonly int FallHash = Animator.StringToHash("Fall");
     private static readonly int LandHash = Animator.StringToHash("Land");
+    private static readonly int ClimbHash = Animator.StringToHash("Climb");
     private static readonly int LocomotionHash = Animator.StringToHash("Locomotion");
     private static readonly int IdleHash = Animator.StringToHash("SwayIdle");
     private static readonly int ToCarHash = Animator.StringToHash("TransformToCar");
@@ -47,7 +49,7 @@ public class RobotAnimator : MonoBehaviour
 
     PlayerStateEvent cachedState;
 
-    public enum PlayerStateEvent {Locomotion,Fall,Land,Jump}
+    public enum PlayerStateEvent {Locomotion,Fall,Land,Jump,Climb}
 
     void Start() 
     {
@@ -57,6 +59,7 @@ public class RobotAnimator : MonoBehaviour
         robot.OnJump += HandleJump;
         robot.OnFall += HandleFall;
         robot.OnLand += HandleLand;
+        robot.OnWall += HandleWall;
 
         //playerController.OnTransform += HandleTransform;
 
@@ -71,6 +74,17 @@ public class RobotAnimator : MonoBehaviour
         
         //Save our bone transforms in the "idle" state
         SaveBoneTransforms();
+    }
+    void HandleWall(Vector3 velocity)
+    {
+        if (!isTransforming)
+        {
+            animator.CrossFade(ClimbHash, 0.2f, 0);
+        }
+        else
+        {
+            cachedState = PlayerStateEvent.Climb;
+        }
     }
 
     private void HandleTransformToRobot()
@@ -114,6 +128,9 @@ public class RobotAnimator : MonoBehaviour
                 break;
             case PlayerStateEvent.Jump:
                 animator.CrossFade(JumpHash, 0.1f, 0);
+                break;
+            case PlayerStateEvent.Climb:
+                animator.CrossFade(ClimbHash, 0.1f, 0);
                 break;
             default:
                 break;
@@ -166,7 +183,9 @@ public class RobotAnimator : MonoBehaviour
     {
         //LoadBoneTransforms();
         Vector3 horizontalVelocity = new Vector3(robot.GetVelocity().x, 0, robot.GetVelocity().z);
+        Vector3 verticalVelocity = new Vector3(0, robot.GetVelocity().y, 0);
         animator.SetFloat(speedHash, horizontalVelocity.magnitude,0.1f,Time.deltaTime);
+        animator.SetFloat(wallSpeedHash, verticalVelocity.magnitude,0.1f,Time.deltaTime);
     }
     
     void HandleJump(Vector3 momentum)

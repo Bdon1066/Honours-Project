@@ -458,7 +458,7 @@ public class CarMode : BaseMode, IMovementStateController
         //if not accelerating, add a subtle brake to bring to stop
         if (!isAccelerating && forwardVelocity > 0) 
         {
-            rb.AddForceAtPosition(forwardDirection * brakeDecceleration * idleBrakeFactor, wheelRay.tr.position);
+            rb.AddForceAtPosition(forwardDirection*(brakeDecceleration*idleBrakeFactor), wheelRay.tr.position);
         }
     }
 

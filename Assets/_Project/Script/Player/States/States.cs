@@ -85,6 +85,34 @@ public class JumpingState : IState
     }
 
 }
+public class WallState : IState
+{
+    readonly IMovementStateController controller;
+    public WallState(IMovementStateController controller)
+    {
+        this.controller = controller;
+    }
+
+    public void OnEnter()
+    {
+        controller.OnWallStart();
+    }
+
+}
+public class ClimbEndState : IState
+{
+    readonly IMovementStateController controller;
+    public ClimbEndState(IMovementStateController controller)
+    {
+        this.controller = controller;
+    }
+
+    public void OnEnter()
+    {
+        controller.OnClimbEnded();
+    }
+
+}
 /// <summary>
 /// A state when we have finihsed transforming and need to slide with our previous modes velocity
 /// </summary>

@@ -12,7 +12,7 @@ public enum CastDirection {Forward, Right, Up, Backward, Left, Down }
 public class RaycastSensor
 {
     public float castLength = 1.0f;
-    public LayerMask layerMask = 255; //using numbers for layers 
+    public LayerMask layerMask = -1; //using numbers for layers 
 
     Vector3 origin = Vector3.zero;
     Transform tr;

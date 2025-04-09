@@ -28,8 +28,14 @@ public interface IMovementStateController : IStateController
     {
         //noop
     }
-
-
+    public void OnWallStart()
+    {
+        //noop
+    }
+    public void OnClimbEnded()
+    {
+        //noop
+    }
 
 }
 /// <summary>
