@@ -1630,7 +1630,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   originTransform: {fileID: 1379686229}
   springDirection: 0
-  originOffset: {x: 0, y: -0.75, z: 0}
+  originOffset: {x: 0, y: -1, z: 0}
   useSphereCast: 1
   sphereRadius: 0.25
   layerMask:

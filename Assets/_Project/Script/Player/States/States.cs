@@ -109,7 +109,7 @@ public class ClimbEndState : IState
 
     public void OnEnter()
     {
-        controller.OnClimbEnded();
+        controller.OnClimbEnd();
     }
 
 }

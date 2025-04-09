@@ -53,6 +53,7 @@ public class RobotMode : BaseMode, IMovementStateController
     public float wallAcceleration = 100f;
     public float maxWallAccelerationForce = 50f;
     public float climbCutOffSensorLength;
+    public float postClimbBoost = 5f;
     [Header("Transforming")]
     public float postTransformVelocityMultiplier = 2f;
 
@@ -72,7 +73,7 @@ public class RobotMode : BaseMode, IMovementStateController
     public event Action<Vector3> OnFall = delegate { };
     public event Action<Vector3> OnLand = delegate { };
     public event Action<Vector3> OnWall = delegate { };
-    public event Action OnClimbEnd = delegate { };
+    public event Action OnEndClimb = delegate { };
     
     public event Action ToCar = delegate { };
     public event Action ToRobot = delegate { };
@@ -112,7 +113,7 @@ public class RobotMode : BaseMode, IMovementStateController
 
         //When at grounded state, we will go to rising state when IsRising is true
         At(grounded, rising, new FuncPredicate(() => !groundSpring.InContact() && IsRising()));
-        //At Grounded to wall State todo!
+        At(grounded, wall, new FuncPredicate(() => wallSpring.InContact() && input.Direction.y > 0));
         At(grounded, falling, new FuncPredicate(() => !groundSpring.InContact()));
         At(grounded, jumping, new FuncPredicate(() => (jumpIsPressed || jumpWasPressed)  && !jumpInputLocked));
 
@@ -129,9 +130,11 @@ public class RobotMode : BaseMode, IMovementStateController
         At(wall, grounded, new FuncPredicate(() => groundSpring.InContact()));
         At(wall, jumping, new FuncPredicate(() => (jumpIsPressed || jumpWasPressed)  && !jumpInputLocked));
         At(wall, falling, new FuncPredicate(() => !wallSpring.InContact()));
-        At(wall, climbEnd, new FuncPredicate(() => AtTopOfClimb()));
+        
+        At(wall, climbEnd, new FuncPredicate(() => AtTopOfClimb() && input.Direction.y > 0));
         
         At(climbEnd, wall, new FuncPredicate(() => !AtTopOfClimb() && wallSpring.InContact()));
+        At(climbEnd, falling, new FuncPredicate(() => !wallSpring.InContact()));
        
 
         stateMachine.SetState(falling);
@@ -218,6 +221,10 @@ public class RobotMode : BaseMode, IMovementStateController
         {
             HandleWallMovement();
         }
+        else if (stateMachine.CurrentState is ClimbEndState)
+        {
+            HandleClimbEnd();
+        }
         else
         {
             HandleHorizontalMovement();
@@ -227,10 +234,34 @@ public class RobotMode : BaseMode, IMovementStateController
         HandleGravity();
         
         ApplyVelocity();
-        //print(stateMachine.CurrentState);
+        print(stateMachine.CurrentState);
         //print("Ground: " + groundSpring.InContact());
         //print("Wall: " + wallSpring.InContact());
         ResetJumpKeys();
+    }
+    private void HandleClimbEnd()
+    {
+        //move forward and upwards to reach over the wall
+        Vector3 moveDirection = tr.up + tr.forward;
+        //move with a boost of speed
+        Vector3 maxMoveVelocity = moveDirection*maxWallSpeed*postClimbBoost;
+        
+        //set our velocity step to move towards our max velocity over acceleration
+        velocityStep = Vector3.MoveTowards(velocityStep, maxMoveVelocity, wallAcceleration * Time.fixedDeltaTime);
+        
+        //create an acceleration step from our velocity step
+        Vector3 accelerationStep = (velocityStep - rb.velocity) / Time.fixedDeltaTime;
+        
+        //clamp our acceleratiopn to prevent abnormally high values
+        accelerationStep = Vector3.ClampMagnitude(accelerationStep, maxWallAccelerationForce);
+        
+        //create a force, removing all force in the z direction
+        Vector3 force = Vector3.Scale(accelerationStep * rb.mass,new Vector3(1,1,0)) ;
+
+        //add movement force to our velocity this frame
+        verticalVelocityThisFrame.y += force.y;
+        
+        //rb.position = rootBone.position;
     }
     private void CheckClimbCutoff()
     {
@@ -419,6 +450,10 @@ public class RobotMode : BaseMode, IMovementStateController
         rb.velocity = Vector3.zero;
         OnWall.Invoke(velocityThisFrame);
         groundSpring.enableSpring = true;
+    }
+    public void OnClimbEnd()
+    {
+        OnEndClimb.Invoke();
     }
     void OnDrawGizmos()
     { 

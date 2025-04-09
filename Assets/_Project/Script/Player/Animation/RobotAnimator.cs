@@ -36,6 +36,7 @@ public class RobotAnimator : MonoBehaviour
     private static readonly int FallHash = Animator.StringToHash("Fall");
     private static readonly int LandHash = Animator.StringToHash("Land");
     private static readonly int ClimbHash = Animator.StringToHash("Climb");
+    private static readonly int ClimbEndHash = Animator.StringToHash("ClimbEnd");
     private static readonly int LocomotionHash = Animator.StringToHash("Locomotion");
     private static readonly int IdleHash = Animator.StringToHash("SwayIdle");
     private static readonly int ToCarHash = Animator.StringToHash("TransformToCar");
@@ -49,7 +50,7 @@ public class RobotAnimator : MonoBehaviour
 
     PlayerStateEvent cachedState;
 
-    public enum PlayerStateEvent {Locomotion,Fall,Land,Jump,Climb}
+    public enum PlayerStateEvent {Locomotion,Fall,Land,Jump,Climb,ClimbEnd}
 
     void Start() 
     {
@@ -60,6 +61,7 @@ public class RobotAnimator : MonoBehaviour
         robot.OnFall += HandleFall;
         robot.OnLand += HandleLand;
         robot.OnWall += HandleWall;
+        robot.OnEndClimb+= HandleEndClimb;
 
         //playerController.OnTransform += HandleTransform;
 
@@ -74,6 +76,17 @@ public class RobotAnimator : MonoBehaviour
         
         //Save our bone transforms in the "idle" state
         SaveBoneTransforms();
+    }
+    private void HandleEndClimb()
+    {
+        if (!isTransforming)
+        {
+            animator.CrossFade(ClimbEndHash, 0.2f, 0);
+        }
+        else
+        {
+            cachedState = PlayerStateEvent.ClimbEnd;
+        }
     }
     void HandleWall(Vector3 velocity)
     {

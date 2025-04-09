@@ -32,7 +32,7 @@ public interface IMovementStateController : IStateController
     {
         //noop
     }
-    public void OnClimbEnded()
+    public void OnClimbEnd()
     {
         //noop
     }
