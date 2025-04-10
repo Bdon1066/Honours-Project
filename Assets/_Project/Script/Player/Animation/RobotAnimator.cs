@@ -198,11 +198,21 @@ public class RobotAnimator : MonoBehaviour
         //LoadBoneTransforms();
         Vector3 horizontalVelocity = new Vector3(robot.GetVelocity().x, 0, robot.GetVelocity().z);
         Vector3 verticalVelocity = new Vector3(0, robot.GetVelocity().y, 0);
+        
         print(horizontalVelocity);
-        print(verticalVelocity);
         animator.SetFloat(speedHash, horizontalVelocity.magnitude,0.1f,Time.deltaTime);
+        float horizontalVelocityFloat = horizontalVelocity.x + horizontalVelocity.z;
+
+        if (robot.transform.forward == Vector3.forward)
+        {
+            horizontalVelocityFloat = -horizontalVelocityFloat;
+        }
+        if (robot.transform.forward == -Vector3.right)
+        {
+            horizontalVelocityFloat = -horizontalVelocityFloat;
+        }
         animator.SetFloat(verticalWallSpeedHash, verticalVelocity.y,0.1f,Time.deltaTime);
-        animator.SetFloat(horizontalWallSpeedHash,horizontalVelocity.x,0.1f,Time.deltaTime);
+        animator.SetFloat(horizontalWallSpeedHash,horizontalVelocityFloat,0.1f,Time.deltaTime);
     }
     
     void HandleJump(Vector3 momentum)

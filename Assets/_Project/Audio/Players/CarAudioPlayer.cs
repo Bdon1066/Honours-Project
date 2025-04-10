@@ -47,6 +47,7 @@ public class CarAudioPlayer : MonoBehaviour
         Impact.setParameterByName("Speed", normalizedImpactSpeed);
 
         Impact.start();
+        print("CAR Audio!");
 
         //PlayOneShot(carAudio.impact,other.GetContact(0).point);
     }
@@ -72,6 +73,7 @@ public class CarAudioPlayer : MonoBehaviour
     private void HandleLand(Vector3 velocity)
     {
         PlayOneShot(carAudio.land, gameObject);
+        print("CAR LAND Audio!");
     }
 
     private void HandleTransformToRobot()
@@ -91,7 +93,9 @@ public class CarAudioPlayer : MonoBehaviour
 
     void Update()
     {
+        if (!playAudio) return;
         Engine.setParameterByName("Acceleration", carMode.normalizedSpeed);
+        print("CAR ENGINE Audio!");
     }
 
     void PlayOneShot(EventReference eventRef,GameObject gameObject)

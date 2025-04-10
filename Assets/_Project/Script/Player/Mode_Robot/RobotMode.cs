@@ -77,10 +77,11 @@ public class RobotMode : BaseMode, IMovementStateController
     
     public event Action ToCar = delegate { };
     public event Action ToRobot = delegate { };
-    public override Vector3 GetVelocity() => rb.velocity;
-    public Vector3 GetHorizontalVelocity() => horizontalVelocityThisFrame;
-    public override Transform GetRootBone() => rootBone;
-    public override void SetPosition(Vector3 position) => tr.transform.position = position; 
+    public override Vector3   GetVelocity()                 => rb.velocity;
+    public          Vector3   GetHorizontalVelocity()       => horizontalVelocityThisFrame;
+    public          Vector3   GetVerticalVelocity()       => verticalVelocityThisFrame;
+    public override Transform GetRootBone()                 => rootBone;
+    public override void      SetPosition(Vector3 position) => tr.transform.position = position; 
     
     void ShowModel() => model.SetActive(true);
     void HideModel() => model.SetActive(false);
@@ -127,7 +128,7 @@ public class RobotMode : BaseMode, IMovementStateController
         At(rising, grounded, new FuncPredicate(() => groundSpring.InContact() && !IsGroundTooSteep()));
         At(rising, falling, new FuncPredicate(() => IsFalling()));
 
-        At(wall, grounded, new FuncPredicate(() => groundSpring.InContact()));
+        At(wall, grounded, new FuncPredicate(() => groundSpring.InContact() && input.Direction.y <= 0));
         At(wall, jumping, new FuncPredicate(() => (jumpIsPressed || jumpWasPressed)  && !jumpInputLocked));
         At(wall, falling, new FuncPredicate(() => !wallSpring.InContact()));
         
@@ -304,11 +305,18 @@ public class RobotMode : BaseMode, IMovementStateController
         //add movement force to our velocity this frame
         horizontalVelocityThisFrame += force;
         horizontalVelocityThisFrame.y = 0;
+        
 
     }
     void SetRBRotation()
     {
-        if (stateMachine.CurrentState is WallState) return;
+        Quaternion targetRotation;
+        
+        if (stateMachine.CurrentState is WallState)
+        {
+            rb.rotation = Quaternion.FromToRotation(tr.forward,-wallSpring.ContactNormal()) * transform.rotation;
+            return;
+        }
         
         Vector3 horizontalMovement = new Vector3(rb.velocity.x, 0, rb.velocity.z);
         //if no velocity, don't rotate
@@ -319,7 +327,7 @@ public class RobotMode : BaseMode, IMovementStateController
         Vector3 lookDirection = new Vector3(rb.velocity.x, 0, rb.velocity.z).normalized;
         
         //create a target rotation in that direction
-        Quaternion targetRotation = Quaternion.LookRotation(lookDirection, Vector3.up);
+        targetRotation = Quaternion.LookRotation(lookDirection, Vector3.up);
         //lerp toward that rotation via rotateSpeed
         rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, rotateSpeed * Time.fixedDeltaTime);
     }
@@ -353,7 +361,8 @@ public class RobotMode : BaseMode, IMovementStateController
         if (stateMachine.CurrentState is not WallState) return;
 
         Vector3 moveDirection = GetWallMoveDirection();
-        Vector3 maxMoveVelocity = Vector3.Scale(moveDirection*maxWallSpeed, new Vector3(horizontalWallSpeedScale, 1, 1));
+        Vector3 wallDirection = -wallSpring.ContactNormal();
+        Vector3 maxMoveVelocity = Vector3.Scale(moveDirection*maxWallSpeed, new Vector3(horizontalWallSpeedScale, 1, horizontalWallSpeedScale));
         
         //set our velocity step to move towards our max velocity over acceleration
         velocityStep = Vector3.MoveTowards(velocityStep, maxMoveVelocity, wallAcceleration * Time.fixedDeltaTime);
@@ -365,14 +374,18 @@ public class RobotMode : BaseMode, IMovementStateController
         accelerationStep = Vector3.ClampMagnitude(accelerationStep, maxWallAccelerationForce);
         
         //create a force, removing all force in the z direction
-        Vector3 force = Vector3.Scale(accelerationStep * rb.mass,new Vector3(1,1,0)) ;
-
+        Vector3 force = Vector3.Scale(accelerationStep*rb.mass, new Vector3(1, 1, 1));
+        
+        force = Utils.RemoveDotVector(force,wallDirection);
         //add movement force to our velocity this frame
         verticalVelocityThisFrame.y += force.y;
         horizontalVelocityThisFrame.x += force.x;
+        horizontalVelocityThisFrame.z += force.z;
+
+      
         //horizontalVelocityThisFrame.z = 0;
         //horizontalVelocityThisFrame.x *= 0.1f;
-        
+
     }
     void ApplyVelocity()
     {
@@ -441,6 +454,7 @@ public class RobotMode : BaseMode, IMovementStateController
     
     public void OnGroundContactRegained()
     {
+        print("Landed");
         postApexGravityMultiplier = 1f;
         OnLand.Invoke(velocityThisFrame);
     }
@@ -450,6 +464,7 @@ public class RobotMode : BaseMode, IMovementStateController
         rb.velocity = Vector3.zero;
         OnWall.Invoke(velocityThisFrame);
         groundSpring.enableSpring = true;
+        print("StartingWall!");
     }
     public void OnClimbEnd()
     {

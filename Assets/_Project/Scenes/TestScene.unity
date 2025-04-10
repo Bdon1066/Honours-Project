@@ -420,7 +420,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   input: {fileID: 11400000, guid: 0049de2aa9e2d5645a1711574415abbd, type: 2}
   transformDuration: 0.75
-  transformCooldownDuration: 0.3
+  transformCooldownDuration: 0.25
   modes:
   - {fileID: 1379686232}
   - {fileID: 1601825004}
@@ -5989,7 +5989,7 @@ MonoBehaviour:
   postApexGravity: 2
   gravity: 9.8
   maxWallSpeed: 4
-  horizontalWallSpeedScale: 0.2
+  horizontalWallSpeedScale: 0.4
   wallAcceleration: 100
   maxWallAccelerationForce: 50
   climbCutOffSensorLength: 1.96

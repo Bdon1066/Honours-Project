@@ -25,8 +25,10 @@ public class GroundSpring : MonoBehaviour
     Vector3 rayStartPosition;
     
     
-    public bool InContact() =>  groundSensor.HasDetectedHit() && enableSpring;
-    public Vector3 ContactNormal() =>  groundSensor.GetNormal();
+    public bool    InContact()       =>  groundSensor.HasDetectedHit() && enableSpring;
+    public Vector3 ContactNormal()   =>  groundSensor.GetNormal();
+    public Vector3 ContactPosition() =>  groundSensor.GetPosition();
+    public Transform ContactTransform() =>  groundSensor.GetTransform();
 
     public bool enableSpring = true;
 
