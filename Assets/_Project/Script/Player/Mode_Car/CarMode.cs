@@ -53,7 +53,8 @@ public class CarMode : BaseMode, IMovementStateController
     [Range(0.2f, 1f)] public float dampingZeta;
     public float wheelRadius = 0.33f;
     float dampingStrength;
-
+    [Header("In Air")]
+    public float inAirMaxAngle = 30f;
     [HideInInspector] public float normalizedSpeed;
     [Header("Debug Settings")]
     public bool debugMode;
@@ -216,6 +217,7 @@ public class CarMode : BaseMode, IMovementStateController
 
     void HandleMovement()
     {
+        
         float accelerationInput = input.Direction.y;
         float steeringInput = input.Direction.x;
 
@@ -237,7 +239,11 @@ public class CarMode : BaseMode, IMovementStateController
             }
 
             //If we arent grounded dont apply steering or acceleration forces
-            if (stateMachine.CurrentState is not GroundedState) return;
+            if (stateMachine.CurrentState is not GroundedState)
+            {
+                HandleInAir(accelerationInput);
+                return;
+            }
 
             //we want steering force on all wheels,the lateral force on the wheels that works agaisnt sliding
             HandleSteering(axles[i].leftWheel, axles[i]);
@@ -259,6 +265,24 @@ public class CarMode : BaseMode, IMovementStateController
         {
         rb.velocity = Vector3.Lerp(rb.velocity, Vector3.zero, 0.1f);
         }
+    }
+    void HandleInAir(float verticalInput)
+    {
+        if (rb.velocity == Vector3.zero) return;
+        Quaternion fallRotation;
+        //if not grounded rotate to velocity direction
+        //var angle = Vector3.Angle(rb.velocity.normalized, Vector3.down);
+        //print(angle);
+        
+        fallRotation = Quaternion.Slerp(tr.rotation, Quaternion.LookRotation(rb.velocity), 0.1f);
+        
+        float inputAngle = verticalInput * inAirMaxAngle;
+        Quaternion targetRotation = Quaternion.Euler(inputAngle, tr.rotation.eulerAngles.y, tr.rotation.eulerAngles.z);
+       
+        tr.rotation = Quaternion.Slerp(tr.localRotation, fallRotation, 0.1f);
+  
+       
+      
     }
     void HandleSuspension(WheelRay wheelRay)
     {
@@ -465,6 +489,8 @@ public class CarMode : BaseMode, IMovementStateController
     public void OnGroundContactRegained()
     {
         OnLand.Invoke(rb.velocity);
+       // transform.rotation = Quaternion.LookRotation(-rb.velocity);
+
     }
 }
 

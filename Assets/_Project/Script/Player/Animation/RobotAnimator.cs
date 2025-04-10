@@ -30,7 +30,8 @@ public class RobotAnimator : MonoBehaviour
     Animator animator;
 
     static readonly int speedHash = Animator.StringToHash("Speed");
-    static readonly int wallSpeedHash = Animator.StringToHash("WallSpeed");
+    static readonly int verticalWallSpeedHash = Animator.StringToHash("VerticalWallSpeed");
+    static readonly int horizontalWallSpeedHash = Animator.StringToHash("HorizontalWallSpeed");
     
     private static readonly int JumpHash = Animator.StringToHash("Jumping");
     private static readonly int FallHash = Animator.StringToHash("Fall");
@@ -197,8 +198,11 @@ public class RobotAnimator : MonoBehaviour
         //LoadBoneTransforms();
         Vector3 horizontalVelocity = new Vector3(robot.GetVelocity().x, 0, robot.GetVelocity().z);
         Vector3 verticalVelocity = new Vector3(0, robot.GetVelocity().y, 0);
+        print(horizontalVelocity);
+        print(verticalVelocity);
         animator.SetFloat(speedHash, horizontalVelocity.magnitude,0.1f,Time.deltaTime);
-        animator.SetFloat(wallSpeedHash, verticalVelocity.magnitude,0.1f,Time.deltaTime);
+        animator.SetFloat(verticalWallSpeedHash, verticalVelocity.y,0.1f,Time.deltaTime);
+        animator.SetFloat(horizontalWallSpeedHash,horizontalVelocity.x,0.1f,Time.deltaTime);
     }
     
     void HandleJump(Vector3 momentum)
