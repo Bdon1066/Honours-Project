@@ -34,8 +34,8 @@ public class RobotMode : BaseMode, IMovementStateController
     [Header("Ground")]
     public float maxSpeed = 10f;
     public float rotateSpeed = 10f;
-    public float acceleration = 100f;
-    public float maxAccelerationForce = 50f;
+    public float groundAcceleration = 100f;
+    public float maxGroundAccelerationForce = 150f;
     public float slopeLimit = 45f;
 
     [Header("Jump")]
@@ -59,11 +59,8 @@ public class RobotMode : BaseMode, IMovementStateController
 
     bool jumpInputLocked, jumpLetGo, jumpIsPressed,jumpWasPressed,jumpVelocityAdded;
 
-    Vector3 velocityThisFrame;
-    Vector3 verticalVelocityThisFrame;
-    Vector3 horizontalVelocityThisFrame;
-    Vector3 velocityStep;
-
+    Vector3 velocityThisFrame, verticalVelocityThisFrame, horizontalVelocityThisFrame, velocityStep;
+    
     [Header("Debug")]
     public bool debugMode;
     bool isEnabled;
@@ -77,11 +74,11 @@ public class RobotMode : BaseMode, IMovementStateController
     
     public event Action ToCar = delegate { };
     public event Action ToRobot = delegate { };
-    public override Vector3   GetVelocity()                 => rb.velocity;
-    public          Vector3   GetHorizontalVelocity()       => horizontalVelocityThisFrame;
-    public          Vector3   GetVerticalVelocity()       => verticalVelocityThisFrame;
-    public override Transform GetRootBone()                 => rootBone;
-    public override void      SetPosition(Vector3 position) => tr.transform.position = position; 
+    public override Vector3 GetVelocity() => rb.velocity;
+    public Vector3 GetHorizontalVelocity() => horizontalVelocityThisFrame;
+    public Vector3 GetVerticalVelocity() => verticalVelocityThisFrame;
+    public override Transform GetRootBone() => rootBone;
+    public override void SetPosition(Vector3 position) => tr.transform.position = position; 
     
     void ShowModel() => model.SetActive(true);
     void HideModel() => model.SetActive(false);
@@ -136,10 +133,8 @@ public class RobotMode : BaseMode, IMovementStateController
         
         At(climbEnd, wall, new FuncPredicate(() => !AtTopOfClimb() && wallSpring.InContact()));
         At(climbEnd, falling, new FuncPredicate(() => !wallSpring.InContact()));
-       
-
+        
         stateMachine.SetState(falling);
-       
     }
     private void HandleStateChange(IState obj)
     {
@@ -211,20 +206,21 @@ public class RobotMode : BaseMode, IMovementStateController
 
     void HandleMovement()
     {
-        ResetVelocity();
+        ResetVelocityThisFrame();
 
         groundSpring.CheckForGround();
         wallSpring.CheckForGround();
         CheckClimbCutoff();
         
         SetRBRotation();
+        
         if (stateMachine.CurrentState is WallState)
         {
             HandleWallMovement();
         }
         else if (stateMachine.CurrentState is ClimbEndState)
         {
-            HandleClimbEnd();
+            HandleClimbEndMovement();
         }
         else
         {
@@ -238,35 +234,44 @@ public class RobotMode : BaseMode, IMovementStateController
 
         ResetJumpKeys();
     }
-    private void HandleClimbEnd()
+    void HandleWallMovement()
     {
-        //move forward and upwards to reach over the wall
-        Vector3 moveDirection = tr.up + tr.forward;
-        //move with a boost of speed
-        Vector3 maxMoveVelocity = moveDirection*maxWallSpeed*postClimbBoost;
+        Vector3 moveDirection = GetWallMoveDirection();
         Vector3 wallDirection = -wallSpring.ContactNormal();
-        
-        //set our velocity step to move towards our max velocity over acceleration
-        velocityStep = Vector3.MoveTowards(velocityStep, maxMoveVelocity, wallAcceleration * Time.fixedDeltaTime);
-        
-        //create an acceleration step from our velocity step
-        Vector3 accelerationStep = (velocityStep - rb.velocity) / Time.fixedDeltaTime;
-        
-        //clamp our acceleration to prevent abnormally high values
-        accelerationStep = Vector3.ClampMagnitude(accelerationStep, maxWallAccelerationForce);
+        Vector3 maxMoveVelocity = Vector3.Scale(moveDirection*maxWallSpeed, new Vector3(horizontalWallSpeedScale, 1, horizontalWallSpeedScale));
         
         //create a force
-        Vector3 force = accelerationStep * rb.mass;
+        Vector3 force = CreateForce(maxMoveVelocity, wallAcceleration, maxWallAccelerationForce);
         
+        //remove forces in direction facing the wall
         force = Utils.RemoveDotVector(force,wallDirection);
+        
         //add movement force to our velocity this frame
         verticalVelocityThisFrame.y += force.y;
         horizontalVelocityThisFrame.x += force.x;
         horizontalVelocityThisFrame.z += force.z;
 
         //enable ground detection when our vertical move direction is negative
-        //groundSpring.enableSpring = (moveDirection.y < 0);
-
+        groundSpring.enableSpring = (moveDirection.y < 0);
+        
+    }
+    private void HandleClimbEndMovement()
+    {
+        //move forward and upwards to reach over the wall
+        Vector3 moveDirection = tr.up + tr.forward;
+        //move with a boost of speed
+        Vector3 maxMoveVelocity = moveDirection*(maxWallSpeed*postClimbBoost);
+        Vector3 wallDirection = -wallSpring.ContactNormal();
+        
+        Vector3 force = CreateForce(maxMoveVelocity, wallAcceleration, maxWallAccelerationForce);
+        //remove forces in direction facing the wall
+        force = Utils.RemoveDotVector(force,wallDirection);
+        
+        //add movement force to our velocity this frame
+        verticalVelocityThisFrame.y += force.y;
+        horizontalVelocityThisFrame.x += force.x;
+        horizontalVelocityThisFrame.z += force.z;
+        
     }
     private void CheckClimbCutoff()
     {
@@ -279,41 +284,53 @@ public class RobotMode : BaseMode, IMovementStateController
         climbCutoffSensor.Cast(0.25f);
 
     }
-
-
-    void ResetVelocity()
+    void ResetVelocityThisFrame()
     {
         velocityThisFrame = Vector3.zero;
         horizontalVelocityThisFrame = Vector3.zero;
         verticalVelocityThisFrame = Vector3.zero;
     }
-
     void HandleHorizontalMovement()
     {
         Vector3 moveDirection = GetMovementDirection();
         Vector3 maxMoveVelocity = moveDirection * maxSpeed;
         
-        //set our velocity step to move towards our max velocity over acceleration
-        velocityStep = Vector3.MoveTowards(velocityStep, maxMoveVelocity, acceleration * Time.fixedDeltaTime);
+        //create a force, removing all force in the y direction
+        Vector3 force = CreateForce(maxMoveVelocity,groundAcceleration,maxGroundAccelerationForce,new Vector3(1,0,1));
+
+        //add movement force to our velocity this frame
+        horizontalVelocityThisFrame += force;
+    }
+    Vector3 CreateForce(Vector3 maxVelocity, float acceleration, float maxAcceleration, Vector3 forceScale)
+    {
+        velocityStep = Vector3.MoveTowards(velocityStep, maxVelocity, acceleration * Time.fixedDeltaTime);
         
         //create an acceleration step from our velocity step
         Vector3 accelerationStep = (velocityStep - rb.velocity) / Time.fixedDeltaTime;
         
         //clamp our acceleratiopn to prevent abnormally high values
-        accelerationStep = Vector3.ClampMagnitude(accelerationStep, maxAccelerationForce);
+        accelerationStep = Vector3.ClampMagnitude(accelerationStep, maxAcceleration);
         
         //create a force, removing all force in the y direction
-        Vector3 force = Vector3.Scale(accelerationStep * rb.mass,new Vector3(1,0,1)) ;
-
-        //add movement force to our velocity this frame
-        horizontalVelocityThisFrame += force;
-        horizontalVelocityThisFrame.y = 0;
+        return Vector3.Scale(accelerationStep * rb.mass,forceScale);
+    }
+    Vector3 CreateForce(Vector3 maxVelocity, float acceleration, float maxAcceleration)
+    {
+        velocityStep = Vector3.MoveTowards(velocityStep, maxVelocity, acceleration * Time.fixedDeltaTime);
         
-
+        //create an acceleration step from our velocity step
+        Vector3 accelerationStep = (velocityStep - rb.velocity) / Time.fixedDeltaTime;
+        
+        //clamp our acceleratiopn to prevent abnormally high values
+        accelerationStep = Vector3.ClampMagnitude(accelerationStep, maxAcceleration);
+        
+        //create a force, removing all force in the y direction
+        return accelerationStep * rb.mass;
     }
     void SetRBRotation()
     {
         Quaternion targetRotation;
+        if (stateMachine.CurrentState is ClimbEndState) return;
         
         if (stateMachine.CurrentState is WallState)
         {
@@ -361,36 +378,7 @@ public class RobotMode : BaseMode, IMovementStateController
         if (stateMachine.CurrentState is WallState) return;
         verticalVelocityThisFrame.y -= gravity * rb.mass * postApexGravityMultiplier;
     }
-    void HandleWallMovement()
-    {
-        if (stateMachine.CurrentState is not WallState) return;
-
-        Vector3 moveDirection = GetWallMoveDirection();
-        Vector3 wallDirection = -wallSpring.ContactNormal();
-        Vector3 maxMoveVelocity = Vector3.Scale(moveDirection*maxWallSpeed, new Vector3(horizontalWallSpeedScale, 1, horizontalWallSpeedScale));
-        
-        //set our velocity step to move towards our max velocity over acceleration
-        velocityStep = Vector3.MoveTowards(velocityStep, maxMoveVelocity, wallAcceleration * Time.fixedDeltaTime);
-        
-        //create an acceleration step from our velocity step
-        Vector3 accelerationStep = (velocityStep - rb.velocity) / Time.fixedDeltaTime;
-        
-        //clamp our acceleration to prevent abnormally high values
-        accelerationStep = Vector3.ClampMagnitude(accelerationStep, maxWallAccelerationForce);
-        
-        //create a force
-        Vector3 force = accelerationStep * rb.mass;
-        
-        force = Utils.RemoveDotVector(force,wallDirection);
-        //add movement force to our velocity this frame
-        verticalVelocityThisFrame.y += force.y;
-        horizontalVelocityThisFrame.x += force.x;
-        horizontalVelocityThisFrame.z += force.z;
-
-        //enable ground detection when our vertical move direction is negative
-        groundSpring.enableSpring = (moveDirection.y < 0);
-        
-    }
+    
     void ApplyVelocity()
     {
         //MAYBE REMOVE THIS, COULD CAUSE CRAZINESS
@@ -465,7 +453,9 @@ public class RobotMode : BaseMode, IMovementStateController
     {
        // verticalVelocityThisFrame.y = 0;
         rb.velocity = Vector3.zero;
-        ResetVelocity();
+        postApexGravityMultiplier = 1f;
+        groundSpring.enableSpring = false;
+        ResetVelocityThisFrame();
         OnWall.Invoke(velocityThisFrame);
         print("StartingWall!");
     }
