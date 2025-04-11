@@ -12,6 +12,7 @@ public class RobotAudioPlayer : MonoBehaviour
     public RobotAudioSheet robotAudio;
 
     public Transform footstepPosition;
+    public Transform wallStepPosition;
     public CollisionReader robotCollision;
     
     public float minImpactSpeed = 1f;
@@ -24,8 +25,14 @@ public class RobotAudioPlayer : MonoBehaviour
         robotMode.OnLand += HandleLand;
         robotMode.ToCar += HandleTransformToCar;
         robotMode.ToRobot += HandleTransformToRobot;
+        robotMode.OnWall += HandleLand;
+        robotMode.OnEndClimb += HandleClimbEnd;
         
         robotCollision.OnCollision += HandleCollision;
+    }
+    void HandleClimbEnd()
+    {
+        PlayOneShot(robotAudio.climbEnd, robotMode.gameObject);
     }
 
     private void HandleCollision(Collision other)
@@ -68,6 +75,11 @@ public class RobotAudioPlayer : MonoBehaviour
     {
         if (robotMode.GetVelocity().magnitude < 0.1f)  return;
         PlayOneShot(robotAudio.footsteps, footstepPosition.gameObject);
+    }
+    public void HandleWallStep()
+    {
+        if (robotMode.GetVelocity().magnitude < 0.1f)  return;
+        PlayOneShot(robotAudio.wallsteps, wallStepPosition.gameObject);
     }
 
     void PlayOneShot(EventReference eventRef,GameObject gameObject)

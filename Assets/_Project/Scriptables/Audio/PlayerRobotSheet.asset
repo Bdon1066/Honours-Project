@@ -19,6 +19,13 @@ MonoBehaviour:
       Data3: -1661867341
       Data4: 1186142442
     Path: event:/Robot/Footsteps 2
+  wallsteps:
+    Guid:
+      Data1: -1613776590
+      Data2: 1130067037
+      Data3: -1267261269
+      Data4: -1554104994
+    Path: event:/Robot/WallClimbStep
   jump:
     Guid:
       Data1: 933988686
@@ -40,3 +47,10 @@ MonoBehaviour:
       Data3: 524922278
       Data4: 535083376
     Path: event:/Transform
+  climbEnd:
+    Guid:
+      Data1: 1171637078
+      Data2: 1251059466
+      Data3: -1196861033
+      Data4: -1132256377
+    Path: event:/Robot/WallClimbEnd
