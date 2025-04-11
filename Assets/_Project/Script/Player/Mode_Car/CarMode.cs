@@ -199,7 +199,6 @@ public class CarMode : BaseMode, IMovementStateController
     private void UpdateCOM()
     {
         rb.centerOfMass = centerOfMass;
-       
     }
 
     private void HandleTransformingMovement()

@@ -66,6 +66,7 @@ public class RobotAudioPlayer : MonoBehaviour
 
     public void HandleFootstep()
     {
+        if (robotMode.GetVelocity().magnitude < 0.1f)  return;
         PlayOneShot(robotAudio.footsteps, footstepPosition.gameObject);
     }
 
@@ -73,10 +74,12 @@ public class RobotAudioPlayer : MonoBehaviour
     {
         if (!playAudio) return;
         RuntimeManager.PlayOneShotAttached(eventRef,gameObject);
+        print("Playing audio: "+ eventRef);
     }
     void PlayOneShot(EventReference eventRef,Vector3 position)
     {
         if (!playAudio) return;
         RuntimeManager.PlayOneShot(eventRef,position);
+        print("Playing audio: "+ eventRef);
     }
 }
