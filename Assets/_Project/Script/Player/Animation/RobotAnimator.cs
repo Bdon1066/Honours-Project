@@ -138,7 +138,7 @@ public class RobotAnimator : MonoBehaviour
     {
         if (!isTransforming)
         {
-            animator.CrossFade(animHash, normalizedTransitionDuration, layer);
+            animator.CrossFadeInFixedTime(animHash, normalizedTransitionDuration, layer);
         }
         else
         {

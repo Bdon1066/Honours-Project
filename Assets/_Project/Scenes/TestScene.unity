@@ -5981,8 +5981,8 @@ MonoBehaviour:
   cameraTransform: {fileID: 1688028427}
   maxSpeed: 15
   rotateSpeed: 10
-  acceleration: 100
-  maxAccelerationForce: 150
+  groundAcceleration: 100
+  maxGroundAccelerationForce: 150
   slopeLimit: 45
   maxJumpHeight: 4
   maxJumpTime: 1
@@ -5994,6 +5994,9 @@ MonoBehaviour:
   maxWallAccelerationForce: 50
   climbCutOffSensorLength: 1.96
   postClimbBoost: 5
+  maxWallJumpHeight: 4
+  maxWallJumpTime: 1
+  horizontalWallJumpSpeed: 2000
   postTransformVelocityMultiplier: 1
   debugMode: 0
   isTransforming: 0
@@ -13018,7 +13021,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 1d122e4458f17994784f843162ac291d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

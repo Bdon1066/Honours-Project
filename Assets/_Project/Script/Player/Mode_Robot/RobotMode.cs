@@ -54,10 +54,14 @@ public class RobotMode : BaseMode, IMovementStateController
     public float maxWallAccelerationForce = 50f;
     public float climbCutOffSensorLength;
     public float postClimbBoost = 5f;
+    [Header("Wall Jump")]
+    public float maxWallJumpHeight = 1f;
+    public float maxWallJumpTime = 0.5f;
+    public float horizontalWallJumpSpeed = 10f;
     [Header("Transforming")]
     public float postTransformVelocityMultiplier = 2f;
 
-    bool jumpInputLocked, jumpLetGo, jumpIsPressed,jumpWasPressed,jumpVelocityAdded;
+    bool jumpInputLocked, jumpLetGo, jumpIsPressed,jumpWasPressed,jumpVelocityAdded,wallJumpVelocityAdded;
 
     Vector3 velocityThisFrame, verticalVelocityThisFrame, horizontalVelocityThisFrame, velocityStep;
     
@@ -94,7 +98,7 @@ public class RobotMode : BaseMode, IMovementStateController
         wallSpring.AwakeGroundSpring();
        
         SetupStateMachine();
-        SetupJumpParameters();
+        SetupJumpParameters(maxJumpHeight,maxJumpTime);
         
         HideModel();
     }
@@ -108,31 +112,35 @@ public class RobotMode : BaseMode, IMovementStateController
         var rising = new RisingState(this);
         var wall = new WallState(this);
         var climbEnd = new ClimbEndState(this);
+        var wallJumping = new WallJumpingState(this);
 
         //When at grounded state, we will go to rising state when IsRising is true
         At(grounded, rising, new FuncPredicate(() => !groundSpring.InContact() && IsRising()));
-        At(grounded, wall, new FuncPredicate(() => wallSpring.InContact() && input.Direction.y > 0));
+        At(grounded, wall, new FuncPredicate(() => IsOnWall() && !NegativeYInput()));
         At(grounded, falling, new FuncPredicate(() => !groundSpring.InContact()));
         At(grounded, jumping, new FuncPredicate(() => (jumpIsPressed || jumpWasPressed)  && !jumpInputLocked));
 
         At(jumping, rising, new FuncPredicate(() => jumpVelocityAdded));
+        At(wallJumping, rising, new FuncPredicate(() => wallJumpVelocityAdded));
         
         At(falling, rising, new FuncPredicate(() => IsRising()));
-        At(falling, wall, new FuncPredicate(() => wallSpring.InContact() && !groundSpring.InContact()));
+        At(falling, wall, new FuncPredicate(() => IsOnWall() && !groundSpring.InContact()));
+        At(falling, climbEnd, new FuncPredicate(() => AtTopOfClimb() && !groundSpring.InContact()));
         At(falling, grounded, new FuncPredicate(() => groundSpring.InContact() && !IsGroundTooSteep()));
 
-        At(rising, wall, new FuncPredicate(() => wallSpring.InContact() && !groundSpring.InContact()));
+        At(rising, wall, new FuncPredicate(() => IsOnWall() && !groundSpring.InContact() && !wallJumpVelocityAdded));
+        At(rising, climbEnd, new FuncPredicate(() => AtTopOfClimb() && !groundSpring.InContact()));
         At(rising, grounded, new FuncPredicate(() => groundSpring.InContact() && !IsGroundTooSteep()));
         At(rising, falling, new FuncPredicate(() => IsFalling()));
 
-        At(wall, grounded, new FuncPredicate(() => groundSpring.InContact() && input.Direction.y <= 0));
-        At(wall, jumping, new FuncPredicate(() => (jumpIsPressed || jumpWasPressed)  && !jumpInputLocked));
+        At(wall, grounded, new FuncPredicate(() => groundSpring.InContact() && NegativeYInput()));
         At(wall, falling, new FuncPredicate(() => !wallSpring.InContact()));
+        At(wall, climbEnd, new FuncPredicate(() => AtTopOfClimb() && !NegativeYInput()));
         
-        At(wall, climbEnd, new FuncPredicate(() => AtTopOfClimb() && input.Direction.y > 0));
-        
-        At(climbEnd, wall, new FuncPredicate(() => !AtTopOfClimb() && wallSpring.InContact()));
+        At(climbEnd, wall, new FuncPredicate(() => IsOnWall()));
         At(climbEnd, falling, new FuncPredicate(() => !wallSpring.InContact()));
+        
+        At(wall, wallJumping, new FuncPredicate(() => (jumpIsPressed || jumpWasPressed)  && !jumpInputLocked));
         
         stateMachine.SetState(falling);
     }
@@ -145,7 +153,11 @@ public class RobotMode : BaseMode, IMovementStateController
     bool IsRising()                                       => Utils.GetDotProduct(rb.velocity, tr.up) > 0f;
     bool IsFalling()                                      => Utils.GetDotProduct(rb.velocity, tr.up) < 0f;
     bool IsGroundTooSteep()                               => !groundSpring.InContact() || Vector3.Angle(groundSpring.ContactNormal(), tr.up) > slopeLimit;
-    bool AtTopOfClimb() => !climbCutoffSensor.HasDetectedHit();
+    bool AtTopOfClimb() => !climbCutoffSensor.HasDetectedHit() && wallSpring.InContact();
+    bool IsOnWall() => climbCutoffSensor.HasDetectedHit() && wallSpring.InContact();
+
+    bool NegativeYInput() => input.Direction.y <= 0;
+    
     public override void EnterMode(Vector3 entryVelocity)
     {
         //add our previous mode velocity to this rb
@@ -228,6 +240,7 @@ public class RobotMode : BaseMode, IMovementStateController
         }
         
         HandleJumping();
+        HandleWallJumping();
         HandleGravity();
         
         ApplyVelocity();
@@ -353,13 +366,13 @@ public class RobotMode : BaseMode, IMovementStateController
         
         rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, rotateSpeed * Time.fixedDeltaTime);
     }
-    private void SetupJumpParameters()
+    private void SetupJumpParameters(float jumpHeight,float jumpTime)
     {
-        float timeToApex = maxJumpTime / 2;
+        float timeToApex = jumpTime / 2;
 
         //calculate  force of gravity and speed needed to achieve our jumpHeight over maxJumpTime
-        gravity = (2 * maxJumpHeight) / Mathf.Pow(timeToApex, 2);
-        initalJumpSpeed = (2 * maxJumpHeight) / timeToApex;
+        gravity = (2 * jumpHeight) / Mathf.Pow(timeToApex, 2);
+        initalJumpSpeed = (2 * jumpHeight) / timeToApex;
     }
     void HandleJumping()
     {
@@ -368,10 +381,28 @@ public class RobotMode : BaseMode, IMovementStateController
         jumpInputLocked = true;
         groundSpring.enableSpring = false;
 
-        SetupJumpParameters();
+        SetupJumpParameters(maxJumpHeight, maxJumpTime);
 
         verticalVelocityThisFrame.y = (initalJumpSpeed/Time.fixedDeltaTime) * rb.mass;
+        
         jumpVelocityAdded = true;
+    }
+    void HandleWallJumping()
+    {
+        if (stateMachine.CurrentState is not WallJumpingState) return;
+        
+        jumpInputLocked = true;
+        wallSpring.enableSpring = false;
+
+        SetupJumpParameters(maxWallJumpHeight, maxWallJumpTime);
+        
+        Vector3 moveDirection = wallSpring.ContactNormal();
+        Vector3 horizontalWallJumpVelocity = moveDirection * horizontalWallJumpSpeed;
+        
+        verticalVelocityThisFrame.y = (initalJumpSpeed/Time.fixedDeltaTime) * rb.mass;
+        //horizontalVelocityThisFrame = horizontalWallJumpVelocity * rb.mass;
+        rb.AddForce(wallSpring.ContactNormal() * horizontalWallJumpSpeed * rb.mass * Time.fixedDeltaTime, ForceMode.Impulse);
+        wallJumpVelocityAdded = true;
     }
     void HandleGravity()
     {
@@ -433,12 +464,18 @@ public class RobotMode : BaseMode, IMovementStateController
         jumpInputLocked = true;
         OnJump.Invoke(velocityThisFrame);
     }
+    public void OnWallJumpStart()
+    {
+        jumpInputLocked = true;
+        OnJump.Invoke(velocityThisFrame);
+    }
     public void OnFallStart() 
     {
         jumpVelocityAdded = false;
+        wallJumpVelocityAdded = false;
         groundSpring.enableSpring = true;
         postApexGravityMultiplier = postApexGravity;
-
+        wallSpring.enableSpring = true;
         OnFall.Invoke(velocityThisFrame);
 
     }
@@ -463,17 +500,4 @@ public class RobotMode : BaseMode, IMovementStateController
     {
         OnEndClimb.Invoke();
     }
-    void OnDrawGizmos()
-    { 
-       
-        //CheckClimbCutoff();
-        //#if  UNITY_EDITOR
-        //using (new Handles.DrawingScope(Color.green))
-        //{
-        //    Handles.DrawLine(climbCutOff.transform.position, climbCutOff.transform.position + climbCutOffSensorLength * climbCutoffSensor.GetCastDirection(), 5f);
-        //}
-        //SceneView.RepaintAll();
-        //#endif
-    }
-    
 }

@@ -74,12 +74,12 @@ public class RobotAudioPlayer : MonoBehaviour
     {
         if (!playAudio) return;
         RuntimeManager.PlayOneShotAttached(eventRef,gameObject);
-        print("Playing audio: "+ eventRef);
+        //print("Playing audio: "+ eventRef);
     }
     void PlayOneShot(EventReference eventRef,Vector3 position)
     {
         if (!playAudio) return;
         RuntimeManager.PlayOneShot(eventRef,position);
-        print("Playing audio: "+ eventRef);
+        //print("Playing audio: "+ eventRef);
     }
 }
