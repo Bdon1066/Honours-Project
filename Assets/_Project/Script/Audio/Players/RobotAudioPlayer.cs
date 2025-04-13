@@ -19,6 +19,8 @@ public class RobotAudioPlayer : MonoBehaviour
     public float maxImpactSpeed = 30f;
 
     bool playAudio = true;
+
+    public EventInstance Land;
     void Awake()
     {
         robotMode.OnJump += HandleJump;
@@ -63,7 +65,20 @@ public class RobotAudioPlayer : MonoBehaviour
 
     private void HandleLand(Vector3 velocity)
     {
-        PlayOneShot(robotAudio.land, footstepPosition.gameObject.transform.position);
+        Land = RuntimeManager.CreateInstance(robotAudio.land);
+        RuntimeManager.AttachInstanceToGameObject(Land, footstepPosition.gameObject);
+       
+        if (robotMode.IsHeavyLanding())
+        {
+           // PlayOneShot(robotAudio.land, footstepPosition.gameObject.transform.position);
+            Land.setParameterByName("Force", 2);
+            Land.start();
+        }
+        else
+        {
+            Land.setParameterByName("Force", 0);
+            Land.start();
+        }
     }
 
     private void HandleJump(Vector3 velocity)
@@ -80,6 +95,7 @@ public class RobotAudioPlayer : MonoBehaviour
     {
         if (robotMode.GetVelocity().magnitude < 0.1f)  return;
         PlayOneShot(robotAudio.wallsteps, wallStepPosition.gameObject);
+        print("wall step");
     }
 
     void PlayOneShot(EventReference eventRef,GameObject gameObject)
@@ -92,6 +108,6 @@ public class RobotAudioPlayer : MonoBehaviour
     {
         if (!playAudio) return;
         RuntimeManager.PlayOneShot(eventRef,position);
-        //print("Playing audio: "+ eventRef);
+       // print("Playing audio: "+ eventRef);
     }
 }

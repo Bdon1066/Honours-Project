@@ -38,6 +38,10 @@ public interface IMovementStateController : IStateController
     }
     public void OnWallJumpStart()
     {
+        //noop
+    }
+    public void OnHeavyLandStart()
+    {
         
     }
 

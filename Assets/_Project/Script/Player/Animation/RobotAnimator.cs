@@ -36,6 +36,7 @@ public class RobotAnimator : MonoBehaviour
     private static readonly int JumpHash = Animator.StringToHash("Jumping");
     private static readonly int FallHash = Animator.StringToHash("Fall");
     private static readonly int LandHash = Animator.StringToHash("Land");
+    private static readonly int HeavyLandHash = Animator.StringToHash("HeavyLand");
     private static readonly int ClimbHash = Animator.StringToHash("Climb");
     private static readonly int ClimbEndHash = Animator.StringToHash("ClimbEnd");
     private static readonly int LocomotionHash = Animator.StringToHash("Locomotion");
@@ -51,7 +52,7 @@ public class RobotAnimator : MonoBehaviour
 
     PlayerStateEvent cachedState;
 
-    enum PlayerStateEvent {Locomotion,Fall,Land,Jump,Climb,ClimbEnd}
+    enum PlayerStateEvent {Locomotion,Fall,Land,HeavyLand,Jump,Climb,ClimbEnd}
 
     void Start() 
     {
@@ -156,7 +157,14 @@ public class RobotAnimator : MonoBehaviour
     }
     void HandleLand(Vector3 momentum)
     {
-        PlayOrCacheAnimation(LocomotionHash,0.2f,0);
+        if (robot.IsHeavyLanding())
+        {
+            PlayOrCacheAnimation(HeavyLandHash,0.2f,0);
+        }
+        else
+        {
+            PlayOrCacheAnimation(LocomotionHash,0.2f,0);
+        }
     }
     void HandleEndClimb()
     {
@@ -215,6 +223,9 @@ public class RobotAnimator : MonoBehaviour
             case PlayerStateEvent.ClimbEnd:
                 animator.CrossFade(ClimbEndHash, 0.1f, 0);
                 break;
+            case PlayerStateEvent.HeavyLand:
+                animator.CrossFade(HeavyLandHash, 0.1f, 0);
+                break;
         }
         cachedState = PlayerStateEvent.Locomotion;
     }
@@ -234,6 +245,8 @@ public class RobotAnimator : MonoBehaviour
                 return PlayerStateEvent.Climb;
             case var value when value == ClimbEndHash:
                 return PlayerStateEvent.ClimbEnd;
+            case var value when value == HeavyLandHash:
+                return PlayerStateEvent.HeavyLand;
             default:
                 return PlayerStateEvent.Locomotion;
         }

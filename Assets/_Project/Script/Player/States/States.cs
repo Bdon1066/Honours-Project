@@ -127,6 +127,21 @@ public class WallJumpingState : IState
     }
 
 }
+public class HeavyLandedState : IState
+{
+    readonly IMovementStateController controller;
+    public HeavyLandedState(IMovementStateController controller)
+    {
+        this.controller = controller;
+    }
+
+    public void OnEnter()
+    {
+        controller.OnGroundContactRegained();
+        controller.OnHeavyLandStart();
+    }
+
+}
 /// <summary>
 /// A state when we have finihsed transforming and need to slide with our previous modes velocity
 /// </summary>

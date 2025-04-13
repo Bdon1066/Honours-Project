@@ -1,4 +1,5 @@
 using System;
+using ImprovedTimers;
 using UnityEngine;
 using UnityEditor;
 
@@ -28,6 +29,8 @@ public class RobotMode : BaseMode, IMovementStateController
 
     Transform fromModeTr;
 
+    private CountdownTimer heavyLandTimer;
+
     //MOVEMENT PROPERTIES 
     
     [Header("Movement")]
@@ -37,14 +40,15 @@ public class RobotMode : BaseMode, IMovementStateController
     public float groundAcceleration = 100f;
     public float maxGroundAccelerationForce = 150f;
     public float slopeLimit = 45f;
-
     [Header("Jump")]
-    public float maxJumpHeight = 2f;
+    public float maxJumpHeight = 2f;                                 
     public float maxJumpTime = 1f;
     [Range(0.5f, 4)] public float postApexGravity = 1.5f;
     float postApexGravityMultiplier;
     float initalJumpSpeed;
-
+    [Header("Landing")]
+    public float heavyLandThreshold = 30f;
+    public float heavyLandTime = 0.2f;
     [Header("In Air")]
     public float gravity = 9.8f;
     [Header("Wall")]
@@ -93,6 +97,8 @@ public class RobotMode : BaseMode, IMovementStateController
         rb = tr.GetComponent<Rigidbody>();
         col = tr.GetComponent<CapsuleCollider>();
         input = playerController.input;
+
+        heavyLandTimer = new CountdownTimer(heavyLandTime);
         
         groundSpring.AwakeGroundSpring();
         wallSpring.AwakeGroundSpring();
@@ -113,6 +119,7 @@ public class RobotMode : BaseMode, IMovementStateController
         var wall = new WallState(this);
         var climbEnd = new ClimbEndState(this);
         var wallJumping = new WallJumpingState(this);
+        var heavyLanded = new HeavyLandedState(this);
 
         //When at grounded state, we will go to rising state when IsRising is true
         At(grounded, rising, new FuncPredicate(() => !groundSpring.InContact() && IsRising()));
@@ -126,8 +133,11 @@ public class RobotMode : BaseMode, IMovementStateController
         At(falling, rising, new FuncPredicate(() => IsRising()));
         At(falling, wall, new FuncPredicate(() => IsOnWall() && !groundSpring.InContact()));
         At(falling, climbEnd, new FuncPredicate(() => AtTopOfClimb() && !groundSpring.InContact()));
-        At(falling, grounded, new FuncPredicate(() => groundSpring.InContact() && !IsGroundTooSteep()));
-
+        At(falling, grounded, new FuncPredicate(() => groundSpring.InContact() && !IsGroundTooSteep()&& !IsHeavyLanding()));
+        At(falling, heavyLanded, new FuncPredicate(() => groundSpring.InContact() && !IsGroundTooSteep() && IsHeavyLanding()));
+        
+        At(heavyLanded, grounded, new FuncPredicate(() => groundSpring.InContact() && !IsGroundTooSteep() && heavyLandTimer.IsFinished));
+        
         At(rising, wall, new FuncPredicate(() => IsOnWall() && !groundSpring.InContact() && !wallJumpVelocityAdded));
         At(rising, climbEnd, new FuncPredicate(() => AtTopOfClimb() && !groundSpring.InContact()));
         At(rising, grounded, new FuncPredicate(() => groundSpring.InContact() && !IsGroundTooSteep()));
@@ -155,6 +165,8 @@ public class RobotMode : BaseMode, IMovementStateController
     bool IsGroundTooSteep()                               => !groundSpring.InContact() || Vector3.Angle(groundSpring.ContactNormal(), tr.up) > slopeLimit;
     bool AtTopOfClimb() => !climbCutoffSensor.HasDetectedHit() && wallSpring.InContact();
     bool IsOnWall() => climbCutoffSensor.HasDetectedHit() && wallSpring.InContact();
+    
+    public bool IsHeavyLanding() => Mathf.Abs(rb.velocity.y) >= heavyLandThreshold;
 
     bool NegativeYInput() => input.Direction.y <= 0;
     
@@ -234,17 +246,16 @@ public class RobotMode : BaseMode, IMovementStateController
         {
             HandleClimbEndMovement();
         }
-        else
+        else if (stateMachine.CurrentState is not HeavyLandedState)
         {
             HandleHorizontalMovement();
         }
-        
         HandleJumping();
         HandleWallJumping();
         HandleGravity();
         
         ApplyVelocity();
-
+        //print(rb.velocity.y);
         ResetJumpKeys();
     }
     void HandleWallMovement()
@@ -484,7 +495,8 @@ public class RobotMode : BaseMode, IMovementStateController
     {
         print("Landed");
         postApexGravityMultiplier = 1f;
-        OnLand.Invoke(velocityThisFrame);
+        OnLand.Invoke(rb.velocity);
+        print(velocityThisFrame.magnitude);
     }
     public void OnWallStart()
     {
@@ -499,5 +511,10 @@ public class RobotMode : BaseMode, IMovementStateController
     public void OnClimbEnd()
     {
         OnEndClimb.Invoke();
+    }
+    public void OnHeavyLandStart()
+    {
+        heavyLandTimer.Start();
+        rb.velocity = Vector3.zero;
     }
 }
