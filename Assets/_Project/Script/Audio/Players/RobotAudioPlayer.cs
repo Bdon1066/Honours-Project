@@ -27,7 +27,7 @@ public class RobotAudioPlayer : MonoBehaviour
         robotMode.OnLand += HandleLand;
         robotMode.ToCar += HandleTransformToCar;
         robotMode.ToRobot += HandleTransformToRobot;
-        robotMode.OnWall += HandleLand;
+        robotMode.OnWall += HandleWall;
         robotMode.OnEndClimb += HandleClimbEnd;
         
         robotCollision.OnCollision += HandleCollision;
@@ -63,27 +63,25 @@ public class RobotAudioPlayer : MonoBehaviour
         playAudio = false;
     }
 
-    private void HandleLand(Vector3 velocity)
+    private void HandleLand(LandForce landForce)
     {
         Land = RuntimeManager.CreateInstance(robotAudio.land);
         RuntimeManager.AttachInstanceToGameObject(Land, footstepPosition.gameObject);
+
+        float force = (float)landForce;
        
-        if (robotMode.IsHeavyLanding())
-        {
-           // PlayOneShot(robotAudio.land, footstepPosition.gameObject.transform.position);
-            Land.setParameterByName("Force", 2);
-            Land.start();
-        }
-        else
-        {
-            Land.setParameterByName("Force", 0);
-            Land.start();
-        }
+        Land.setParameterByName("Force", force);
+        Land.start();
+        Land.release();
     }
 
     private void HandleJump(Vector3 velocity)
     {
         PlayOneShot(robotAudio.jump,  robotMode.gameObject);
+    }
+    private void HandleWall(Vector3 velocity)
+    {
+        PlayOneShot(robotAudio.land,  robotMode.gameObject);
     }
 
     public void HandleFootstep()

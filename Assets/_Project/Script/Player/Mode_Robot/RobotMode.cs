@@ -3,7 +3,7 @@ using ImprovedTimers;
 using UnityEngine;
 using UnityEditor;
 
-
+public enum LandForce{Light,Medium,Heavy}
 public class RobotMode : BaseMode, IMovementStateController
 {
     //MODE PROPERTIES
@@ -44,11 +44,15 @@ public class RobotMode : BaseMode, IMovementStateController
     public float maxJumpHeight = 2f;                                 
     public float maxJumpTime = 1f;
     [Range(0.5f, 4)] public float postApexGravity = 1.5f;
+    public float maxWallJumpHeight = 1f;
+    public float maxWallJumpTime = 0.5f;
+    public float horizontalWallJumpSpeed = 10f;
     float postApexGravityMultiplier;
     float initalJumpSpeed;
     [Header("Landing")]
     public float heavyLandThreshold = 30f;
     public float heavyLandTime = 0.2f;
+    public float mediumLandThreshold = 30f;
     [Header("In Air")]
     public float gravity = 9.8f;
     [Header("Wall")]
@@ -58,10 +62,6 @@ public class RobotMode : BaseMode, IMovementStateController
     public float maxWallAccelerationForce = 50f;
     public float climbCutOffSensorLength;
     public float postClimbBoost = 5f;
-    [Header("Wall Jump")]
-    public float maxWallJumpHeight = 1f;
-    public float maxWallJumpTime = 0.5f;
-    public float horizontalWallJumpSpeed = 10f;
     [Header("Transforming")]
     public float postTransformVelocityMultiplier = 2f;
 
@@ -76,7 +76,7 @@ public class RobotMode : BaseMode, IMovementStateController
     
     public event Action<Vector3> OnJump = delegate { };
     public event Action<Vector3> OnFall = delegate { };
-    public event Action<Vector3> OnLand = delegate { };
+    public event Action<LandForce> OnLand = delegate { };
     public event Action<Vector3> OnWall = delegate { };
     public event Action OnEndClimb = delegate { };
     
@@ -166,9 +166,10 @@ public class RobotMode : BaseMode, IMovementStateController
     bool AtTopOfClimb() => !climbCutoffSensor.HasDetectedHit() && wallSpring.InContact();
     bool IsOnWall() => climbCutoffSensor.HasDetectedHit() && wallSpring.InContact();
     
-    public bool IsHeavyLanding() => Mathf.Abs(rb.velocity.y) >= heavyLandThreshold;
+    bool IsHeavyLanding() => Mathf.Abs(rb.velocity.y) >= heavyLandThreshold;
 
-    bool NegativeYInput() => input.Direction.y <= 0;
+    bool IsMediumLanding() => Mathf.Abs(rb.velocity.y) >= mediumLandThreshold && !IsHeavyLanding();
+    bool        NegativeYInput() => input.Direction.y <= 0;
     
     public override void EnterMode(Vector3 entryVelocity)
     {
@@ -495,8 +496,21 @@ public class RobotMode : BaseMode, IMovementStateController
     {
         print("Landed");
         postApexGravityMultiplier = 1f;
-        OnLand.Invoke(rb.velocity);
+        OnLand.Invoke(DetermineLandForce());
         print(velocityThisFrame.magnitude);
+    }
+    private LandForce DetermineLandForce()
+    {
+        if (IsHeavyLanding())
+        {
+            return LandForce.Heavy;
+        }
+        if (IsMediumLanding())
+        {
+            return LandForce.Medium;
+        }
+          
+        return LandForce.Light;
     }
     public void OnWallStart()
     {

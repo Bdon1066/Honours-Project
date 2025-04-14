@@ -442,6 +442,17 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""67738061-192a-45a5-ab10-4b5727ce8803"",
+                    ""path"": ""<Gamepad>/start"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Pause"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""f4048f56-4643-49a6-bc29-676d214038f7"",
                     ""path"": ""<Keyboard>/shift"",
                     ""interactions"": """",

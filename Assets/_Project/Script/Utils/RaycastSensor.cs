@@ -1,7 +1,3 @@
-using System;
-using Unity.VisualScripting.FullSerializer;
-using UnityEditor;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public enum CastDirection {Forward, Right, Up, Backward, Left, Down }

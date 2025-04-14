@@ -27,9 +27,11 @@ public class RobotAnimator : MonoBehaviour
 {
     [SerializeField] PlayerController playerController;
     [SerializeField] RobotMode robot;
+    
     Animator animator;
 
     static readonly int speedHash = Animator.StringToHash("Speed");
+    static readonly int landSpeedHash = Animator.StringToHash("LandSpeed");
     static readonly int verticalWallSpeedHash = Animator.StringToHash("VerticalWallSpeed");
     static readonly int horizontalWallSpeedHash = Animator.StringToHash("HorizontalWallSpeed");
     
@@ -45,6 +47,7 @@ public class RobotAnimator : MonoBehaviour
     private static readonly int ToRobotHash = Animator.StringToHash("TransformToRobot");
 
     private CountdownTimer transformTimer;
+    private CountdownTimer mediumLandTimer;
     
     Dictionary<Transform, BoneTransform> boneTransformDict = new Dictionary<Transform, BoneTransform>();
 
@@ -53,6 +56,7 @@ public class RobotAnimator : MonoBehaviour
     PlayerStateEvent cachedState;
 
     enum PlayerStateEvent {Locomotion,Fall,Land,HeavyLand,Jump,Climb,ClimbEnd}
+    
 
     void Start() 
     {
@@ -72,10 +76,13 @@ public class RobotAnimator : MonoBehaviour
         //despicable hard coded string reference thank you unity
         transformTimer = new CountdownTimer( GetAnimStateTime("transform_to_main"));
         transformTimer.OnTimerStop += OnTransformFinished;
+        mediumLandTimer = new CountdownTimer( GetAnimStateTime("Land"));
+        mediumLandTimer.OnTimerStop += OnMediumLandFinished;
         
         //Save our bone transforms in the "idle" state
         SaveBoneTransforms();
     }
+   
     float GetAnimStateTime(string name)
     {
         RuntimeAnimatorController ac = animator.runtimeAnimatorController;
@@ -120,6 +127,7 @@ public class RobotAnimator : MonoBehaviour
         Vector3 verticalVelocity = new Vector3(0, robot.GetVelocity().y, 0);
         
         animator.SetFloat(speedHash, horizontalVelocity.magnitude,0.1f,Time.deltaTime);
+        animator.SetFloat(landSpeedHash, horizontalVelocity.magnitude,0.1f,Time.deltaTime);
         
         float horizontalVelocityFloat = horizontalVelocity.x + horizontalVelocity.z;
 
@@ -155,16 +163,25 @@ public class RobotAnimator : MonoBehaviour
     {
         PlayOrCacheAnimation(FallHash,0.3f,0);
     }
-    void HandleLand(Vector3 momentum)
+    void HandleLand(LandForce landForce)
     {
-        if (robot.IsHeavyLanding())
+        switch (landForce)
         {
-            PlayOrCacheAnimation(HeavyLandHash,0.2f,0);
+            case LandForce.Light:
+                PlayOrCacheAnimation(LocomotionHash,0.2f,0);
+                break;
+            case LandForce.Medium:
+                PlayOrCacheAnimation(LandHash,0.1f,0);
+                mediumLandTimer.Start();
+                break;
+            case LandForce.Heavy:
+                PlayOrCacheAnimation(HeavyLandHash,0.2f,0);
+                break;
         }
-        else
-        {
-            PlayOrCacheAnimation(LocomotionHash,0.2f,0);
-        }
+    }
+    void OnMediumLandFinished()
+    {
+        PlayOrCacheAnimation(LocomotionHash,0.2f,0);
     }
     void HandleEndClimb()
     {
