@@ -181,7 +181,10 @@ public class RobotAnimator : MonoBehaviour
     }
     void OnMediumLandFinished()
     {
-        PlayOrCacheAnimation(LocomotionHash,0.2f,0);
+        if (robot.stateMachine.CurrentState is GroundedState)
+        {
+            PlayOrCacheAnimation(LocomotionHash,0.2f,0);
+        }
     }
     void HandleEndClimb()
     {

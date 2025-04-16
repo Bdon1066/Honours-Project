@@ -12,7 +12,7 @@ public class RobotMode : BaseMode, IMovementStateController
     CapsuleCollider col;
    
     InputReader input;
-    StateMachine stateMachine;
+    public StateMachine stateMachine { get; private set; }
     
     [Header("References")]
     [SerializeField] GameObject model;
@@ -33,6 +33,8 @@ public class RobotMode : BaseMode, IMovementStateController
     private CountdownTimer heavyLandTimer;
 
     private CountdownTimer postTransformTimer;
+    
+    CountdownTimer jumpTimer;
 
     //MOVEMENT PROPERTIES 
     
@@ -95,10 +97,12 @@ public class RobotMode : BaseMode, IMovementStateController
     void ShowModel() => model.SetActive(true);
     void HideModel() => model.SetActive(false);
 
+    bool IsJumpPressed() => jumpIsPressed || jumpWasPressed;
+
     float GetPostApexGravityMultiplier()
     {
         //if we are falling, or we are rising and have stopped holding jump, start falling with higher gravity
-        bool notHoldingJump = stateMachine.CurrentState is RisingState && !jumpIsPressed && !jumpWasPressed;
+        bool notHoldingJump = stateMachine.CurrentState is RisingState && !IsJumpPressed();
         
         return (stateMachine.CurrentState is FallingState || notHoldingJump) ?  postApexGravity : 1f;
         
@@ -115,6 +119,7 @@ public class RobotMode : BaseMode, IMovementStateController
         heavyLandTimer = new CountdownTimer(heavyLandTime);
         //adding the transform anim time (0.75f) to the time, as it's called while transforming
         postTransformTimer = new CountdownTimer(postTransformTime + 0.75f);
+        //jumpTimer = new CountdownTimer(0.2=f);
         
         groundSpring.AwakeGroundSpring();
         wallSpring.AwakeGroundSpring();
@@ -410,6 +415,7 @@ public class RobotMode : BaseMode, IMovementStateController
     }
     void HandleJumping()
     {
+        //if (jumpVelocityAdded || !jumpTimer.IsFinished) return;
         if (stateMachine.CurrentState is not JumpingState) return;
 
         jumpInputLocked = true;
@@ -420,6 +426,7 @@ public class RobotMode : BaseMode, IMovementStateController
         verticalVelocityThisFrame.y = (initalJumpSpeed/Time.fixedDeltaTime) * rb.mass;
         
         jumpVelocityAdded = true;
+        //jumpTimer.Start();
     }
     void HandleWallJumping()
     {

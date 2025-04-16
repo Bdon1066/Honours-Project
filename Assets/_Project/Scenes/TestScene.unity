@@ -397,7 +397,7 @@ Transform:
   m_GameObject: {fileID: 28009196}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 15.34, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -6734,6 +6734,7 @@ MonoBehaviour:
   climbCutOffSensorLength: 1.96
   postClimbBoost: 5
   postTransformVelocityMultiplier: 1
+  postTransformTime: 0.5
   debugMode: 0
   isTransforming: 0
 --- !u!114 &1379686234
@@ -7590,7 +7591,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1601825003
 Transform:
   m_ObjectHideFlags: 0
