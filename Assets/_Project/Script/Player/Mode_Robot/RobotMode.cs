@@ -235,7 +235,7 @@ public class RobotMode : BaseMode, IMovementStateController
         if (stateMachine.CurrentState is WallState)
         {
            HandleJumpInput(true);
-           rb.position += new Vector3(0,5,0);
+           rb.position += new Vector3(0,2.5f,0);
         }
         if (stateMachine.CurrentState is ClimbEndState)
         {
