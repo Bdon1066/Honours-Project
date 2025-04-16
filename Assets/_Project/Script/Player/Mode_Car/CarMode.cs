@@ -72,6 +72,9 @@ public class CarMode : BaseMode, IMovementStateController
     public event Action OnEnter = delegate { };
     public event Action<Vector3> OnLand = delegate { };
     
+    public bool IsBraking => isBraking;
+    public bool IsAccelerating => isAccelerating;
+    
    
     
     public override Vector3 GetVelocity() => rb.velocity;
@@ -102,8 +105,6 @@ public class CarMode : BaseMode, IMovementStateController
         isTransforming = false;
 
         rb.velocity = entryVelocity;
-        //entryDirection = new Vector3(rb.velocity.normalized.x, entryDirection.x, entryDirection.z);
-        //rb.rotation = Quaternion.LookRotation(entryDirection, Vector3.up);
         ShowModel();
 
         input.Brake += HandleBrakeInput;
@@ -255,11 +256,11 @@ public class CarMode : BaseMode, IMovementStateController
             HandleBraking(axles[i].leftWheel);
             HandleBraking(axles[i].rightWheel);
         }
-    
+        
         //slow to a stop if under teeny weeny velocities to stop idle sliding
-        if (Mathf.Abs(rb.velocity.magnitude) < 0.01f)
+        if (Mathf.Abs(rb.velocity.magnitude) < 0.1f && !(isAccelerating ^ isBraking))
         {
-        rb.velocity = Vector3.Lerp(rb.velocity, Vector3.zero, 0.1f);
+            rb.velocity = Vector3.zero;
         }
     }
     void HandleInAir(float verticalInput)
@@ -442,14 +443,17 @@ public class CarMode : BaseMode, IMovementStateController
         Vector3 reverseForce = -accelerationDirection * reverseTorque;
 
         //Acceleration
-        if (isAccelerating)
+        if (isAccelerating && !isBraking)
         {
+            print("ACCELERATE");
             //create force in the wheel forward direction from our torque
             rb.AddForceAtPosition(acclerationForce, wheelRay.tr.position);
         }
+        
         //Reverse
-        if (isBraking)
+        if (isBraking && !isAccelerating)
         {
+            print("REVERSE");
             //create force in the wheel forward direction from our torque
             rb.AddForceAtPosition(reverseForce, wheelRay.tr.position);
         }
@@ -471,7 +475,7 @@ public class CarMode : BaseMode, IMovementStateController
         float brakeDecceleration = velocityChange / Time.fixedDeltaTime;
 
         //if is braking
-        if (isBraking && forwardVelocity > 0)
+        if (isBraking && forwardVelocity >= 0)
         {
             rb.AddForceAtPosition(forwardDirection * brakeDecceleration, wheelRay.tr.position);
         }

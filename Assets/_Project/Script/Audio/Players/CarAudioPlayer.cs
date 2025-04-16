@@ -94,8 +94,11 @@ public class CarAudioPlayer : MonoBehaviour
     void Update()
     {
         if (!playAudio) return;
-        Engine.setParameterByName("Acceleration", carMode.normalizedSpeed);
-        print("CAR ENGINE Audio!");
+        if (carMode.IsGrounded())
+        {
+            Engine.setParameterByName("Acceleration", carMode.normalizedSpeed);
+        }
+        
     }
 
     void PlayOneShot(EventReference eventRef,GameObject gameObject)
