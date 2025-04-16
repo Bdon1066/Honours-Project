@@ -6720,9 +6720,9 @@ MonoBehaviour:
   maxJumpHeight: 4
   maxJumpTime: 1
   postApexGravity: 2
-  maxWallJumpHeight: 4
-  maxWallJumpTime: 1
-  horizontalWallJumpSpeed: 1500
+  maxWallJumpHeight: 2
+  maxWallJumpTime: 0.5
+  horizontalWallJumpSpeed: 0.5
   heavyLandThreshold: 25
   heavyLandTime: 0.7
   mediumLandThreshold: 15
