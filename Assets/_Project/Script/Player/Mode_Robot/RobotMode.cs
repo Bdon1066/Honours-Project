@@ -434,6 +434,7 @@ public class RobotMode : BaseMode, IMovementStateController
             targetRotation = Quaternion.LookRotation(lookDirection, Vector3.up);
             //lerp toward that rotation via rotateSpeed
         }
+       
         
         rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, rotateSpeed * Time.fixedDeltaTime);
     }

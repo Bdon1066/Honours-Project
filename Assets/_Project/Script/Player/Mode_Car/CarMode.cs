@@ -8,7 +8,7 @@ public class CarMode : BaseMode, IMovementStateController
     #region Fields
 
     Transform tr;
-    Rigidbody rb;
+    [HideInInspector]public Rigidbody rb;
     BoxCollider col;
     InputReader input;
     StateMachine stateMachine;
