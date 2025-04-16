@@ -23,8 +23,8 @@ public class GroundSpring : MonoBehaviour
     public float springDampening = 100f;
     
     Vector3 rayStartPosition;
-    
-    
+
+    public bool extendSensor = true;
     public bool    InContact()       =>  groundSensor.HasDetectedHit() && enableSpring;
     public Vector3 ContactNormal()   =>  groundSensor.GetNormal();
     public Vector3 ContactPosition() =>  groundSensor.GetPosition();
@@ -107,11 +107,19 @@ public class GroundSpring : MonoBehaviour
         
         //null assigment operator, if we dont have a sensor, make one, else use the one that exists
         groundSensor ??= new RaycastSensor(tr,layerMask);
-        
-       
-        
-        groundSensor.SetCastOrigin(rayStartPosition);
-        groundSensor.SetCastDirection(springDirection);
-        groundSensor.castLength = springLength * tr.localScale.x;
+
+
+        if (extendSensor)
+        {
+            groundSensor.SetCastOrigin(rayStartPosition);
+            groundSensor.SetCastDirection(springDirection);
+            groundSensor.castLength = springLength * tr.localScale.x;
+        }
+        else
+        {
+            groundSensor.SetCastOrigin(rayStartPosition);
+            groundSensor.SetCastDirection(springDirection);
+            groundSensor.castLength = restDistance * tr.localScale.x;
+        }
     }
 }

@@ -148,7 +148,7 @@ public class RobotMode : BaseMode, IMovementStateController
         At(grounded, jumping, new FuncPredicate(() => jumpIsPressed  && !isJumping));
 
         At(jumping, rising, new FuncPredicate(() => isJumping));
-        At(wallJumping, rising, new FuncPredicate(() => isJumping));
+        At(wallJumping, rising, new FuncPredicate(() => isWallJumping));
         
         At(falling, rising, new FuncPredicate(() => IsRising()));
         At(falling, wall, new FuncPredicate(() => IsOnWall() && !groundSpring.InContact()));
@@ -256,7 +256,7 @@ public class RobotMode : BaseMode, IMovementStateController
         groundSpring.CheckForGround();
         wallSpring.CheckForGround();
         CheckClimbCutoff();
-        
+        wallSpring.extendSensor = true;
         SetRBRotation();
         
         if (stateMachine.CurrentState is WallState)
@@ -287,8 +287,9 @@ public class RobotMode : BaseMode, IMovementStateController
         
         HandleGravity();
         ApplyVelocity();
-        
+        groundSpring.extendSensor = stateMachine.CurrentState is not (FallingState or RisingState or JumpingState);
         ResetJump();
+        print(stateMachine.CurrentState);
     }
     void HandleWallMovement()
     {
@@ -427,7 +428,6 @@ public class RobotMode : BaseMode, IMovementStateController
         SetupJumpParameters(maxJumpHeight, maxJumpTime);
 
         verticalVelocityThisFrame.y = (initalJumpSpeed/Time.fixedDeltaTime) * rb.mass;
-        
     }
     void HandleWallJumping()
     {
@@ -467,6 +467,10 @@ public class RobotMode : BaseMode, IMovementStateController
         {
             isJumping = false;
         }
+        if (!jumpIsPressed && isWallJumping && stateMachine.CurrentState is WallState)
+        {
+            isWallJumping = false;
+        }
     }
     Vector3 GetMovementDirection()
     {
@@ -494,7 +498,6 @@ public class RobotMode : BaseMode, IMovementStateController
     }
     public void OnFallStart() 
     {
-        
         groundSpring.enableSpring = true;
         wallSpring.enableSpring = true;
         
@@ -515,12 +518,10 @@ public class RobotMode : BaseMode, IMovementStateController
         {
             return LandForce.Medium;
         }
-          
         return LandForce.Light;
     }
     public void OnWallStart()
     {
-       // verticalVelocityThisFrame.y = 0;
         rb.velocity = Vector3.zero;
         groundSpring.enableSpring = false;
         ResetVelocityThisFrame();
