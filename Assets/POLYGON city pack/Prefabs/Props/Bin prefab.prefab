@@ -190,7 +190,7 @@ MonoBehaviour:
     Path: event:/MetalImpact
   minImpactSpeed: 1
   maxImpactSpeed: 30
-  ImpactEffect: {fileID: 0}
+  ImpactEffect: {fileID: 5673466944362351720, guid: db5cb41ebbf310f408e3da38e24b180d, type: 3}
 --- !u!114 &4641605932476903816
 MonoBehaviour:
   m_ObjectHideFlags: 0

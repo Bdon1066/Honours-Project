@@ -181,7 +181,7 @@ public class CarMode : BaseMode, IMovementStateController
     bool IsFalling() => Utils.GetDotProduct(rb.velocity, tr.up) < 0f;
     void At(IState from, IState to, IPredicate condition) => stateMachine.AddTransition(from, to, condition);
     void Any(IState to, IPredicate condition) => stateMachine.AddAnyTransition(to, condition);
-    void Update() => stateMachine.Update();
+   void Update() => stateMachine.Update();
     void FixedUpdate()
     {
         UpdateCOM();
