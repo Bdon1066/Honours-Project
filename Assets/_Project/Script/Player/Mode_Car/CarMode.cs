@@ -226,10 +226,7 @@ public class CarMode : BaseMode, IMovementStateController
             //we want suspension force on all wheels 
             HandleSuspension(axles[i].leftWheel);
             HandleSuspension(axles[i].rightWheel);
-
-            //If disabled, we only want to handle suspesnion, so return
-            //if (!isEnabled) return;
-
+            
             //send our steer input to the steering axle
             if (axles[i].steering)
             {

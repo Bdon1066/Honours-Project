@@ -30,11 +30,10 @@ public class RobotMode : BaseMode, IMovementStateController
 
     Transform fromModeTr;
 
-    private CountdownTimer heavyLandTimer;
-
-    private CountdownTimer postTransformTimer;
-    
-    CountdownTimer jumpTimer;
+    CountdownTimer heavyLandTimer;
+    CountdownTimer postTransformTimer;
+    CountdownTimer postWallJumpTimer;
+    CountdownTimer postJumpTimer;
 
     //MOVEMENT PROPERTIES 
     
@@ -48,11 +47,15 @@ public class RobotMode : BaseMode, IMovementStateController
     [Header("Jump")]
     public float maxJumpHeight = 2f;                                 
     public float maxJumpTime = 1f;
+    //this is used to prevent jumping again some time after landing (specifically medium landings)
+    public float postJumpInputLockTime = 0.2f;
     [Range(0.5f, 4)] public float postApexGravity = 1.5f;
+    [Space]
     public float maxWallJumpHeight = 1f;
     public float maxWallJumpTime = 0.5f;
     public float horizontalWallJumpSpeed = 10f;
-    //float postApexGravityMultiplier;
+    //this is used to prevent horizontal input some time after wall jumping
+    public float postWallJumpInputLockTime = 0.5f;
     float initalJumpSpeed;
     [Header("Landing")]
     public float heavyLandThreshold = 30f;
@@ -60,6 +63,7 @@ public class RobotMode : BaseMode, IMovementStateController
     public float mediumLandThreshold = 30f;
     [Header("In Air")]
     public float gravity = 9.8f;
+    public float maxFallSpeed = 20f;
     [Header("Wall")]
     public float maxWallSpeed = 10f;
     [Range(0,1)] public float horizontalWallSpeedScale;
@@ -70,15 +74,15 @@ public class RobotMode : BaseMode, IMovementStateController
     [Header("Transforming")]
     public float postTransformVelocityMultiplier = 2f;
     public float postTransformTime = 0.5f;
-
+    [Header("Debug")]
+    public bool debugMode;
+    [HideInInspector] public bool isTransforming;
+    
     bool jumpIsPressed,isJumping,isWallJumping;
 
     Vector3 velocityThisFrame, verticalVelocityThisFrame, horizontalVelocityThisFrame, velocityStep;
-    
-    [Header("Debug")]
-    public bool debugMode;
     bool isEnabled;
-    public bool isTransforming;
+   
     
     public event Action<Vector3> OnJump = delegate { };
     public event Action<Vector3> OnFall = delegate { };
@@ -107,7 +111,7 @@ public class RobotMode : BaseMode, IMovementStateController
         
     }
     //prevent horizonmtal input when we are falling and the post transform timer is still running
-    bool PreventHorizontalInput() => stateMachine.CurrentState is FallingState && !postTransformTimer.IsFinished;
+    bool PreventHorizontalInput() => (stateMachine.CurrentState is FallingState && !postTransformTimer.IsFinished) || !postWallJumpTimer.IsFinished;
     public override void AwakeMode(PlayerController playerController)
     {
         tr = transform;
@@ -118,7 +122,8 @@ public class RobotMode : BaseMode, IMovementStateController
         heavyLandTimer = new CountdownTimer(heavyLandTime);
         //adding the transform anim time (0.75f) to the time, as it's called while transforming
         postTransformTimer = new CountdownTimer(postTransformTime + 0.75f);
-        //jumpTimer = new CountdownTimer(0.2=f);
+        postJumpTimer = new CountdownTimer(postJumpInputLockTime);
+        postWallJumpTimer = new CountdownTimer(postWallJumpInputLockTime);
         
         groundSpring.AwakeGroundSpring();
         wallSpring.AwakeGroundSpring();
@@ -152,7 +157,7 @@ public class RobotMode : BaseMode, IMovementStateController
         
         At(falling, rising, new FuncPredicate(() => IsRising()));
         At(falling, wall, new FuncPredicate(() => IsOnWall() && !groundSpring.InContact()));
-        At(falling, climbEnd, new FuncPredicate(() => AtTopOfClimb() && !groundSpring.InContact()));
+        //At(falling, climbEnd, new FuncPredicate(() => AtTopOfClimb() && !groundSpring.InContact()));
         At(falling, grounded, new FuncPredicate(() => groundSpring.InContact() && !IsGroundTooSteep()&& !IsHeavyLanding()));
         At(falling, heavyLanded, new FuncPredicate(() => groundSpring.InContact() && !IsGroundTooSteep() && IsHeavyLanding()));
         
@@ -168,7 +173,7 @@ public class RobotMode : BaseMode, IMovementStateController
         At(wall, climbEnd, new FuncPredicate(() => AtTopOfClimb() && !NegativeYInput()));
         
         At(climbEnd, wall, new FuncPredicate(() => IsOnWall()));
-        At(climbEnd, falling, new FuncPredicate(() => !wallSpring.InContact()));
+        At(climbEnd, falling, new FuncPredicate(() => !wallSpring.InContact() || NegativeYInput()));
         
         At(wall, wallJumping, new FuncPredicate(() =>  jumpIsPressed  && !isWallJumping));
         
@@ -186,9 +191,9 @@ public class RobotMode : BaseMode, IMovementStateController
     bool AtTopOfClimb() => !climbCutoffSensor.HasDetectedHit() && wallSpring.InContact();
     bool IsOnWall() => climbCutoffSensor.HasDetectedHit() && wallSpring.InContact();
     
-    bool IsHeavyLanding() => Mathf.Abs(rb.velocity.y) >= heavyLandThreshold;
+    bool IsHeavyLanding() => rb.velocity.y <= -heavyLandThreshold;
 
-    bool IsMediumLanding() => Mathf.Abs(rb.velocity.y) >= mediumLandThreshold && !IsHeavyLanding();
+    bool IsMediumLanding() => rb.velocity.y <= -mediumLandThreshold && !IsHeavyLanding();
     bool        NegativeYInput() => input.Direction.y <= 0;
     
     public override void EnterMode(Vector3 entryVelocity)
@@ -201,20 +206,33 @@ public class RobotMode : BaseMode, IMovementStateController
         isEnabled = true;
 
         input.Jump += HandleJumpInput;
+        ///AAAAAAAAAAAAAAAAAAAAAAAAA LOWER FRAME RATES MESS WITH THE JUMP I KNEW IT 
+        //Application.targetFrameRate = 30;
     }
     public override void TransformTo(BaseMode fromMode)
     {
         isTransforming = true;
         groundSpring.enableSpring = true;
         wallSpring.enableSpring = true;
+        
         ShowModel();
         ToRobot.Invoke();
         fromModeTr = fromMode.GetRootBone(); 
         postTransformTimer.Start();
+        HandleJumpInput(false);
     }
 
     public override void TransformFrom(BaseMode toMode)
     {
+        if (stateMachine.CurrentState is WallState)
+        {
+           HandleJumpInput(true);
+           rb.position += new Vector3(0,5,0);
+        }
+        if (stateMachine.CurrentState is ClimbEndState)
+        {
+            HandleJumpInput(true);
+        }
         ToCar.Invoke();
     }
     public override void ExitMode()
@@ -289,7 +307,6 @@ public class RobotMode : BaseMode, IMovementStateController
         ApplyVelocity();
         groundSpring.extendSensor = stateMachine.CurrentState is not (FallingState or RisingState or JumpingState);
         ResetJump();
-        print(stateMachine.CurrentState);
     }
     void HandleWallMovement()
     {
@@ -422,6 +439,7 @@ public class RobotMode : BaseMode, IMovementStateController
     }
     void HandleJumping()
     {
+        if (!postJumpTimer.IsFinished) return;
         isJumping = true;
         groundSpring.enableSpring = false;
 
@@ -442,10 +460,11 @@ public class RobotMode : BaseMode, IMovementStateController
         verticalVelocityThisFrame.y = (initalJumpSpeed/Time.fixedDeltaTime) * rb.mass;
         //horizontalVelocityThisFrame = horizontalWallJumpVelocity * rb.mass;
         rb.AddForce((horizontalWallJumpVelocity/Time.fixedDeltaTime) * rb.mass, ForceMode.Impulse);
+        postWallJumpTimer.Start();
     }
     void HandleGravity()
     {
-        if (stateMachine.CurrentState is WallState) return;
+        if (stateMachine.CurrentState is WallState or ClimbEndState) return;
         verticalVelocityThisFrame.y -= gravity * rb.mass * GetPostApexGravityMultiplier();
     }
     
@@ -516,6 +535,7 @@ public class RobotMode : BaseMode, IMovementStateController
         }
         if (IsMediumLanding())
         {
+            postJumpTimer.Start();
             return LandForce.Medium;
         }
         return LandForce.Light;

@@ -1278,6 +1278,7 @@ MonoBehaviour:
   restDistance: 2.5
   springStrength: 1000
   springDampening: 1000
+  extendSensor: 0
   enableSpring: 1
 --- !u!1 &205052886
 GameObject:
@@ -1653,6 +1654,7 @@ MonoBehaviour:
   restDistance: 0.62
   springStrength: 1000
   springDampening: 1000
+  extendSensor: 0
   enableSpring: 1
 --- !u!1 &314662722
 GameObject:
@@ -6719,20 +6721,24 @@ MonoBehaviour:
   slopeLimit: 45
   maxJumpHeight: 4
   maxJumpTime: 1
+  postJumpInputLockTime: 0.2
   postApexGravity: 2
   maxWallJumpHeight: 2
   maxWallJumpTime: 0.5
-  horizontalWallJumpSpeed: 0.5
+  horizontalWallJumpSpeed: 0.2
+  postWallJumpInputLockTime: 0.5
   heavyLandThreshold: 25
   heavyLandTime: 0.7
   mediumLandThreshold: 15
   gravity: 9.8
-  maxWallSpeed: 4
-  horizontalWallSpeedScale: 0.4
+  maxFallSpeed: 20
+  magicGravityFactor: 15
+  maxWallSpeed: 5
+  horizontalWallSpeedScale: 0.5
   wallAcceleration: 100
   maxWallAccelerationForce: 50
   climbCutOffSensorLength: 1.96
-  postClimbBoost: 5
+  postClimbBoost: 1
   postTransformVelocityMultiplier: 1
   postTransformTime: 0.5
   debugMode: 0
@@ -7591,7 +7597,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1601825003
 Transform:
   m_ObjectHideFlags: 0
