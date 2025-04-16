@@ -32,8 +32,8 @@ public class RobotMode : BaseMode, IMovementStateController
 
     CountdownTimer heavyLandTimer;
     CountdownTimer postTransformTimer;
-    CountdownTimer postWallJumpTimer;
-    CountdownTimer postJumpTimer;
+    CountdownTimer postWallJumpTimer, postJumpTimer;
+    CountdownTimer jumpCoyoteTimer, jumpBufferTimer;
 
     //MOVEMENT PROPERTIES 
     
@@ -49,6 +49,8 @@ public class RobotMode : BaseMode, IMovementStateController
     public float maxJumpTime = 1f;
     //this is used to prevent jumping again some time after landing (specifically medium landings)
     public float postJumpInputLockTime = 0.2f;
+    public float coyoteTime = 0.5f;
+    public float jumpBufferTime = 0.5f;
     [Range(0.5f, 4)] public float postApexGravity = 1.5f;
     [Space]
     public float maxWallJumpHeight = 1f;
@@ -105,10 +107,9 @@ public class RobotMode : BaseMode, IMovementStateController
     float GetPostApexGravityMultiplier()
     {
         //if we are falling, or we are rising and have stopped holding jump, start falling with higher gravity
-        bool notHoldingJump = stateMachine.CurrentState is RisingState && !jumpIsPressed;
+        bool notHoldingJump = stateMachine.CurrentState is RisingState && !IsJumpPressed();
         
-        return (stateMachine.CurrentState is FallingState || notHoldingJump) ?  postApexGravity : 1f;
-        
+        return ((stateMachine.CurrentState is FallingState & jumpCoyoteTimer.IsFinished) || notHoldingJump) ?  postApexGravity : 1f;
     }
     //prevent horizonmtal input when we are falling and the post transform timer is still running
     bool PreventHorizontalInput() => (stateMachine.CurrentState is FallingState && !postTransformTimer.IsFinished) || !postWallJumpTimer.IsFinished;
@@ -124,6 +125,8 @@ public class RobotMode : BaseMode, IMovementStateController
         postTransformTimer = new CountdownTimer(postTransformTime + 0.75f);
         postJumpTimer = new CountdownTimer(postJumpInputLockTime);
         postWallJumpTimer = new CountdownTimer(postWallJumpInputLockTime);
+        jumpCoyoteTimer = new CountdownTimer(coyoteTime);
+        jumpBufferTimer = new CountdownTimer(jumpBufferTime);
         
         groundSpring.AwakeGroundSpring();
         wallSpring.AwakeGroundSpring();
@@ -150,7 +153,10 @@ public class RobotMode : BaseMode, IMovementStateController
         At(grounded, rising, new FuncPredicate(() => !groundSpring.InContact() && IsRising()));
         At(grounded, wall, new FuncPredicate(() => IsOnWall() && !NegativeYInput()));
         At(grounded, falling, new FuncPredicate(() => !groundSpring.InContact()));
-        At(grounded, jumping, new FuncPredicate(() => jumpIsPressed  && !isJumping));
+        At(grounded, jumping, new FuncPredicate(() =>IsJumpPressed()  && !isJumping));
+        
+        //coyote jump
+        At(falling, jumping, new FuncPredicate(() => IsJumpPressed()  && !isJumping && !jumpCoyoteTimer.IsFinished) );
 
         At(jumping, rising, new FuncPredicate(() => isJumping));
         At(wallJumping, rising, new FuncPredicate(() => isWallJumping));
@@ -195,6 +201,8 @@ public class RobotMode : BaseMode, IMovementStateController
 
     bool IsMediumLanding() => rb.velocity.y <= -mediumLandThreshold && !IsHeavyLanding();
     bool        NegativeYInput() => input.Direction.y <= 0;
+
+    bool IsJumpPressed() => jumpIsPressed || !jumpBufferTimer.IsFinished;
     
     public override void EnterMode(Vector3 entryVelocity)
     {
@@ -439,6 +447,7 @@ public class RobotMode : BaseMode, IMovementStateController
     }
     void HandleJumping()
     {
+        verticalVelocityThisFrame.y = 0;
         if (!postJumpTimer.IsFinished) return;
         isJumping = true;
         groundSpring.enableSpring = false;
@@ -466,6 +475,7 @@ public class RobotMode : BaseMode, IMovementStateController
     {
         if (stateMachine.CurrentState is WallState or ClimbEndState) return;
         verticalVelocityThisFrame.y -= gravity * rb.mass * GetPostApexGravityMultiplier();
+        print(GetPostApexGravityMultiplier());
     }
     
     void ApplyVelocity()
@@ -479,7 +489,18 @@ public class RobotMode : BaseMode, IMovementStateController
       
         rb.AddForce(velocityThisFrame);
     }
-    void HandleJumpInput(bool isButtonPressed) => jumpIsPressed = isButtonPressed;
+    void HandleJumpInput(bool isButtonPressed)
+    {
+        if (stateMachine.CurrentState is FallingState && isButtonPressed)
+        {
+            jumpBufferTimer.Start();
+        }
+        else
+        {   
+            jumpIsPressed = isButtonPressed;
+        }
+     
+    }
     void ResetJump()
     {
         if (!jumpIsPressed && isJumping && stateMachine.CurrentState is GroundedState)
@@ -510,6 +531,7 @@ public class RobotMode : BaseMode, IMovementStateController
     public void OnJumpStart()
     {
         OnJump.Invoke(velocityThisFrame);
+        
     }
     public void OnWallJumpStart()
     {
@@ -519,7 +541,10 @@ public class RobotMode : BaseMode, IMovementStateController
     {
         groundSpring.enableSpring = true;
         wallSpring.enableSpring = true;
-        
+        if (!isJumping)
+        {
+            jumpCoyoteTimer.Start();
+        }
         OnFall.Invoke(velocityThisFrame);
     }
     

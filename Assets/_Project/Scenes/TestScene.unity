@@ -6722,6 +6722,8 @@ MonoBehaviour:
   maxJumpHeight: 4
   maxJumpTime: 1
   postJumpInputLockTime: 0.2
+  coyoteTime: 0.5
+  jumpBufferTime: 0.2
   postApexGravity: 2
   maxWallJumpHeight: 2
   maxWallJumpTime: 0.5
@@ -6732,7 +6734,6 @@ MonoBehaviour:
   mediumLandThreshold: 15
   gravity: 9.8
   maxFallSpeed: 20
-  magicGravityFactor: 15
   maxWallSpeed: 5
   horizontalWallSpeedScale: 0.5
   wallAcceleration: 100
