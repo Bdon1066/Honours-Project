@@ -71,7 +71,7 @@ public class RobotMode : BaseMode, IMovementStateController
     public float postTransformVelocityMultiplier = 2f;
     public float postTransformTime = 0.5f;
 
-    bool jumpInputLocked, jumpLetGo, jumpIsPressed,jumpWasPressed,jumpVelocityAdded,wallJumpVelocityAdded;
+    bool jumpIsPressed,isJumping,isWallJumping;
 
     Vector3 velocityThisFrame, verticalVelocityThisFrame, horizontalVelocityThisFrame, velocityStep;
     
@@ -96,13 +96,12 @@ public class RobotMode : BaseMode, IMovementStateController
     
     void ShowModel() => model.SetActive(true);
     void HideModel() => model.SetActive(false);
-
-    bool IsJumpPressed() => jumpIsPressed || jumpWasPressed;
+    
 
     float GetPostApexGravityMultiplier()
     {
         //if we are falling, or we are rising and have stopped holding jump, start falling with higher gravity
-        bool notHoldingJump = stateMachine.CurrentState is RisingState && !IsJumpPressed();
+        bool notHoldingJump = stateMachine.CurrentState is RisingState && !jumpIsPressed;
         
         return (stateMachine.CurrentState is FallingState || notHoldingJump) ?  postApexGravity : 1f;
         
@@ -146,10 +145,10 @@ public class RobotMode : BaseMode, IMovementStateController
         At(grounded, rising, new FuncPredicate(() => !groundSpring.InContact() && IsRising()));
         At(grounded, wall, new FuncPredicate(() => IsOnWall() && !NegativeYInput()));
         At(grounded, falling, new FuncPredicate(() => !groundSpring.InContact()));
-        At(grounded, jumping, new FuncPredicate(() => (jumpIsPressed || jumpWasPressed)  && !jumpInputLocked));
+        At(grounded, jumping, new FuncPredicate(() => jumpIsPressed  && !isJumping));
 
-        At(jumping, rising, new FuncPredicate(() => jumpVelocityAdded));
-        At(wallJumping, rising, new FuncPredicate(() => wallJumpVelocityAdded));
+        At(jumping, rising, new FuncPredicate(() => isJumping));
+        At(wallJumping, rising, new FuncPredicate(() => isJumping));
         
         At(falling, rising, new FuncPredicate(() => IsRising()));
         At(falling, wall, new FuncPredicate(() => IsOnWall() && !groundSpring.InContact()));
@@ -159,7 +158,7 @@ public class RobotMode : BaseMode, IMovementStateController
         
         At(heavyLanded, grounded, new FuncPredicate(() => groundSpring.InContact() && !IsGroundTooSteep() && heavyLandTimer.IsFinished));
         
-        At(rising, wall, new FuncPredicate(() => IsOnWall() && !groundSpring.InContact() && !wallJumpVelocityAdded));
+        At(rising, wall, new FuncPredicate(() => IsOnWall() && !groundSpring.InContact() && !isWallJumping));
         At(rising, climbEnd, new FuncPredicate(() => AtTopOfClimb() && !groundSpring.InContact()));
         At(rising, grounded, new FuncPredicate(() => groundSpring.InContact() && !IsGroundTooSteep()));
         At(rising, falling, new FuncPredicate(() => IsFalling()));
@@ -171,7 +170,7 @@ public class RobotMode : BaseMode, IMovementStateController
         At(climbEnd, wall, new FuncPredicate(() => IsOnWall()));
         At(climbEnd, falling, new FuncPredicate(() => !wallSpring.InContact()));
         
-        At(wall, wallJumping, new FuncPredicate(() => (jumpIsPressed || jumpWasPressed)  && !jumpInputLocked));
+        At(wall, wallJumping, new FuncPredicate(() =>  jumpIsPressed  && !isWallJumping));
         
         stateMachine.SetState(grounded);
     }
@@ -277,12 +276,19 @@ public class RobotMode : BaseMode, IMovementStateController
             HandleHorizontalMovement();
         }
         
-        HandleJumping();
-        HandleWallJumping();
-        HandleGravity();
+        if (stateMachine.CurrentState is JumpingState)
+        {
+            HandleJumping();
+        }
+        if (stateMachine.CurrentState is WallJumpingState)
+        {
+            HandleWallJumping();
+        }
         
+        HandleGravity();
         ApplyVelocity();
-        ResetJumpKeys();
+        
+        ResetJump();
     }
     void HandleWallMovement()
     {
@@ -415,24 +421,17 @@ public class RobotMode : BaseMode, IMovementStateController
     }
     void HandleJumping()
     {
-        //if (jumpVelocityAdded || !jumpTimer.IsFinished) return;
-        if (stateMachine.CurrentState is not JumpingState) return;
-
-        jumpInputLocked = true;
+        isJumping = true;
         groundSpring.enableSpring = false;
 
         SetupJumpParameters(maxJumpHeight, maxJumpTime);
 
         verticalVelocityThisFrame.y = (initalJumpSpeed/Time.fixedDeltaTime) * rb.mass;
         
-        jumpVelocityAdded = true;
-        //jumpTimer.Start();
     }
     void HandleWallJumping()
     {
-        if (stateMachine.CurrentState is not WallJumpingState) return;
-        
-        jumpInputLocked = true;
+        isWallJumping = true;
         wallSpring.enableSpring = false;
 
         SetupJumpParameters(maxWallJumpHeight, maxWallJumpTime);
@@ -443,7 +442,6 @@ public class RobotMode : BaseMode, IMovementStateController
         verticalVelocityThisFrame.y = (initalJumpSpeed/Time.fixedDeltaTime) * rb.mass;
         //horizontalVelocityThisFrame = horizontalWallJumpVelocity * rb.mass;
         rb.AddForce((horizontalWallJumpVelocity/Time.fixedDeltaTime) * rb.mass, ForceMode.Impulse);
-        wallJumpVelocityAdded = true;
     }
     void HandleGravity()
     {
@@ -462,27 +460,13 @@ public class RobotMode : BaseMode, IMovementStateController
       
         rb.AddForce(velocityThisFrame);
     }
-    void HandleJumpInput(bool isButtonPressed)
+    void HandleJumpInput(bool isButtonPressed) => jumpIsPressed = isButtonPressed;
+    void ResetJump()
     {
-        //print("Jump Event!");
-        if (!jumpIsPressed && isButtonPressed)
+        if (!jumpIsPressed && isJumping && stateMachine.CurrentState is GroundedState)
         {
-            jumpWasPressed = true;
+            isJumping = false;
         }
-
-        if (jumpIsPressed && !isButtonPressed)
-        {
-            jumpLetGo = true;
-            jumpInputLocked = false;
-        }
-
-        jumpIsPressed = isButtonPressed;
-
-    }
-    void ResetJumpKeys()
-    {
-        jumpLetGo = false;
-        jumpWasPressed = false;
     }
     Vector3 GetMovementDirection()
     {
@@ -502,18 +486,14 @@ public class RobotMode : BaseMode, IMovementStateController
 
     public void OnJumpStart()
     {
-        jumpInputLocked = true;
         OnJump.Invoke(velocityThisFrame);
     }
     public void OnWallJumpStart()
     {
-        jumpInputLocked = true;
         OnJump.Invoke(velocityThisFrame);
     }
     public void OnFallStart() 
     {
-        jumpVelocityAdded = false;
-        wallJumpVelocityAdded = false;
         
         groundSpring.enableSpring = true;
         wallSpring.enableSpring = true;
