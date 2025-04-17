@@ -52,6 +52,7 @@ public class CarHapticPlayer : MonoBehaviour
         {
             effects.engine.lowSpeedIntesity = car.normalizedSpeed;
         }
+
        
     }
     private void HandleLand(LandForce force)

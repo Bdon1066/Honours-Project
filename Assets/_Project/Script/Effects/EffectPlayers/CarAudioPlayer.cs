@@ -26,7 +26,9 @@ public class CarAudioPlayer : MonoBehaviour
         carMode.OnEnter += HandleCarEnter;
 
         carCollision.OnCollision += HandleCollison;
+       
     }
+    
 
     private void HandleCollison(Collision other)
     {
@@ -39,7 +41,6 @@ public class CarAudioPlayer : MonoBehaviour
         
         float normalizedImpactSpeed = Mathf.Clamp01(Mathf.Abs(impactSpeed) / maxImpactSpeed);
         
-        print(normalizedImpactSpeed);
         Impact = RuntimeManager.CreateInstance(carAudio.impact);
         //set impact to trigger at contact point
         Impact.set3DAttributes(other.GetContact(0).point.To3DAttributes());
