@@ -30,6 +30,7 @@ public class RobotHapticPlayer : MonoBehaviour
         foreach (var effect in effects.activeEffects)
         {
             effect.Tick();
+
         }
     }
     private void HandleLand(LandForce force)
