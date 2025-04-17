@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.InputSystem;
 public class RobotVFXPlayer : MonoBehaviour
 {
     [SerializeField] GameObject landVFX;
@@ -26,6 +26,7 @@ public class RobotVFXPlayer : MonoBehaviour
             Quaternion smokeRotation =  Quaternion.Euler(270f, 0.0f, 0.0f);
             
             Instantiate(smokeVFX, position, smokeRotation);
+            Gamepad.current.SetMotorSpeeds(1f, 1f);
         }
     }
 
