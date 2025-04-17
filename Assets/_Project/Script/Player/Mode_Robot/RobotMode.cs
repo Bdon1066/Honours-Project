@@ -154,7 +154,8 @@ public class RobotMode : BaseMode, IMovementStateController
         At(grounded, wall, new FuncPredicate(() => IsOnWall() && !NegativeYInput()));
         At(grounded, falling, new FuncPredicate(() => !groundSpring.InContact()));
         At(grounded, jumping, new FuncPredicate(() =>IsJumpPressed()  && !isJumping));
-        
+        At(grounded, climbEnd, new FuncPredicate(() => AtTopOfClimb() && !NegativeYInput()));
+
         //coyote jump
         At(falling, jumping, new FuncPredicate(() => IsJumpPressed()  && !isJumping && !jumpCoyoteTimer.IsFinished) );
 
@@ -507,7 +508,7 @@ public class RobotMode : BaseMode, IMovementStateController
         {
             isJumping = false;
         }
-        if (!jumpIsPressed && isWallJumping && stateMachine.CurrentState is WallState)
+        if (!jumpIsPressed && isWallJumping && stateMachine.CurrentState is WallState || !jumpIsPressed && isJumping && stateMachine.CurrentState is WallState)
         {
             isWallJumping = false;
         }
