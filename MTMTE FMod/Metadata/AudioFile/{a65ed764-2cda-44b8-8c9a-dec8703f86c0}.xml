@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{a65ed764-2cda-44b8-8c9a-dec8703f86c0}">
+		<property name="assetPath">
+			<value>Ambient and Cinematic/AMBUrbn_City Night Under Bridge Cars Tram Bus Closing Doors Birds_JSE_UAG.wav</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>96</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>194.624</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{e32368aa-96c6-43e0-b20e-8546a86a1e0b}</destination>
+		</relationship>
+	</object>
+</objects>

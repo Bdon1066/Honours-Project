@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{d9be9a9f-a749-4669-a325-00e06b38b9c1}">
+		<property name="assetPath">
+			<value>Ambient and Cinematic/DSGNRise_Riser_Chef Audio_Cinematic Sound FX_05.wav</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>5.6250625000000003</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{e32368aa-96c6-43e0-b20e-8546a86a1e0b}</destination>
+		</relationship>
+	</object>
+</objects>

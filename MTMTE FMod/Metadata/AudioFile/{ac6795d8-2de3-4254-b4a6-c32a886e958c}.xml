@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{ac6795d8-2de3-4254-b4a6-c32a886e958c}">
+		<property name="assetPath">
+			<value>Bluezone_BC0275_building_collapse_debris_falling_rock_rubble_glass_010.wav</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>96</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>2.5545</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{e32368aa-96c6-43e0-b20e-8546a86a1e0b}</destination>
+		</relationship>
+	</object>
+</objects>

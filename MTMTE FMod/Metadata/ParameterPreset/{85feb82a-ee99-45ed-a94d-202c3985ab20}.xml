@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="ParameterPreset" id="{85feb82a-ee99-45ed-a94d-202c3985ab20}">
+		<property name="name">
+			<value>Pitch</value>
+		</property>
+		<relationship name="folder">
+			<destination>{3e2d49e6-bab0-40fb-9d1f-d8839eecaa94}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{a3119024-4d68-4fc8-9c7b-72435cfe259c}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{a3119024-4d68-4fc8-9c7b-72435cfe259c}">
+		<property name="minimum">
+			<value>-12</value>
+		</property>
+		<property name="maximum">
+			<value>12</value>
+		</property>
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+		<relationship name="modulators">
+			<destination>{1d9eab4b-d4e9-48a8-bddc-69e433d5b627}</destination>
+		</relationship>
+	</object>
+	<object class="RandomizerModulator" id="{1d9eab4b-d4e9-48a8-bddc-69e433d5b627}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>cursorPosition</value>
+		</property>
+		<property name="amount">
+			<value>4.5999999</value>
+		</property>
+	</object>
+</objects>
