@@ -181,7 +181,7 @@ public class RobotMode : BaseMode, IMovementStateController
         At(climbEnd, wall, new FuncPredicate(() => IsOnWall()));
         At(climbEnd, falling, new FuncPredicate(() => !wallSpring.InContact() || NegativeYInput()));
         
-        At(wall, wallJumping, new FuncPredicate(() =>  jumpIsPressed  && !isWallJumping));
+        At(wall, wallJumping, new FuncPredicate(() => IsJumpPressed() && !isWallJumping));
         
         stateMachine.SetState(grounded);
     }
@@ -476,7 +476,6 @@ public class RobotMode : BaseMode, IMovementStateController
     {
         if (stateMachine.CurrentState is WallState or ClimbEndState) return;
         verticalVelocityThisFrame.y -= gravity * rb.mass * GetPostApexGravityMultiplier();
-        print(GetPostApexGravityMultiplier());
     }
     
     void ApplyVelocity()
@@ -555,6 +554,7 @@ public class RobotMode : BaseMode, IMovementStateController
     }
     private LandForce DetermineLandForce()
     {
+        print("Land Velocity:" + rb.velocity.y);
         if (IsHeavyLanding())
         {
             return LandForce.Heavy;
@@ -565,6 +565,7 @@ public class RobotMode : BaseMode, IMovementStateController
             return LandForce.Medium;
         }
         return LandForce.Light;
+     
     }
     public void OnWallStart()
     {

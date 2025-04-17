@@ -59,7 +59,7 @@ public class CarMode : BaseMode, IMovementStateController
     [Header("Debug Settings")]
     public bool debugMode;
     public bool useAccelerationButton;
-    bool isEnabled;
+    [HideInInspector]public bool isEnabled;
 
     bool isTransforming;
     bool isBraking;
