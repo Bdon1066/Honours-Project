@@ -8,6 +8,8 @@ public class CameraShaker : MonoBehaviour
     public CollisionReader carCollision;
     public GameObject shakyCamera;
 
+    public ScreenshakeSheet sheet;
+
     float trauma;
 
     float shakeFactor;
@@ -38,12 +40,12 @@ public class CameraShaker : MonoBehaviour
         float normalizedImpactSpeed = Mathf.Clamp01(Mathf.Abs(impactSpeed) / 20);
 
         //Shake(normalizedImpactSpeed * factor);
-      
+
     }
 
     private void HandleWall(Vector3 vector)
     {
-       // Shake(0.4f);
+        Shake(sheet.wall.shakeTrauma);
     }
 
     private void HandleLand(LandForce force)
@@ -51,13 +53,13 @@ public class CameraShaker : MonoBehaviour
         switch (force)
         {
             case LandForce.Heavy:
-                Shake(0.7f);
+                Shake(sheet.heavyLand.shakeTrauma);
                 break;
             case LandForce.Medium:
-                Shake(0.4f);
+                Shake(sheet.mediumLand.shakeTrauma);
                 break;
             case LandForce.Light:
-                Shake(0.3f);
+                Shake(sheet.lightLand.shakeTrauma);
                 break;
         }
     }
@@ -70,24 +72,22 @@ public class CameraShaker : MonoBehaviour
             ShakeCamera();
         }
 
-        
+
         if (trauma <= 0)
         {
             shakyCamera.transform.localRotation = Quaternion.identity;
         }
-
-     
     }
 
     void ShakeCamera()
     {
-        shakeFactor = Mathf.Pow(trauma,2);
+        shakeFactor = Mathf.Pow(trauma, 2);
 
         float xAngle = maxXShake * shakeFactor * Mathf.PerlinNoise(Seed(), Time.realtimeSinceStartup);
         float YAngle = maxYShake * shakeFactor * Mathf.PerlinNoise(Seed() + 1, Time.realtimeSinceStartup);
         float ZAngle = maxZShake * shakeFactor * Mathf.PerlinNoise(Seed() + 2, Time.realtimeSinceStartup);
 
-        shakyCamera.transform.localRotation =  Quaternion.Euler(xAngle, YAngle,ZAngle);
+        shakyCamera.transform.localRotation = Quaternion.Euler(xAngle, YAngle, ZAngle);
     }
 
     public void Shake(float value)
@@ -97,5 +97,6 @@ public class CameraShaker : MonoBehaviour
         trauma = Mathf.Clamp01(trauma);
 
     }
-   
+
 }
+

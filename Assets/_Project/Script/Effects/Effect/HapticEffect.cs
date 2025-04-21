@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 
-[CreateAssetMenu(fileName = "HapticEffect")]
+[CreateAssetMenu(menuName = "Effect/HapticEffect")]
 public class HapticEffect : ScriptableObject
 {
     public float lowSpeedIntesity = 1f;

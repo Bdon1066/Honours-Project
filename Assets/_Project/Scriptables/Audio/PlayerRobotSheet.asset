@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 020c932131769e64285d9473c4f11f46, type: 3}
+  m_Script: {fileID: 11500000, guid: 0a411e51181136b4ca33836b78748f0b, type: 3}
   m_Name: PlayerRobotSheet
   m_EditorClassIdentifier: 
   footsteps:

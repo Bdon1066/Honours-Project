@@ -16,8 +16,14 @@ public class RobotHapticPlayer : MonoBehaviour
     {
         robot.OnLand += HandleLand;
         robot.ToCar += HandleTransform;
+        robot.OnWall += HandleWall;
         effects.Init();
        
+    }
+
+    private void HandleWall(Vector3 vector)
+    {
+        effects.mediumLandEffect.Start();
     }
 
     private void HandleTransform()
@@ -52,6 +58,11 @@ public class RobotHapticPlayer : MonoBehaviour
     {
         if (robot.GetVelocity().magnitude < 0.1f) return;
         effects.footstepEffect.Start();
+    }
+    public void HandleWallstepHaptics()
+    {
+        if (robot.GetVelocity().magnitude < 0.1f) return;
+        effects.wallstepEffect.Start();
     }
 
     private void OnApplicationQuit()

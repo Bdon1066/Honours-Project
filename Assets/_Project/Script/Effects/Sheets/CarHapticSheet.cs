@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "CarHapticSheet")]
+[CreateAssetMenu(menuName = "Effect Sheet/CarHapticSheet")]
 public class CarHapticSheet : ScriptableObject
 {
     public HapticEffect engine;

@@ -9,12 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2bd02f75982940e4d9025225fbe4cf48, type: 3}
+  m_Script: {fileID: 11500000, guid: 0c99bd40c2dc2134ca6ee4102eacc4ae, type: 3}
   m_Name: RobotHapticSheet
   m_EditorClassIdentifier: 
   lightLandEffect: {fileID: 11400000, guid: 367655c38ae41884bb68175fff376b7b, type: 2}
   mediumLandEffect: {fileID: 11400000, guid: e6be39d25aaa57a4cb53219dce0107d3, type: 2}
   heavyLandEffect: {fileID: 11400000, guid: cd5254e2dd5992b4b91a8596354f6eb9, type: 2}
   footstepEffect: {fileID: 11400000, guid: 08e60b453a0fd724b91eae804d4271a0, type: 2}
+  wallstepEffect: {fileID: 11400000, guid: 99a3ed63f7d7d4649813f22172e395e7, type: 2}
   transform: {fileID: 11400000, guid: 46a35a1b64958ba418e377269817557d, type: 2}
   activeEffects: []
