@@ -50,6 +50,7 @@ public class RobotHapticPlayer : MonoBehaviour
     }
     public void HandleFootstepHaptics()
     {
+        if (robot.GetVelocity().magnitude < 0.1f) return;
         effects.footstepEffect.Start();
     }
 

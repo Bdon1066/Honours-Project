@@ -153,11 +153,11 @@ public class RobotMode : BaseMode, IMovementStateController
         At(grounded, rising, new FuncPredicate(() => !groundSpring.InContact() && IsRising()));
         At(grounded, wall, new FuncPredicate(() => IsOnWall() && !NegativeYInput()));
         At(grounded, falling, new FuncPredicate(() => !groundSpring.InContact()));
-        At(grounded, jumping, new FuncPredicate(() =>IsJumpPressed()  && !isJumping));
+        At(grounded, jumping, new FuncPredicate(() =>IsJumpPressed()  && !isJumping && !isWallJumping));
         At(grounded, climbEnd, new FuncPredicate(() => AtTopOfClimb() && !NegativeYInput()));
 
         //coyote jump
-        At(falling, jumping, new FuncPredicate(() => IsJumpPressed()  && !isJumping && !jumpCoyoteTimer.IsFinished) );
+        At(falling, jumping, new FuncPredicate(() => IsJumpPressed()  && !isJumping && !isWallJumping && !jumpCoyoteTimer.IsFinished) );
 
         At(jumping, rising, new FuncPredicate(() => isJumping));
         At(wallJumping, rising, new FuncPredicate(() => isWallJumping));
@@ -198,9 +198,9 @@ public class RobotMode : BaseMode, IMovementStateController
     bool AtTopOfClimb() => !climbCutoffSensor.HasDetectedHit() && wallSpring.InContact();
     bool IsOnWall() => climbCutoffSensor.HasDetectedHit() && wallSpring.InContact();
     
-    bool IsHeavyLanding() => rb.velocity.y <= -heavyLandThreshold;
+    bool IsHeavyLanding() => Utils.GetDotProduct(rb.velocity, -tr.up) >= heavyLandThreshold;
 
-    bool IsMediumLanding() => rb.velocity.y <= -mediumLandThreshold && !IsHeavyLanding();
+    bool IsMediumLanding() => Utils.GetDotProduct(rb.velocity, -tr.up) >= mediumLandThreshold && !IsHeavyLanding();
     bool        NegativeYInput() => input.Direction.y <= 0;
 
     bool IsJumpPressed() => jumpIsPressed || !jumpBufferTimer.IsFinished;
@@ -316,6 +316,7 @@ public class RobotMode : BaseMode, IMovementStateController
         ApplyVelocity();
         groundSpring.extendSensor = stateMachine.CurrentState is not (FallingState or RisingState or JumpingState);
         ResetJump();
+        print(stateMachine.CurrentState);
     }
     void HandleWallMovement()
     {
@@ -486,6 +487,10 @@ public class RobotMode : BaseMode, IMovementStateController
         {
             horizontalVelocityThisFrame = Vector3.zero;
         }
+        if (Utils.GetDotProduct(rb.velocity, -tr.up) > maxFallSpeed)
+        {
+            verticalVelocityThisFrame = Vector3.zero;
+        }
         velocityThisFrame = horizontalVelocityThisFrame + verticalVelocityThisFrame;
       
         rb.AddForce(velocityThisFrame);
@@ -495,6 +500,7 @@ public class RobotMode : BaseMode, IMovementStateController
         if (stateMachine.CurrentState is FallingState && isButtonPressed)
         {
             jumpBufferTimer.Start();
+            jumpIsPressed = isButtonPressed;
         }
         else
         {   
@@ -504,11 +510,12 @@ public class RobotMode : BaseMode, IMovementStateController
     }
     void ResetJump()
     {
+        print(isWallJumping);
         if (!jumpIsPressed && isJumping && stateMachine.CurrentState is GroundedState)
         {
             isJumping = false;
         }
-        if (!jumpIsPressed && isWallJumping && stateMachine.CurrentState is WallState || !jumpIsPressed && isJumping && stateMachine.CurrentState is WallState)
+        if (!jumpIsPressed && isWallJumping && stateMachine.CurrentState is WallState or GroundedState|| !jumpIsPressed && isJumping && stateMachine.CurrentState is WallState)
         {
             isWallJumping = false;
         }
@@ -552,10 +559,11 @@ public class RobotMode : BaseMode, IMovementStateController
     public void OnGroundContactRegained()
     {
         OnLand.Invoke(DetermineLandForce());
+        jumpCoyoteTimer.Reset();
     }
     private LandForce DetermineLandForce()
     {
-        print("Land Velocity:" + rb.velocity.y);
+        print(Utils.GetDotProduct(rb.velocity, -tr.up));
         if (IsHeavyLanding())
         {
             return LandForce.Heavy;
@@ -570,6 +578,9 @@ public class RobotMode : BaseMode, IMovementStateController
     }
     public void OnWallStart()
     {
+        isJumping = false;
+        isWallJumping = false;
+        jumpCoyoteTimer.Reset();
         rb.velocity = Vector3.zero;
         groundSpring.enableSpring = false;
         ResetVelocityThisFrame();

@@ -87,7 +87,6 @@ public class CameraShaker : MonoBehaviour
         float YAngle = maxYShake * shakeFactor * Mathf.PerlinNoise(Seed() + 1, Time.realtimeSinceStartup);
         float ZAngle = maxZShake * shakeFactor * Mathf.PerlinNoise(Seed() + 2, Time.realtimeSinceStartup);
 
-        print(xAngle);
         shakyCamera.transform.localRotation =  Quaternion.Euler(xAngle, YAngle,ZAngle);
     }
 
