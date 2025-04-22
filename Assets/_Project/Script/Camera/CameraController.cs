@@ -120,12 +120,12 @@ public class CameraController : MonoBehaviour
     {
         if (smoothCameraRotation)
         {
-            horizontalInput = Mathf.Lerp(0, horizontalInput, Time.deltaTime * cameraSmoothingFactor);
-            verticalInput = Mathf.Lerp(0, verticalInput, Time.deltaTime * cameraSmoothingFactor);
+            horizontalInput = Mathf.Lerp(0, horizontalInput, Time.fixedDeltaTime* cameraSmoothingFactor);
+            verticalInput = Mathf.Lerp(0, verticalInput, Time.fixedDeltaTime * cameraSmoothingFactor);
         }
 
-        currentXAngle += verticalInput * cameraSpeed * Time.deltaTime;
-        currentYAngle += horizontalInput * cameraSpeed * Time.deltaTime;
+        currentXAngle += verticalInput * cameraSpeed * Time.fixedDeltaTime;
+        currentYAngle += horizontalInput * cameraSpeed * Time.fixedDeltaTime;
 
         currentXAngle = Mathf.Clamp(currentXAngle,-upperVerticalLimit,lowerVerticalLimit);
 
