@@ -72,6 +72,8 @@ public class PlayerController : MonoBehaviour, IModeStateController
 
     private void HandlePause(bool isButtonPressed)
     {
+        if (!debugMode) return;
+        
         if (isButtonPressed && !isPaused)
         {
             currentTimeScale = Time.timeScale;

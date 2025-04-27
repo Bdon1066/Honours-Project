@@ -1,12 +1,45 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using ImprovedTimers;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class DebugControls : MonoBehaviour
 {
-    void Update()
+    public InputReader input;
+
+    CountdownTimer resetTimer;
+    private bool canReset = true;
+
+    private void Awake()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        resetTimer = new CountdownTimer(2f);
+        resetTimer.OnTimerStop += OnResetTimerStop;
+        DontDestroyOnLoad(this);
+    }
+    void Start()
+    {
+        input.Exit += ExitGame;
+        input.Reset += ResetGame;
+
+    }
+    private void OnResetTimerStop()
+    {
+        canReset = true;
+    }
+    void ResetGame(bool isButtonPressed)
+    {
+        if (isButtonPressed && canReset)
+        {
+            canReset = false;
+            resetTimer.Start();
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+    }
+    void ExitGame(bool isButtonPressed)
+    {
+        if (isButtonPressed)
         {
             Application.Quit();
         }

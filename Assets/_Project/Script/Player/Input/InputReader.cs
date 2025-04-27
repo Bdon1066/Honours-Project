@@ -25,6 +25,9 @@ public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IP
 
     public event UnityAction<bool> SlowMotion = delegate { };
     public event UnityAction<bool> Pause = delegate { };
+    public event UnityAction<bool> Exit = delegate { };
+    
+    public event UnityAction<bool> Reset = delegate { };
 
     public PlayerInputActions inputActions;
 
@@ -129,6 +132,30 @@ public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IP
                 break;
             case InputActionPhase.Canceled:
                 Pause.Invoke(false);
+                break;
+        }
+    }
+    public void OnExit(InputAction.CallbackContext context)
+    {
+        switch (context.phase)
+        {
+            case InputActionPhase.Started:
+                Exit.Invoke(true);
+                break;
+            case InputActionPhase.Canceled:
+                Exit.Invoke(false);
+                break;
+        }
+    }
+    public void OnReset(InputAction.CallbackContext context)
+    {
+        switch (context.phase)
+        {
+            case InputActionPhase.Started:
+                Reset.Invoke(true);
+                break;
+            case InputActionPhase.Canceled:
+                Reset.Invoke(false);
                 break;
         }
     }
