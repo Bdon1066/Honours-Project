@@ -21,14 +21,14 @@ public class DebugControls : MonoBehaviour
     void Start()
     {
         input.Exit += ExitGame;
-        input.Reset += ResetGame;
+        input.Reset += ResetScene;
 
     }
     private void OnResetTimerStop()
     {
         canReset = true;
     }
-    void ResetGame(bool isButtonPressed)
+    void ResetScene(bool isButtonPressed)
     {
         if (isButtonPressed && canReset)
         {
