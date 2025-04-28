@@ -482,69 +482,47 @@
                 },
                 {
                     "name": "One Modifier",
-                    "id": "a64ca52f-ede1-4b53-be39-e8ae10e0f43f",
+                    "id": "940765e5-24f6-47a7-8f69-85a08f9ecc02",
                     "path": "OneModifier",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Reset",
+                    "action": "Exit",
                     "isComposite": true,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "modifier",
-                    "id": "f3cbe6eb-42af-4a45-92e1-3f72e1ca6fc6",
+                    "id": "deef48d0-98b2-4092-b01d-1e7093a29695",
+                    "path": "<Gamepad>/start",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Gamepad",
+                    "action": "Exit",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "binding",
+                    "id": "36146faa-12c9-47f6-8161-b0d2fea43de7",
+                    "path": "<Gamepad>/select",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Gamepad",
+                    "action": "Exit",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "19fa2c62-9051-459b-be7c-cc7c99d2414a",
                     "path": "<Keyboard>/r",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "Reset",
                     "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "binding",
-                    "id": "d4727fb5-6d0c-4618-b81d-06ef978f850c",
-                    "path": "<Keyboard>/leftShift",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Keyboard&Mouse",
-                    "action": "Reset",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "One Modifier",
-                    "id": "137a84f3-d701-4009-aefe-cf4ba3c204d8",
-                    "path": "OneModifier",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Reset",
-                    "isComposite": true,
                     "isPartOfComposite": false
-                },
-                {
-                    "name": "modifier",
-                    "id": "1dfe32bf-f8d5-4e7d-969d-dff5539ff2b6",
-                    "path": "<Gamepad>/select",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Gamepad",
-                    "action": "Reset",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "binding",
-                    "id": "f9fbbc1a-e156-45d8-8c20-35402179540e",
-                    "path": "<Gamepad>/start",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Reset",
-                    "isComposite": false,
-                    "isPartOfComposite": true
                 }
             ]
         },

@@ -8,14 +8,13 @@ using UnityEngine.UI;
 
 public class SplashScreenScene : MonoBehaviour
 {
-    public Button start;
-    public Button exit;
-    
-    public InputReader input;
-
-    void Start()
+    public void LoadNextScene()
     {
-        
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+    }
+    public void ExitGame()
+    {
+       Application.Quit();
     }
    
 }

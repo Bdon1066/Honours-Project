@@ -32,16 +32,27 @@ public class DebugControls : MonoBehaviour
     {
         if (isButtonPressed && canReset)
         {
-            canReset = false;
-            resetTimer.Start();
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            if (SceneManager.GetActiveScene().buildIndex != 0 || SceneManager.GetActiveScene().buildIndex != 1)
+            {
+                canReset = false;
+                resetTimer.Start();
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            }
+           
         }
     }
     void ExitGame(bool isButtonPressed)
     {
         if (isButtonPressed)
         {
-            Application.Quit();
+            if (SceneManager.GetActiveScene().buildIndex == 1)
+            {
+                Application.Quit();
+            }
+            else if (SceneManager.GetActiveScene().buildIndex != 0)
+            {
+                SceneManager.LoadScene(1);
+            }
         }
     }
 }
