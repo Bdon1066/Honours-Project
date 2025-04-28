@@ -14,6 +14,7 @@ public interface IInputReader
 [CreateAssetMenu(fileName = "PlayerInputReader")]
 public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IPlayerActions
 {
+    
     public event UnityAction<Vector2> Move = delegate { };
     public event UnityAction<Vector2, bool> Look = delegate { };
     public event UnityAction<bool> Jump = delegate { };
@@ -28,6 +29,7 @@ public class InputReader : ScriptableObject, IInputReader, PlayerInputActions.IP
     public event UnityAction<bool> Exit = delegate { };
     
     public event UnityAction<bool> Reset = delegate { };
+    
 
     public PlayerInputActions inputActions;
 
