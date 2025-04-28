@@ -11,23 +11,5 @@ public class RobotHapticSheet : ScriptableObject
     public HapticEffect footstepEffect;
     public HapticEffect wallstepEffect;
     public HapticEffect transform;
-
-    [HideInInspector]public List<HapticEffect> activeEffects = new List<HapticEffect>();
-
-    public void Init()
-    {
-        lightLandEffect.Init();
-        mediumLandEffect.Init();
-        heavyLandEffect.Init();
-        footstepEffect.Init();
-        wallstepEffect.Init();
-        transform.Init();
-
-        activeEffects.Add(heavyLandEffect);
-        activeEffects.Add(mediumLandEffect);
-        activeEffects.Add(lightLandEffect);
-        activeEffects.Add(footstepEffect);
-        activeEffects.Add(transform);
-        activeEffects.Add(wallstepEffect);
-    }
+    
 }

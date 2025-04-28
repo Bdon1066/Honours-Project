@@ -509,7 +509,6 @@ public class RobotMode : BaseMode, IMovementStateController
     }
     void ResetJump()
     {
-        print(isWallJumping);
         if (!jumpIsPressed && isJumping && stateMachine.CurrentState is GroundedState)
         {
             isJumping = false;

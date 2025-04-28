@@ -17,48 +17,7 @@ public class HapticEffect : ScriptableObject
     public float duration = 0f;
     [Space]
     public Type type = Type.Oneshot;
-
-    float lowSpeed;
-    float highSpeed;
+    
     public enum Type {Oneshot,Loop}
-
-    CountdownTimer timer;
-
-    public void Init()
-    {
-        timer = new CountdownTimer(duration);
-        timer.OnTimerStop += OnTimerStop;
-   
-    }
-    private void OnTimerStop()
-    {
-        if (type == Type.Oneshot)
-        {
-            Stop();
-            return;
-        }
-
-        timer.Start();
-    }
-    public void Tick()
-    {
-       if (!timer.IsRunning) return;
-       float progress = 1-(timer.CurrentTime / duration);
-        
-       lowSpeed = lowSpeedIntesity * lowSpeedCurve.Evaluate(progress);
-       highSpeed = highSpeedIntesity*highSpeedCurve.Evaluate(progress);
-
-       Gamepad.current.SetMotorSpeeds(lowSpeed, highSpeed);
-
-    }
-    public void Start()
-    {
-        timer.Start();
-    }
-    public void Stop()
-    {
-        Gamepad.current.SetMotorSpeeds(0f, 0f);
-    }
-
 }
 

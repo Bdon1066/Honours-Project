@@ -17,56 +17,42 @@ public class RobotHapticPlayer : MonoBehaviour
         robot.OnLand += HandleLand;
         robot.ToCar += HandleTransform;
         robot.OnWall += HandleWall;
-        effects.Init();
        
     }
 
     private void HandleWall(Vector3 vector)
     {
-        effects.mediumLandEffect.Start();
+        HapticManager.Instance.PlayOneShot(effects.mediumLandEffect);
     }
 
     private void HandleTransform()
     {
-       effects.transform.Start();
+       HapticManager.Instance.PlayOneShot(effects.transform);
     }
-
-    private void Update()
-    {
-        foreach (var effect in effects.activeEffects)
-        {
-            effect.Tick();
-
-        }
-    }
+    
     private void HandleLand(LandForce force)
     {
         switch (force)
         {
             case LandForce.Heavy:
-                effects.heavyLandEffect.Start();
+                HapticManager.Instance.PlayOneShot( effects.heavyLandEffect);
                 break;
             case LandForce.Medium:
-                effects.mediumLandEffect.Start();
+                HapticManager.Instance.PlayOneShot(effects.mediumLandEffect);
                 break;
             case LandForce.Light:
-                effects.lightLandEffect.Start(); 
+                HapticManager.Instance.PlayOneShot(effects.lightLandEffect);
                 break;
         }
     }
     public void HandleFootstepHaptics()
     {
         if (robot.GetVelocity().magnitude < 0.1f) return;
-        effects.footstepEffect.Start();
+        HapticManager.Instance.PlayOneShot(effects.footstepEffect);
     }
     public void HandleWallstepHaptics()
     {
         if (robot.GetVelocity().magnitude < 0.1f) return;
-        effects.wallstepEffect.Start();
-    }
-
-    private void OnApplicationQuit()
-    {
-        Gamepad.current.ResetHaptics();
+        HapticManager.Instance.PlayOneShot(effects.wallstepEffect);
     }
 }

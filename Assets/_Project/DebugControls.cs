@@ -22,12 +22,7 @@ public class DebugControls : MonoBehaviour
 
     private void OnEnable()
     {
-        SceneManager.sceneLoaded += OnSceneLoaded;
         resetTimer.OnTimerStop += OnResetTimerStop;
-    }
-    private void OnSceneLoaded(Scene arg0, LoadSceneMode arg1)
-    {
-        Gamepad.current.SetMotorSpeeds(0,0f);
     }
     void Start()
     {

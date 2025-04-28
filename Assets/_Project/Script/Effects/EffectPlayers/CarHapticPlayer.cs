@@ -11,61 +11,46 @@ public class CarHapticPlayer : MonoBehaviour
     public CollisionReader carCollision;
 
 
+    private HapticInstance Engine;
+
     void Start()
     {
-        //robot.OnLand += HandleLand;
         car.ToRobot += HandleTransform;
         car.OnEnter += HandleCarEnter;
         carCollision.OnCollision += HandleCollison;
-
-        effects.Init();
-
     }
 
     private void HandleCollison(Collision collision)
     {
         if (!car.isEnabled) return;
-        effects.impact.Start();
+        HapticManager.Instance.PlayOneShot(effects.impact);
     }
 
     private void HandleCarEnter()
     {
-       effects.engine.Start();
-        print("StartEngine");
+        Engine = HapticManager.Instance.Play(effects.engine);
     }
 
     private void HandleTransform()
     {
-        effects.transform.Start();
-        effects.engine.Stop();
+        HapticManager.Instance.PlayOneShot(effects.transform);
+        Engine.Stop();
+        Engine.Release();
     }
 
     private void Update()
     {
-        foreach (var effect in effects.activeEffects)
-        {
-            effect.Tick();
-            
-           
-        }
         if (car.IsGrounded())
         {
             effects.engine.lowSpeedIntesity = car.normalizedSpeed;
         }
-
-       
     }
     private void HandleLand(LandForce force)
     {
-        
+        //noop
     }
     public void HandleFootstepHaptics()
     {
        // effects.footstepEffect.Start();
-    }
-
-    private void OnApplicationQuit()
-    {
-        Gamepad.current.ResetHaptics();
     }
 }
