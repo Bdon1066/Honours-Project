@@ -316,7 +316,6 @@ public class RobotMode : BaseMode, IMovementStateController
         ApplyVelocity();
         groundSpring.extendSensor = stateMachine.CurrentState is not (FallingState or RisingState or JumpingState);
         ResetJump();
-        print(stateMachine.CurrentState);
     }
     void HandleWallMovement()
     {
