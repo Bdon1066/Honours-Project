@@ -5,11 +5,11 @@ using UnityEngine.SceneManagement;
 
 public class InitScene : MonoBehaviour
 {
-    void Awake()
+    void Start()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        //SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
         
-        //SceneTransitioner.Instance.TransitionToNextScene();
+        SceneTransitioner.Instance.TransitionToNextScene();
     }
     
 }
