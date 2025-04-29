@@ -8,6 +8,8 @@ public class InitScene : MonoBehaviour
     void Awake()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        
+        //SceneTransitioner.Instance.TransitionToNextScene();
     }
     
 }

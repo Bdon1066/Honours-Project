@@ -38,7 +38,7 @@ public class GroundSpring : MonoBehaviour
         rb = tr.GetComponent<Rigidbody>();
         col = tr.GetComponent<Collider>();
         ResetGroundSpring();
-        
+        SetupGroundSensor();
     }
     public void ResetGroundSpring()
     {

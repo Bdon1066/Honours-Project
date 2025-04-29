@@ -48,7 +48,6 @@ public class CarAudioPlayer : MonoBehaviour
         Impact.setParameterByName("Speed", normalizedImpactSpeed);
 
         Impact.start();
-        print("CAR Audio!");
 
         //PlayOneShot(carAudio.impact,other.GetContact(0).point);
     }

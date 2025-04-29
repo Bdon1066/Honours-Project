@@ -85,6 +85,8 @@ public class RobotMode : BaseMode, IMovementStateController
     Vector3 velocityThisFrame, verticalVelocityThisFrame, horizontalVelocityThisFrame, velocityStep;
     bool isEnabled;
 
+    private bool hasAwoken;
+
 
     public event Action<Vector3> OnJump = delegate { };
     public event Action<Vector3> OnFall = delegate { };
@@ -130,11 +132,12 @@ public class RobotMode : BaseMode, IMovementStateController
 
         groundSpring.AwakeGroundSpring();
         wallSpring.AwakeGroundSpring();
-
+        CheckClimbCutoff();
         SetupStateMachine();
         SetupJumpParameters(maxJumpHeight, maxJumpTime);
 
         HideModel();
+        hasAwoken = true;
     }
     void SetupStateMachine()
     {
@@ -251,7 +254,11 @@ public class RobotMode : BaseMode, IMovementStateController
         input.Jump -= HandleJumpInput;
     }
 
-    void Update() => stateMachine.Update();
+    void Update()
+    {
+        if (!hasAwoken) return;
+        stateMachine.Update();
+    }
     void FixedUpdate()
     {
         if (isTransforming)
@@ -561,7 +568,6 @@ public class RobotMode : BaseMode, IMovementStateController
     }
     private LandForce DetermineLandForce()
     {
-        print(Utils.GetDotProduct(rb.velocity, -tr.up));
         if (IsHeavyLanding())
         {
             return LandForce.Heavy;

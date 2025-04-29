@@ -445,7 +445,6 @@ public class CarMode : BaseMode, IMovementStateController
         //Acceleration
         if (isAccelerating && !isBraking)
         {
-            print("ACCELERATE");
             //create force in the wheel forward direction from our torque
             rb.AddForceAtPosition(acclerationForce, wheelRay.tr.position);
         }
@@ -453,7 +452,6 @@ public class CarMode : BaseMode, IMovementStateController
         //Reverse
         if (isBraking && !isAccelerating)
         {
-            print("REVERSE");
             //create force in the wheel forward direction from our torque
             rb.AddForceAtPosition(reverseForce, wheelRay.tr.position);
         }

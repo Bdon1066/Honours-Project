@@ -54,6 +54,7 @@ public class PlayerController : MonoBehaviour, IModeStateController
         transformCooldowmTimer = new CountdownTimer(transformCooldownDuration);
         transformCooldowmTimer.OnTimerStop += HandleTransformCooldown;
         Cursor.lockState = CursorLockMode.Locked;
+        //AwakeModes();
     }
 
    
