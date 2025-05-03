@@ -218,8 +218,6 @@ public class RobotMode : BaseMode, IMovementStateController
         isEnabled = true;
 
         input.Jump += HandleJumpInput;
-        ///AAAAAAAAAAAAAAAAAAAAAAAAA LOWER FRAME RATES MESS WITH THE JUMP I KNEW IT 
-        //Application.targetFrameRate = 30;
     }
     public override void TransformTo(BaseMode fromMode)
     {

@@ -11,12 +11,10 @@ using Timer = ImprovedTimers.Timer;
 public class HapticManager : PersistentSingleton<HapticManager>
 {
     private List<HapticInstance> hapticInstances = new List<HapticInstance>();
-
-
     private float totalLowSpeed;
     private float totalHighSpeed;
 
-    public bool HasGamepad() => Gamepad.current != null;
+    bool HasGamepad() => Gamepad.current != null;
 
     void OnEnable()
     {
@@ -76,10 +74,6 @@ public class HapticManager : PersistentSingleton<HapticManager>
                 i--;
             }
         }
-        
-        
-        
-        
         Gamepad.current.SetMotorSpeeds(totalLowSpeed, totalHighSpeed);
     }
     private void HandlePlaying(HapticInstance instance)
@@ -92,9 +86,8 @@ public class HapticManager : PersistentSingleton<HapticManager>
         
         totalLowSpeed = Mathf.Clamp01(totalLowSpeed += lowSpeed);
         totalHighSpeed = Mathf.Clamp01(totalHighSpeed += highSpeed);
-        
-       
-    }
+    }       
+
     private void OnDestroy()
     {
         if (HasGamepad())
@@ -117,17 +110,13 @@ public class HapticManager : PersistentSingleton<HapticManager>
             instance.Stop();
         }
     }
-
 }
 
 public class HapticInstance
 {
     public HapticEffect Effect;
-    
     public CountdownTimer Timer { get; private set; }
-    
     public bool IsPlaying { get; private set; }
-
     public bool destroyFlag;
 
     public HapticInstance(HapticEffect effect)
@@ -149,14 +138,11 @@ public class HapticInstance
         
         Timer.Start();
     }
-
-
     public void Start()
     {
         Timer.Start();
         IsPlaying = true;
     }
-    
     public void Stop()
     {
         Timer.Stop();
@@ -168,7 +154,4 @@ public class HapticInstance
         Timer.OnTimerStop -= OnDurationReached;
         destroyFlag = true;
     }
-    
-    
-    
 }

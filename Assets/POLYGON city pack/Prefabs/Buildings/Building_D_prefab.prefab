@@ -140,7 +140,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6938156668417724385}
   - component: {fileID: 4629661262566033866}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: GameObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -181,5 +181,5 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 1, y: 1.0813007, z: 1}
+  m_Center: {x: 0, y: -0.040650424, z: 0}

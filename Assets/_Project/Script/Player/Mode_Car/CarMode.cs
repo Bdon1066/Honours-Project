@@ -202,7 +202,7 @@ public class CarMode : BaseMode, IMovementStateController
         rb.centerOfMass = centerOfMass;
     }
 
-    private void HandleTransformingMovement()
+    void HandleTransformingMovement()
     {
         //get our robot mode's transform and set position
         rb.position = fromModeTr.position;
