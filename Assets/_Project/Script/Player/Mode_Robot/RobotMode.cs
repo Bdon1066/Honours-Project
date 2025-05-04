@@ -82,7 +82,7 @@ public class RobotMode : BaseMode, IMovementStateController
 
     bool jumpIsPressed, isJumping, isWallJumping;
 
-    Vector3 velocityThisFrame, verticalVelocityThisFrame, horizontalVelocityThisFrame, velocityStep;
+    Vector3 forceThisFrame, verticalForceThisFrame, horizontalForceThisFrame, velocityStep;
     bool isEnabled;
 
     private bool hasAwoken;
@@ -97,8 +97,8 @@ public class RobotMode : BaseMode, IMovementStateController
     public event Action ToCar = delegate { };
     public event Action ToRobot = delegate { };
     public override Vector3 GetVelocity() => rb.velocity;
-    public Vector3 GetHorizontalVelocity() => horizontalVelocityThisFrame;
-    public Vector3 GetVerticalVelocity() => verticalVelocityThisFrame;
+    public Vector3 GetHorizontalVelocity() => horizontalForceThisFrame;
+    public Vector3 GetVerticalVelocity() => verticalForceThisFrame;
     public override Transform GetRootBone() => rootBone;
     public override void SetPosition(Vector3 position) => tr.transform.position = position;
 
@@ -307,7 +307,6 @@ public class RobotMode : BaseMode, IMovementStateController
         {
             HandleHorizontalMovement();
         }
-
         if (stateMachine.CurrentState is JumpingState)
         {
             HandleJumping();
@@ -335,9 +334,9 @@ public class RobotMode : BaseMode, IMovementStateController
         force = Utils.RemoveDotVector(force, wallDirection);
 
         //add movement force to our velocity this frame
-        verticalVelocityThisFrame.y += force.y;
-        horizontalVelocityThisFrame.x += force.x;
-        horizontalVelocityThisFrame.z += force.z;
+        verticalForceThisFrame.y += force.y;
+        horizontalForceThisFrame.x += force.x;
+        horizontalForceThisFrame.z += force.z;
 
         //enable ground detection when our vertical move direction is negative
         groundSpring.enableSpring = (moveDirection.y < 0);
@@ -356,9 +355,9 @@ public class RobotMode : BaseMode, IMovementStateController
         force = Utils.RemoveDotVector(force, wallDirection);
 
         //add movement force to our velocity this frame
-        verticalVelocityThisFrame.y += force.y;
-        horizontalVelocityThisFrame.x += force.x;
-        horizontalVelocityThisFrame.z += force.z;
+        verticalForceThisFrame.y += force.y;
+        horizontalForceThisFrame.x += force.x;
+        horizontalForceThisFrame.z += force.z;
 
     }
     private void CheckClimbCutoff()
@@ -374,9 +373,9 @@ public class RobotMode : BaseMode, IMovementStateController
     }
     void ResetVelocityThisFrame()
     {
-        velocityThisFrame = Vector3.zero;
-        horizontalVelocityThisFrame = Vector3.zero;
-        verticalVelocityThisFrame = Vector3.zero;
+        forceThisFrame = Vector3.zero;
+        horizontalForceThisFrame = Vector3.zero;
+        verticalForceThisFrame = Vector3.zero;
     }
     void HandleHorizontalMovement()
     {
@@ -389,7 +388,7 @@ public class RobotMode : BaseMode, IMovementStateController
         Vector3 force = CreateForce(maxMoveVelocity, groundAcceleration, maxGroundAccelerationForce, new Vector3(1, 0, 1));
 
         //add movement force to our velocity this frame
-        horizontalVelocityThisFrame += force;
+        horizontalForceThisFrame += force;
     }
     Vector3 CreateForce(Vector3 maxVelocity, float acceleration, float maxAcceleration, Vector3 forceScale)
     {
@@ -438,13 +437,12 @@ public class RobotMode : BaseMode, IMovementStateController
 
             //create a target rotation in that direction
             targetRotation = Quaternion.LookRotation(lookDirection, Vector3.up);
-            //lerp toward that rotation via rotateSpeed
+           
         }
-
-
+        //lerp toward that rotation via rotateSpeed
         rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, rotateSpeed * Time.fixedDeltaTime);
     }
-    private void SetupJumpParameters(float jumpHeight, float jumpTime)
+    void SetupJumpParameters(float jumpHeight, float jumpTime)
     {
         float timeToApex = jumpTime / 2;
 
@@ -454,14 +452,14 @@ public class RobotMode : BaseMode, IMovementStateController
     }
     void HandleJumping()
     {
-        verticalVelocityThisFrame.y = 0;
+        verticalForceThisFrame.y = 0;
         if (!postJumpTimer.IsFinished) return;
         isJumping = true;
         groundSpring.enableSpring = false;
 
         SetupJumpParameters(maxJumpHeight, maxJumpTime);
 
-        verticalVelocityThisFrame.y = (initalJumpSpeed / Time.fixedDeltaTime) * rb.mass;
+        verticalForceThisFrame.y = (initalJumpSpeed / Time.fixedDeltaTime) * rb.mass;
     }
     void HandleWallJumping()
     {
@@ -473,7 +471,7 @@ public class RobotMode : BaseMode, IMovementStateController
         Vector3 moveDirection = wallSpring.ContactNormal();
         Vector3 horizontalWallJumpVelocity = moveDirection * horizontalWallJumpSpeed;
 
-        verticalVelocityThisFrame.y = (initalJumpSpeed / Time.fixedDeltaTime) * rb.mass;
+        verticalForceThisFrame.y = (initalJumpSpeed / Time.fixedDeltaTime) * rb.mass;
         //horizontalVelocityThisFrame = horizontalWallJumpVelocity * rb.mass;
         rb.AddForce((horizontalWallJumpVelocity / Time.fixedDeltaTime) * rb.mass, ForceMode.Impulse);
         postWallJumpTimer.Start();
@@ -481,23 +479,24 @@ public class RobotMode : BaseMode, IMovementStateController
     void HandleGravity()
     {
         if (stateMachine.CurrentState is WallState or ClimbEndState) return;
-        verticalVelocityThisFrame.y -= gravity * rb.mass * GetPostApexGravityMultiplier();
+        verticalForceThisFrame.y -= gravity * rb.mass * GetPostApexGravityMultiplier();
     }
 
     void ApplyVelocity()
     {
-        //MAYBE REMOVE THIS, COULD CAUSE CRAZINESS
-        if (horizontalVelocityThisFrame.magnitude < 5f)
+        //dont apply small forces
+        if (horizontalForceThisFrame.magnitude < 5f)
         {
-            horizontalVelocityThisFrame = Vector3.zero;
+            horizontalForceThisFrame = Vector3.zero;
         }
+        // dont apply downward velocity when at maxFallSpeed
         if (Utils.GetDotProduct(rb.velocity, -tr.up) > maxFallSpeed)
         {
-            verticalVelocityThisFrame = Vector3.zero;
+            verticalForceThisFrame = Vector3.zero;
         }
-        velocityThisFrame = horizontalVelocityThisFrame + verticalVelocityThisFrame;
-
-        rb.AddForce(velocityThisFrame);
+        
+        forceThisFrame = horizontalForceThisFrame + verticalForceThisFrame;
+        rb.AddForce(forceThisFrame);
     }
     void HandleJumpInput(bool isButtonPressed)
     {
@@ -541,12 +540,12 @@ public class RobotMode : BaseMode, IMovementStateController
 
     public void OnJumpStart()
     {
-        OnJump.Invoke(velocityThisFrame);
+        OnJump.Invoke(forceThisFrame);
 
     }
     public void OnWallJumpStart()
     {
-        OnJump.Invoke(velocityThisFrame);
+        OnJump.Invoke(forceThisFrame);
     }
     public void OnFallStart()
     {
@@ -556,7 +555,7 @@ public class RobotMode : BaseMode, IMovementStateController
         {
             jumpCoyoteTimer.Start();
         }
-        OnFall.Invoke(velocityThisFrame);
+        OnFall.Invoke(forceThisFrame);
     }
 
     public void OnGroundContactRegained()
@@ -587,7 +586,7 @@ public class RobotMode : BaseMode, IMovementStateController
         rb.velocity = Vector3.zero;
         groundSpring.enableSpring = false;
         ResetVelocityThisFrame();
-        OnWall.Invoke(velocityThisFrame);
+        OnWall.Invoke(forceThisFrame);
         print("StartingWall!");
     }
     public void OnClimbEnd()

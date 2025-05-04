@@ -87,7 +87,7 @@ public class GroundSpring : MonoBehaviour
         }
         groundSensor.GetCastDirection();
     }
-    public void ApplySpringForce()
+    void ApplySpringForce()
     {
         if (!enableSpring) return;
         //get velocity in the spring direction

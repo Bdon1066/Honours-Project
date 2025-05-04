@@ -143,7 +143,7 @@ public class CameraController : MonoBehaviour
         Quaternion rot = cameraTargetTransform.localRotation;
         float fov = cam.fieldOfView;
         
-        float progress = 0.0f;  //This value is used for LERP
+        float progress = 0.0f;
 
         while (progress < 1f)
         {
