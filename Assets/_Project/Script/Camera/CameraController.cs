@@ -91,7 +91,7 @@ public class CameraController : MonoBehaviour
         }
     }
 
-    private void HandleFOV()
+    void HandleFOV()
     {
         if (!adjustFov) return;
         targetFOV = Mathf.Lerp(minFOV, maxFOV,  carMode.normalizedSpeed);

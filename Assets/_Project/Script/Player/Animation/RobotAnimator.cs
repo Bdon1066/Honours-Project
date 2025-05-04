@@ -95,7 +95,7 @@ public class RobotAnimator : MonoBehaviour
         }
         return time;
     }
-    //Because the transforming animtions dont account for every bone, using them causes the model to deform permanentely
+    //Because the transforming animations don't account for every bone, using them causes the model to deform permanently
     //To fix this we save ALL the bone transforms and load back to them after each transform anim has completed
     //I hate it too i know
     void SaveBoneTransforms()
@@ -143,6 +143,8 @@ public class RobotAnimator : MonoBehaviour
         animator.SetFloat(verticalWallSpeedHash, verticalVelocity.y,0.1f,Time.deltaTime);
         animator.SetFloat(horizontalWallSpeedHash,horizontalVelocityFloat,0.1f,Time.deltaTime);
     }
+    //when transforming, we want to cache the last animation pose to enter
+    //into once transforming is complete
     void PlayOrCacheAnimation(int animHash,float normalizedTransitionDuration,int layer)
     {
         if (!isTransforming)

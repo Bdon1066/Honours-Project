@@ -71,19 +71,17 @@ public class RobotVFXPlayer : MonoBehaviour
 
     private void HeavyLandEffects()
     {
+        //rotate vfx to look up around the normal of the ground
         Quaternion rotation = Quaternion.LookRotation(-robot.groundSpring.ContactNormal());
+        
+        //position effect slightly above ground and forward of the player 
         Vector3 position = robot.groundSpring.ContactPosition() + 0.01f * robot.groundSpring.ContactNormal() + 0.01f * robot.transform.forward;
         Instantiate(landVFX, position, rotation);
-
+    
+        //play smoke effect
         Quaternion smokeRotation = Quaternion.Euler(270f, 0.0f, 0.0f);
-
         Instantiate(smokeVFX, position, smokeRotation);
-        //Gamepad.current.SetMotorSpeeds(1f, 1f);
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
         
     }
+
 }

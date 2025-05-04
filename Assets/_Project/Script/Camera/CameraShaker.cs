@@ -66,13 +66,13 @@ public class CameraShaker : MonoBehaviour
 
     void FixedUpdate()
     {
+        //if there is trauma, tick it down every second and shake the camera
         if (trauma > 0)
         {
             trauma -= Time.deltaTime * shakeFallOffFactor;
             ShakeCamera();
         }
-
-
+        //if no trauma, reset camera rotation
         if (trauma <= 0)
         {
             shakyCamera.transform.localRotation = Quaternion.identity;
@@ -81,21 +81,23 @@ public class CameraShaker : MonoBehaviour
 
     void ShakeCamera()
     {
+        //shakefactor is trauma squared, looks better
         shakeFactor = Mathf.Pow(trauma, 2);
 
+        //use perlin noise to add smooth randomness to the shake
         float xAngle = maxXShake * shakeFactor * Mathf.PerlinNoise(Seed(), Time.realtimeSinceStartup);
         float YAngle = maxYShake * shakeFactor * Mathf.PerlinNoise(Seed() + 1, Time.realtimeSinceStartup);
         float ZAngle = maxZShake * shakeFactor * Mathf.PerlinNoise(Seed() + 2, Time.realtimeSinceStartup);
 
+        //apply rotation to camera
         shakyCamera.transform.localRotation = Quaternion.Euler(xAngle, YAngle, ZAngle);
     }
 
-    public void Shake(float value)
+    void Shake(float value)
     {
         value = Mathf.Clamp01(value);
         trauma += value;
         trauma = Mathf.Clamp01(trauma);
-
     }
 
 }

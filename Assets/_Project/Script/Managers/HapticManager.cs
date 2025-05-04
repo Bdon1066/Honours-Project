@@ -38,7 +38,6 @@ public class HapticManager : PersistentSingleton<HapticManager>
     /// <summary>
     /// Plays an effect and enforces it to be one shot.Useful if you just want to play the effect and forget about it.
     /// </summary>
-    /// <param name="effect"></param>
     public void PlayOneShot(HapticEffect effect)
     {
         var instance = CreateInstance(effect);
@@ -135,7 +134,6 @@ public class HapticInstance
             Release();
             return;
         }
-        
         Timer.Start();
     }
     public void Start()

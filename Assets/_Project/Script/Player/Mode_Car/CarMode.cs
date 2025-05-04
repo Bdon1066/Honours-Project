@@ -181,7 +181,7 @@ public class CarMode : BaseMode, IMovementStateController
     bool IsFalling() => Utils.GetDotProduct(rb.velocity, tr.up) < 0f;
     void At(IState from, IState to, IPredicate condition) => stateMachine.AddTransition(from, to, condition);
     void Any(IState to, IPredicate condition) => stateMachine.AddAnyTransition(to, condition);
-   void Update() => stateMachine.Update();
+    void Update() => stateMachine.Update();
     void FixedUpdate()
     {
         UpdateCOM();
@@ -277,9 +277,6 @@ public class CarMode : BaseMode, IMovementStateController
         Quaternion targetRotation = Quaternion.Euler(inputAngle, tr.rotation.eulerAngles.y, tr.rotation.eulerAngles.z);
        
         tr.rotation = Quaternion.Slerp(tr.localRotation, fallRotation, 0.1f);
-  
-       
-      
     }
     void HandleSuspension(WheelRay wheelRay)
     {
@@ -337,33 +334,25 @@ public class CarMode : BaseMode, IMovementStateController
     }
      void HandleSteering(WheelRay wheelRay, Axle axle)
     {
-        //Get our wheels current forward, steer direction and velocity
         Vector3 forwardDirection = wheelRay.tr.forward;
         Vector3 steeringDirection = wheelRay.tr.right;
         Vector3 wheelVelocity = rb.GetPointVelocity(wheelRay.tr.position);
 
-        //calculate the magntude of our velocity in both forward and side direction
-        float forwardMagnitude = Vector3.Project(wheelVelocity, forwardDirection).magnitude;
+        //calculate the magnitude of our velocity in the side direction
         float sideMagnitude = Vector3.Project(wheelVelocity, steeringDirection).magnitude;
-
-        
+        //get ratio of velocity in sideward direction
         float steerVelocityRatio = Mathf.Clamp01(Mathf.Abs(sideMagnitude) / wheelVelocity.magnitude);
-
-        //print(steerVelocityRatio);
-
+        //calculate wheel grip values
         float grip = CalculateWheelGrip(axle.axleLocation,steerVelocityRatio);
-       
-      
+        
         //get our wheel's velocity in the steering direction
         float steeringVelocity = Vector3.Dot(steeringDirection, wheelVelocity);
-
         //apply an opposing grip velocity that opposes the steer force
         float velocityChange = -steeringVelocity * grip;
-
         //calculate acceleration from velocity
         float steerAcceleration = velocityChange / Time.fixedDeltaTime;
 
-        //add this veolcity as a force taking into account wheel mass at each wheel position
+        //add this velocity as a force taking into account wheel mass at each wheel position
         rb.AddForceAtPosition(steeringDirection * steerAcceleration, wheelRay.tr.position);
 
         if (debugMode) ////Show our direction of steerforce in yellow
@@ -428,37 +417,30 @@ public class CarMode : BaseMode, IMovementStateController
 
         //Get the ratio of our speed to our maxSpeed;
         normalizedSpeed = Mathf.Clamp01(Mathf.Abs(speed) / maxSpeed);
-        
-        
         //if at max speed, do not apply torque
         if (normalizedSpeed >= 1) { return; }
 
-        //get our torque from the lookup curve and apply our accerlation 
-        float torque = accelerationPowerCurve.Evaluate(normalizedSpeed) * acceleration; //todo add acceleration input here
-
-        //get our torque from the lookup curve and apply our reverse based on input so its most promimenent at the lowest input
+        //get our torque from the lookup curve and apply our acceleration 
+        float torque = accelerationPowerCurve.Evaluate(normalizedSpeed) * acceleration;
+        //get our torque from the lookup curve and apply our reverse based on input
         float reverseTorque = reversePowerCurve.Evaluate(normalizedSpeed) * reverseAcceleration;
 
-        Vector3 acclerationForce = accelerationDirection * torque;
+        Vector3 accelerationForce = accelerationDirection * torque;
         Vector3 reverseForce = -accelerationDirection * reverseTorque;
 
         //Acceleration
         if (isAccelerating && !isBraking)
         {
             //create force in the wheel forward direction from our torque
-            rb.AddForceAtPosition(acclerationForce, wheelRay.tr.position);
+            rb.AddForceAtPosition(accelerationForce, wheelRay.tr.position);
         }
-        
         //Reverse
         if (isBraking && !isAccelerating)
         {
-            //create force in the wheel forward direction from our torque
+            //create force in the wheel backward direction from our torque
             rb.AddForceAtPosition(reverseForce, wheelRay.tr.position);
         }
-        
-
     }
-    
     private void HandleBraking(WheelRay wheelRay)
     {
         Vector3 forwardDirection = wheelRay.tr.forward;
