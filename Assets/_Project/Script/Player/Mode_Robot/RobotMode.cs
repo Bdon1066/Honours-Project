@@ -152,7 +152,7 @@ public class RobotMode : BaseMode, IMovementStateController
         var wallJumping = new WallJumpingState(this);
         var heavyLanded = new HeavyLandedState(this);
 
-        //When at grounded state, we will go to rising state when IsRising is true
+        //When at grounded state, we will go to rising state when no ground contact and IsRising is true
         At(grounded, rising, new FuncPredicate(() => !groundSpring.InContact() && IsRising()));
         At(grounded, wall, new FuncPredicate(() => IsOnWall() && !NegativeYInput()));
         At(grounded, falling, new FuncPredicate(() => !groundSpring.InContact()));
@@ -317,7 +317,7 @@ public class RobotMode : BaseMode, IMovementStateController
         }
 
         HandleGravity();
-        ApplyVelocity();
+        ApplyForce();
         groundSpring.extendSensor = stateMachine.CurrentState is not (FallingState or RisingState or JumpingState);
         ResetJump();
     }
@@ -482,14 +482,14 @@ public class RobotMode : BaseMode, IMovementStateController
         verticalForceThisFrame.y -= gravity * rb.mass * GetPostApexGravityMultiplier();
     }
 
-    void ApplyVelocity()
+    void ApplyForce()
     {
         //dont apply small forces
         if (horizontalForceThisFrame.magnitude < 5f)
         {
             horizontalForceThisFrame = Vector3.zero;
         }
-        // dont apply downward velocity when at maxFallSpeed
+        // dont apply downward forces when at maxFallSpeed
         if (Utils.GetDotProduct(rb.velocity, -tr.up) > maxFallSpeed)
         {
             verticalForceThisFrame = Vector3.zero;
